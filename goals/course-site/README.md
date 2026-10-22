@@ -82,6 +82,7 @@ flowchart TD
     TASK_021["TASK-021 Library: Euler equation, SDF and Hansen–Jagannathan bound"]
     TASK_022["TASK-022 Chapter 2: Expected return and risk"]
     TASK_023["TASK-023 Chapter 3: Regression and standard errors"]
+    TASK_024["TASK-024 Chapter 4: Autocorrelation and Newey–West"]
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
   end
