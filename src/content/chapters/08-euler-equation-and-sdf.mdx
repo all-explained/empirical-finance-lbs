@@ -4,7 +4,7 @@ part: 1
 chapter: 8
 difficulty: 2
 prerequisites: [1, 7]
-summary: "One equation, p = E[Mx], prices every asset, and the market's Sharpe ratio tells you how much the discount factor M must vary."
+summary: "One equation, P = E[MX], prices every asset, and the market's Sharpe ratio tells you how much the discount factor M must vary."
 ---
 
 import SDFExplorer from '../../components/plots/SDFExplorer';
@@ -28,7 +28,7 @@ short version of the three tools this chapter uses from it.
 
 ## <span class="section-tag">Hook</span> What does the equity premium say about investors?
 
-From July 1926 to August 2026, the US stock market paid 8.3% a year more than one-month Treasury bills, on
+From July 1926 to August 2026, the US stock market paid 8.3% a year more than Treasury bills, on
 average. The data is the market excess return in ff3-monthly, 1,202 months. That reward came with risk: the
 volatility of the excess return was 18.4% a year. Divide the first number by the second and you get the market's
 **Sharpe ratio**, 0.45.
@@ -39,13 +39,13 @@ risky dollar next year is worth today. If you could see the rule, could you tell
 investors set it?
 
 This chapter builds that rule from one decision: how much to save. It gives one formula for the price of any asset,
-$p = \mathbb{E}[\SDF{M}x]$. At the end, the number 0.45 turns into a fact about the rule itself. The discount
+$P = \mathbb{E}[\SDF{M}X]$. At the end, the number 0.45 turns into a fact about the rule itself. The discount
 factor $\SDF{M}$ must swing by at least 45% of its mean every year.
 
 ## <span class="section-tag">Intuition</span> Not every dollar is worth the same
 
 Think of next year as two possible **states of the world**: bad times and good times. In bad times, jobs are lost
-and you consume little. In good times, you consume a lot. A payoff is a list of what an asset pays in each state.
+and you consume little. In good times, you consume a lot. A payoff $X$ is a list of what an asset pays in each state.
 
 An extra dollar is worth more to you when you have few of them. So a dollar that arrives in bad times is worth
 more today than a dollar that arrives in good times. The **stochastic discount factor** (SDF) $\SDF{M}$ puts a
@@ -53,7 +53,7 @@ number on this. It is a list with one value per state: what one dollar in that s
 unit of probability. "Stochastic" means random: you do not know today which value applies.
 
 The price of a payoff then follows from one rule. For each state, multiply the payoff by $\SDF{M}$ and by the
-probability of the state. Then add up the states. That is an expected value: $p = \mathbb{E}[\SDF{M}x]$.
+probability of the state. Then add up the states. That is an expected value: $P = \mathbb{E}[\SDF{M}X]$.
 
 <SDFExplorer client:visible />
 
@@ -77,7 +77,7 @@ accept a low return because insurance pays off in exactly the states they fear.
 that pays in bad times is expensive and has a low expected return. An asset that pays in good times is cheap and
 has a high expected return.</Callout>
 
-## <span class="section-tag">Formalisation</span> From a saver's choice to $p = \mathbb{E}[\SDF{M}x]$
+## <span class="section-tag">Formalisation</span> From a saver's choice to $P = \mathbb{E}[\SDF{M}X]$
 
 ### The Euler equation
 
@@ -95,7 +95,10 @@ The investor has an income $e_t$ today and $e_{t+1}$ next period. They can buy $
 $P_t$, and each unit pays $X_{t+1}$ at $t+1$. So
 
 $$
-C_t = e_t - P_t\,\xi, \qquad C_{t+1} = e_{t+1} + X_{t+1}\,\xi.
+\begin{aligned}
+C_t &= e_t - P_t\,\xi, \\
+C_{t+1} &= e_{t+1} + X_{t+1}\,\xi.
+\end{aligned}
 $$
 
 The investor picks $\xi$ to make utility as large as possible. At the best $\xi$, the derivative of utility with
@@ -104,8 +107,12 @@ gives $\delta\,\mathbb{E}_t[u'(C_{t+1}) \times X_{t+1}]$, because the derivative
 expectation of the derivative. Set the sum to zero:
 
 $$
--P_t\,u'(C_t) + \delta\,\mathbb{E}_t[u'(C_{t+1})\,X_{t+1}] = 0
-\quad\Longrightarrow\quad
+-P_t\,u'(C_t) + \delta\,\mathbb{E}_t[u'(C_{t+1})\,X_{t+1}] = 0.
+$$
+
+Move the first term to the right side, and move the constant $\delta$ inside the expectation:
+
+$$
 P_t\,u'(C_t) = \mathbb{E}_t[\delta\,u'(C_{t+1})\,X_{t+1}].
 $$
 
@@ -116,12 +123,13 @@ more consumption next period, each unit worth $\delta\,u'(C_{t+1})$, on average.
 Now divide both sides by $u'(C_t)$. It is known at $t$, so it can move inside $\mathbb{E}_t$:
 
 $$
-P_t = \mathbb{E}_t\!\left[\SDF{M_{t+1}}\,X_{t+1}\right],
-\qquad
-\SDF{M_{t+1}} = \delta\,\frac{u'(C_{t+1})}{u'(C_t)}.
+\begin{aligned}
+P_t &= \mathbb{E}_t\!\left[\SDF{M_{t+1}}\,X_{t+1}\right], \\
+\SDF{M_{t+1}} &= \delta\,\frac{u'(C_{t+1})}{u'(C_t)}.
+\end{aligned}
 $$
 
-This is $p = \mathbb{E}[\SDF{M}x]$ from the widget, with dates on it. $\SDF{M_{t+1}}$ is high when consumption next
+This is $P = \mathbb{E}[\SDF{M}X]$ from the widget, with dates on it. $\SDF{M_{t+1}}$ is high when consumption next
 period is low, because $u'$ is then high. That is the "bad times" of the widget.
 
 ### Power utility
@@ -154,9 +162,10 @@ and the conditional version above allows for it.
 The risk-free asset pays the same $1 + \Rf{R^f}$ in every state. So it comes out of the expectation:
 
 $$
-1 = \mathbb{E}[\SDF{M}]\,(1 + \Rf{R^f})
-\quad\Longrightarrow\quad
-1 + \Rf{R^f} = \frac{1}{\mathbb{E}[\SDF{M}]}.
+\begin{aligned}
+1 &= \mathbb{E}[\SDF{M}]\,(1 + \Rf{R^f}), \\
+1 + \Rf{R^f} &= \frac{1}{\mathbb{E}[\SDF{M}]}.
+\end{aligned}
 $$
 
 In the widget, $\mathbb{E}[\SDF{M}] = 0.95$, so $\Rf{R^f} = 1/0.95 - 1 = 5.3\%$.
@@ -167,17 +176,26 @@ Write the pricing equation for a risky asset and for the risk-free asset, and su
 first. The excess return $\Ret{R^e} = \Ret{R} - \Rf{R^f}$ costs nothing to hold:
 
 $$
-0 = \mathbb{E}[\SDF{M}(1 + \Ret{R})] - \mathbb{E}[\SDF{M}(1 + \Rf{R^f})] = \mathbb{E}[\SDF{M}\,\Ret{R^e}].
+\begin{aligned}
+0 &= \mathbb{E}[\SDF{M}(1 + \Ret{R})] - \mathbb{E}[\SDF{M}(1 + \Rf{R^f})] \\
+&= \mathbb{E}[\SDF{M}\,\Ret{R^e}].
+\end{aligned}
 $$
 
 By the definition of covariance, $\mathbb{E}[XY] = \mathbb{E}[X]\,\mathbb{E}[Y] + \operatorname{Cov}(X, Y)$.
-Apply it here, then solve for the mean excess return, and use $1/\mathbb{E}[\SDF{M}] = 1 + \Rf{R^f}$:
+Apply it here:
 
 $$
-0 = \mathbb{E}[\SDF{M}]\,\mathbb{E}[\Ret{R^e}] + \operatorname{Cov}(\SDF{M}, \Ret{R^e})
-\quad\Longrightarrow\quad
-\mathbb{E}[\Ret{R^e}] = -\frac{\operatorname{Cov}(\SDF{M}, \Ret{R^e})}{\mathbb{E}[\SDF{M}]}
-= -(1 + \Rf{R^f})\operatorname{Cov}(\SDF{M}, \Ret{R^e}).
+0 = \mathbb{E}[\SDF{M}]\,\mathbb{E}[\Ret{R^e}] + \operatorname{Cov}(\SDF{M}, \Ret{R^e}).
+$$
+
+Solve for the mean excess return, and then use $1/\mathbb{E}[\SDF{M}] = 1 + \Rf{R^f}$:
+
+$$
+\begin{aligned}
+\mathbb{E}[\Ret{R^e}] &= -\frac{\operatorname{Cov}(\SDF{M}, \Ret{R^e})}{\mathbb{E}[\SDF{M}]} \\
+&= -(1 + \Rf{R^f})\operatorname{Cov}(\SDF{M}, \Ret{R^e}).
+\end{aligned}
 $$
 
 This is the key result of the chapter. An asset earns a positive premium when its return is low in the states where
@@ -213,10 +231,12 @@ Start again from $\mathbb{E}[\Ret{R^e_i}] = -\operatorname{Cov}(\SDF{M}, \Ret{R^
 asset $i$. Multiply and divide by $\operatorname{Var}(\SDF{M})$:
 
 $$
+\begin{aligned}
 \mathbb{E}[\Ret{R^e_i}]
-= \frac{\operatorname{Cov}(\Ret{R^e_i}, \SDF{M})}{\operatorname{Var}(\SDF{M})}
-\times \left(-\frac{\operatorname{Var}(\SDF{M})}{\mathbb{E}[\SDF{M}]}\right)
-= \beta_{i,M}\,\lambda_M.
+&= \frac{\operatorname{Cov}(\Ret{R^e_i}, \SDF{M})}{\operatorname{Var}(\SDF{M})}
+\times \left(-\frac{\operatorname{Var}(\SDF{M})}{\mathbb{E}[\SDF{M}]}\right) \\
+&= \beta_{i,M}\,\lambda_M.
+\end{aligned}
 $$
 
 The first factor, $\beta_{i,M}$, is the slope of a regression of the asset's excess return on $\SDF{M}$. It is
@@ -224,7 +244,7 @@ specific to the asset. The second factor, $\lambda_M$, is the same for every ass
 stock in the widget, $\beta_{i,M} = -1.74$ and $\lambda_M = -0.024$, and their product is the 4.1% premium. Every
 factor model in this course has this shape: expected return equals a beta times a price of risk.
 
-<Callout type="key">$p = \mathbb{E}[\SDF{M}x]$ gives three results in a few lines. $1 + \Rf{R^f} =
+<Callout type="key">$P = \mathbb{E}[\SDF{M}X]$ gives three results in a few lines. $1 + \Rf{R^f} =
 1/\mathbb{E}[\SDF{M}]$. Risk premia are minus covariances with $\SDF{M}$. And no asset's Sharpe ratio can exceed
 $\sigma(\SDF{M})/\mathbb{E}[\SDF{M}]$.</Callout>
 
@@ -280,7 +300,7 @@ a model is right. It rests on an estimated Sharpe ratio, so report the standard 
   question="Two states are equally likely. The SDF is 1.2 in the bad state and 0.8 in the good state. A payoff pays 2 in the bad state and 0 in the good state. What is its price?"
   options={["1.0", "1.2", "0.8", "2.0"]}
   answer={1}
-  explanation="$p = \mathbb{E}[\SDF{M}x] = 0.5 \times 1.2 \times 2 + 0.5 \times 0.8 \times 0 = 1.2$. Its expected payoff is only 1.0, but it pays in the state where a dollar is worth more."
+  explanation="$P = \mathbb{E}[\SDF{M}X] = 0.5 \times 1.2 \times 2 + 0.5 \times 0.8 \times 0 = 1.2$. Its expected payoff is only 1.0, but it pays in the state where a dollar is worth more."
 />
 
 <Quiz
@@ -302,14 +322,15 @@ a model is right. It rests on an estimated Sharpe ratio, so report the standard 
 ## <span class="section-tag">Recap & next up</span> What to remember
 
 - A saver's choice gives the Euler equation $P_t\,u'(C_t) = \mathbb{E}_t[\delta\,u'(C_{t+1})X_{t+1}]$, so every
-  price is $p = \mathbb{E}[\SDF{M}x]$ with $\SDF{M} = \delta\,u'(C_{t+1})/u'(C_t)$. With power utility,
+  price is $P = \mathbb{E}[\SDF{M}X]$ with $\SDF{M} = \delta\,u'(C_{t+1})/u'(C_t)$. With power utility,
   $\SDF{M} = \delta(C_{t+1}/C_t)^{-\gamma}$.
 - The risk-free rate is $1 + \Rf{R^f} = 1/\mathbb{E}[\SDF{M}]$.
 - Risk premia are covariances: $\mathbb{E}[\Ret{R^e}] = -(1 + \Rf{R^f})\operatorname{Cov}(\SDF{M}, \Ret{R^e})$.
   The same premium in beta form is $\beta_{i,M}\lambda_M$.
 - The Hansen–Jagannathan bound: $\sigma(\SDF{M})/\mathbb{E}[\SDF{M}] \ge |SR|$. On ff3-monthly, 1926–2026, the
   market's Sharpe ratio is 0.45 a year, with a standard error of 0.10.
-- A power-utility SDF with smooth consumption needs a very high risk aversion to pass the bound.
+- With consumption growth as calm as the 2% volatility assumed here, a power-utility SDF needs a risk aversion
+  above 20 to pass the bound.
 
 **Next up:** [Chapter 9](/empirical-finance-lbs/chapters/09-time-varying-expected-returns/) opens Part II with
 the evidence that expected returns, and so the SDF behind them, change over time.
