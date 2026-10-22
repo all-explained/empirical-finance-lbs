@@ -27,12 +27,17 @@ flowchart TD
     TASK_005["TASK-005 Sync src/data/curriculum.ts with the curriculum"]
   end
   subgraph M_2["M-2 · Reference chapters"]
+    TASK_006["TASK-006 Plan: decompose M-2"]
   end
   TASK_002 --> DEC_001
   TASK_001 --> TASK_003
   TASK_001 --> TASK_004
   TASK_001 --> TASK_005
   TASK_002 --> TASK_005
+  TASK_003 --> TASK_006
+  TASK_004 --> TASK_006
+  TASK_005 --> TASK_006
+  DEC_001 --> TASK_006
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
