@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Empirical Finance, Explained</title>
+  <desc id="description">An interactive visual course on empirical asset pricing, from first principles to PhD level.</desc>
+  <rect width="1200" height="630" fill="#0f1117"/>
+  <path d="M80 300 L230 210 L370 245 L530 110 L680 160 L830 75 L1100 40" fill="none" stroke="#58c4dd" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="530" cy="110" r="10" fill="#f4d345"/>
+  <text x="70" y="430" font-family="Arial,sans-serif" font-size="56" font-weight="700" fill="#e8e6e3">Empirical Finance, Explained</text>
+  <text x="70" y="490" font-family="Arial,sans-serif" font-size="28" fill="#a3a8b4">An interactive, visual course on empirical asset pricing.</text>
+  <text x="70" y="540" font-family="Arial,sans-serif" font-size="28" fill="#a3a8b4">From first principles to PhD level.</text>
+</svg>

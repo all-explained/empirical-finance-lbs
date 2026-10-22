@@ -1,0 +1,24 @@
+// @ts-check
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import react from '@astrojs/react';
+import { unified } from '@astrojs/markdown-remark';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import { katexOptions } from './src/lib/katexMacros.ts';
+import rehypeMathPunctuation from './src/lib/rehypeMathPunctuation.mjs';
+
+// Deployed to GitHub Pages at https://all-explained.github.io/empirical-finance-lbs/
+export default defineConfig({
+  site: 'https://all-explained.github.io',
+  base: '/empirical-finance-lbs',
+  trailingSlash: 'always',
+  integrations: [mdx(), react()],
+  markdown: {
+    // TeX: $inline$ and $$display$$, rendered to HTML at build time by KaTeX.
+    processor: unified({
+      remarkPlugins: [remarkMath],
+      rehypePlugins: [[rehypeKatex, katexOptions], rehypeMathPunctuation],
+    }),
+  },
+});
