@@ -1,0 +1,300 @@
+---
+title: "Regression and standard errors"
+part: 1
+chapter: 3
+difficulty: 1
+prerequisites: [2]
+summary: "Fit a line by ordinary least squares, read its slope, t-statistic and R², and see when White standard errors must replace the classical ones."
+---
+
+import RegressionLab from '../../components/plots/RegressionLab';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapter 2">
+Chapter 2 is not written yet, so here is the short version of the tools this chapter uses.
+
+- The **sample mean** $\bar R = \tfrac1T \sum_t R_t$ is the average over $T$ months. The **variance** is the average
+  squared distance from the mean, and the **standard deviation** $\sigma$ is its square root.
+- An estimate from data is never exact. Its **standard error** is the standard deviation of the estimate across
+  the samples you could have drawn. For a mean of $T$ independent months it is $\sigma/\sqrt{T}$.
+- The estimate plus and minus two standard errors gives a range that holds the true value in about 95% of samples.
+</Callout>
+
+## <span class="section-tag">Hook</span> How much does a stock move with the market?
+
+Suppose you own big value stocks: large companies whose shares are cheap compared with their book value. The
+market falls sharply next month. How much should you expect your stocks to fall? And how sure can you be of that
+answer?
+
+The usual tool is a regression of your stocks' excess return on the market's excess return. (An **excess
+return** is a return minus the Treasury bill rate, as in Chapter 1.) The slope of that regression is the
+stocks' **beta**. On the last five years of monthly data, from September 2021 to August 2026, big value stocks have
+a beta of 1.14. On average, they moved 1.14 times as much as the market.
+
+How precise is 1.14? Here the surprise starts. A statistics package gives a **standard error**, the typical size
+of the estimate's error. The classical formula gives 0.140. A second formula, named after White, gives 0.175. On
+all 1,202 months since July 1926, the gap is larger: the classical standard error is 0.027 and White's is 0.069,
+2.6 times as large. Two respectable formulas, one data set, very different answers. This chapter shows where the
+line comes from, what each formula assumes, and which one to believe.
+
+## <span class="section-tag">Intuition</span> A line through a cloud
+
+Each dot below is one month. Across, you see the market's excess return in that month. Up, you see the excess
+return of big value stocks in the same month. The dots slope upward: when the market does well, these stocks
+usually do well too.
+
+The thick line is the **ordinary least squares** (OLS) line. Each thin vertical line is a **residual**: the gap
+between a dot and the line. OLS chooses the one line that makes the sum of the squared residuals as small as
+possible. Its slope is the beta.
+
+<RegressionLab client:visible />
+
+<p class="try-this"><strong>Try this:</strong> find the dot farthest to the right and drag it up and down. The
+line swings a lot. Now drag a dot near the middle of the cloud. The line moves up and down a little, but its slope
+hardly changes. Then press "Reset dragged dots" and switch the standard errors from "classical" to "White".</p>
+
+The experiment shows the key idea of this chapter. Months with a large market move, far to the left or right, hold
+the line in place. They act like the ends of a plank resting on a pivot in the middle of the cloud. Push the end
+of a plank and it tilts. Push near the pivot and it barely moves.
+
+So the precision of the slope depends on how noisy those far-out months are. The dashed lines show the slope plus
+and minus two standard errors. The classical formula assumes that every month has the same amount of noise. If
+the months with big market moves are also the months with big residuals, the ends of the plank shake more than
+the classical formula thinks. The White formula measures the noise month by month. On this sample its dashed lines
+open wider: the slope is less precise than the classical number says.
+
+<Callout type="key">The slope of a regression is pinned down by the observations far from the average. If those
+observations are also the noisiest, the classical standard error is too small, and the White standard error
+corrects it.</Callout>
+
+## <span class="section-tag">Formalisation</span> The OLS estimator and its standard errors
+
+### The line with one regressor
+
+Write $\Ret{R^e_{i,t}}$ for the excess return of portfolio $i$ in month $t$ and $\Ret{R^e_t}$ for the market's. The
+regression is
+
+$$
+\Ret{R^e_{i,t}} = a_i + \beta_i\,\Ret{R^e_t} + \Err{\varepsilon_{i,t}}, \qquad t = 1, \dots, T.
+$$
+
+We call the intercept $a_i$. Chapter 7 gives it a meaning and the name alpha. To keep the algebra short, write
+$y_t$ for the left-hand return and $x_t$ for the market's. OLS picks $a$ and $b$ to minimise the sum of squared
+residuals,
+
+$$
+S(a, b) = \sum_{t=1}^T (y_t - a - b\,x_t)^2.
+$$
+
+At the minimum, both derivatives are zero. The derivative with respect to $a$ gives
+
+$$
+-2 \sum_t (y_t - a - b\,x_t) = 0 \quad\Rightarrow\quad \bar y = a + b\,\bar x \quad\Rightarrow\quad a = \bar y - b\,\bar x.
+$$
+
+So the OLS line always passes through the point of means $(\bar x, \bar y)$. That is the pivot of the plank. The
+derivative with respect to $b$ gives $\sum_t x_t (y_t - a - b\,x_t) = 0$. Replace $a$ by $\bar y - b\,\bar x$:
+
+$$
+\sum_t x_t\big[(y_t - \bar y) - b\,(x_t - \bar x)\big] = 0.
+$$
+
+Both $\sum_t (y_t - \bar y)$ and $\sum_t (x_t - \bar x)$ are zero, so we may replace the first $x_t$ by $x_t - \bar
+x$ without changing the sum. Solve for $b$:
+
+$$
+\hat\beta = \frac{\sum_t (x_t - \bar x)(y_t - \bar y)}{\sum_t (x_t - \bar x)^2}.
+$$
+
+Divide the top and the bottom by $T$. The top becomes the sample covariance of $x$ and $y$, the average product of
+their distances from their means. The bottom becomes the sample variance of $x$. So the beta is
+$\operatorname{Cov}(y, x)/\operatorname{Var}(x)$: how much $y$ moves with $x$, per unit of $x$'s own movement.
+
+### The same estimator with matrices
+
+With $K$ right-hand variables, stack them in a row vector $x_t'$ whose first entry is 1 for the intercept. In this
+chapter $x_t$ is that vector of regressors; in Part II the same letter names a predictor, which is one kind of
+regressor. Stack the $T$ rows into a $T \times K$ matrix $X$, and the $y_t$ into a vector $y$. The model is
+$y = X\beta + \Err{\varepsilon}$. The sum of squared residuals is $(y - X\beta)'(y - X\beta)$. Its derivative with
+respect to $\beta$ is $-2X'(y - X\beta)$. Set it to zero:
+
+$$
+X'X\,\hat\beta = X'y \quad\Rightarrow\quad \hat\beta = (X'X)^{-1}X'y.
+$$
+
+The inverse exists when no regressor is an exact combination of the others. With $K = 2$, writing out $X'X$ and
+$X'y$ gives back the two formulas above.
+
+### How precise is the slope?
+
+Put the true model into the estimator. In the one-regressor case, $y_t - \bar y = \beta(x_t - \bar x) +
+(\Err{\varepsilon_t} - \Err{\bar\varepsilon})$. Substitute this into $\hat\beta$. The term in $\Err{\bar\varepsilon}$
+drops out, because $\sum_t (x_t - \bar x) = 0$:
+
+$$
+\hat\beta = \beta + \frac{\sum_t (x_t - \bar x)\,\Err{\varepsilon_t}}{\sum_t (x_t - \bar x)^2}.
+$$
+
+The estimate is the truth plus a weighted sum of the errors. The weights grow with the distance $x_t - \bar x$:
+that is the plank. Assume the errors have mean zero given the $x$'s and are uncorrelated from month to month
+(Chapter 4 drops that second assumption). Let month $t$ have its own error variance $\sigma_t^2$. The variance of a
+sum of uncorrelated terms is the sum of their variances, so
+
+$$
+\operatorname{Var}(\hat\beta) = \frac{\sum_t (x_t - \bar x)^2\,\sigma_t^2}{\Big(\sum_t (x_t - \bar x)^2\Big)^2}.
+$$
+
+With matrices, the same steps read $\hat\beta = \beta + (X'X)^{-1}X'\Err{\varepsilon}$, and
+
+$$
+\operatorname{Var}(\hat\beta) = (X'X)^{-1}\Big(\sum_t \sigma_t^2\,x_t x_t'\Big)(X'X)^{-1}.
+$$
+
+This shape is called a **sandwich**: the same $(X'X)^{-1}$ on the outside, the noise in the middle.
+
+### Classical standard errors
+
+The classical formula assumes that every month has the same error variance, $\sigma_t^2 = \sigma^2$. This is called
+**homoskedasticity**. Then the middle of the sandwich is $\sigma^2 X'X$. It cancels one of the outside pieces:
+
+$$
+\widehat{\operatorname{Var}}(\hat\beta) = \hat\sigma^2 (X'X)^{-1}, \qquad \hat\sigma^2 = \frac{1}{T - K}\sum_t
+\Err{\hat\varepsilon_t}^2.
+$$
+
+Here $\Err{\hat\varepsilon_t} = y_t - x_t'\hat\beta$ is the residual. We divide by $T - K$ rather than $T$
+because the $K$ estimated coefficients have already been fitted to the data, which makes the residuals a little
+smaller than the true errors. The standard error $\mathrm{se}(\hat\beta_k)$ is the square root of the $k$-th
+diagonal entry.
+
+### White standard errors
+
+When the error variance changes from month to month, the errors are **heteroskedastic**. We cannot estimate 1,202
+separate variances from 1,202 residuals. White's idea is that we do not need to. We only need the weighted sum in
+the middle of the sandwich, and each squared residual stands in for its own month's variance:
+
+$$
+\widehat{\operatorname{Var}}_{\text{White}}(\hat\beta) = (X'X)^{-1}\Big(\sum_t \Err{\hat\varepsilon_t}^2\,x_t
+x_t'\Big)(X'X)^{-1}.
+$$
+
+One squared residual is a poor estimate of one month's variance. But the sum averages many of them, and in large
+samples it is close to the true middle of the sandwich. If the errors are homoskedastic after all, the White and
+classical standard errors are close in large samples. If they are not, only White's is right.
+
+### $t$-statistics and $R^2$
+
+The **$t$-statistic** for the hypothesis that the true coefficient is $\beta_0$ is
+
+$$
+t = \frac{\hat\beta - \beta_0}{\mathrm{se}(\hat\beta)}.
+$$
+
+The usual case is $\beta_0 = 0$, which gives $t = \hat\beta/\mathrm{se}(\hat\beta)$. In large samples, $t$ is close
+to a standard normal when the hypothesis is true. So you reject it at the significance level $q = 5\%$ when $|t|$
+is above 1.96, about 2.
+
+The **$R^2$** is the share of the variance of $y$ that the line explains:
+
+$$
+R^2 = 1 - \frac{\sum_t \Err{\hat\varepsilon_t}^2}{\sum_t (y_t - \bar y)^2}.
+$$
+
+### What the big value numbers say
+
+On the last five years, the intercept is 1.33% a month with a classical $t$-statistic of 2.05. Five years is a
+short sample for an average return, so Chapter 7 will treat such a number with care. The slope is 1.14. Its
+classical $t$-statistic is 8.18 and its White one is 6.53, so the stocks clearly move with the market. Is the beta
+different from 1? The classical $t$-statistic for $\beta_0 = 1$ is 1.02, and the classical band of two standard
+errors runs from 0.86 to 1.42. Five years cannot tell this beta apart from the market's. The $R^2$ is 53.6%: the
+market explains about half of the monthly variance, and the rest is specific to these stocks.
+
+On all 1,202 months, the slope is 1.30 and the $R^2$ is 66.7%. The classical $t$-statistic for $\beta_0 = 1$ is
+11.5. The White one is 4.4. Both reject a beta of 1, but the classical number overstates the evidence by a
+factor of 2.6. The reason is the plank. Between 1931 and 1933, the market moved by more than 25% in four separate
+months. Nine of the ten largest residuals of the whole sample also fall in the 1930s. The classical formula
+treats those wild months as ordinary ones.
+
+<Callout type="warning">A large $R^2$ does not make a slope precise, and a large $t$-statistic is only as good as
+the standard error behind it. Always say which standard errors you use.</Callout>
+
+### What White standard errors cannot fix
+
+White standard errors fix one problem: noise that changes size across observations. They assume that errors are
+uncorrelated over time, which fails with overlapping returns (Chapter 4). They are a large-sample approximation,
+and with few observations they tend to be a little too small. They say nothing about whether the line is the right
+model, or whether the beta is stable. The five-year beta of 1.14 and the long-sample beta of 1.30 differ, but we
+have not tested whether that gap is more than chance. And a regression shows that two returns move together, not
+that one causes the other.
+
+## <span class="section-tag">Playground</span> A world where we know the truth
+
+The widget below opens in a simulated world, seeded so you see the same sample on every visit. There are 60 months.
+The market has a mean of 0.5% and a volatility of 4.5% a month. The stock's true beta is 1.2. In the "fanning noise"
+case, the noise is small in calm months and large when the market moves a lot: the
+heteroskedastic case. In the "even noise" case, the same random draws give noise of the same size every month.
+
+<RegressionLab client:visible initialSource="fan" />
+
+<p class="try-this"><strong>Try this:</strong> toggle between classical and White. With fanning noise, the
+estimate is 1.23, the classical standard error is 0.111 and the White one is 0.158, 1.4 times as
+large. Now choose "simulated: even noise". The classical standard error is 0.121 and the White one is 0.119:
+almost the same, and White's is even a little smaller.</p>
+
+<p class="try-this"><strong>Try this too:</strong> choose the fanning noise again and press "Re-roll simulation"
+three times, to seed 4. The estimate is 1.56. The classical standard error is 0.100, so its band runs from 1.36 to
+1.76 and misses the true 1.2. The White standard error is 0.189, and its band runs from 1.18 to 1.94, which
+contains the truth.</p>
+
+In the fanning world, the classical formula is confident for the wrong reason. It spreads the noise evenly over
+all months, while the noise really sits in the months that pin the slope. When the noise is even, the two formulas
+agree up to chance. That is why using White standard errors costs little and can save a lot.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A regression gives $\hat\beta = 0.8$ with a standard error of 0.1. What is the $t$-statistic for the hypothesis that the true beta is 1?"
+  options={["8", "−2", "2", "−0.2"]}
+  answer={1}
+  explanation="$t = (\hat\beta - \beta_0)/\mathrm{se}(\hat\beta) = (0.8 - 1)/0.1 = -2$. Its size is about 2, so the hypothesis $\beta = 1$ is just rejected at the 5% level."
+/>
+
+<Quiz
+  client:visible
+  question="When are White standard errors much larger than classical ones?"
+  options={["When the sample is very large", "When the residuals are largest in the observations where the regressor is far from its mean", "When the $R^2$ is high", "When the residuals have the same size in every observation"]}
+  answer={1}
+  explanation="Observations far from the mean of the regressor carry the most weight in the slope. If they are also the noisiest, the slope is less precise than the classical formula assumes, and White's formula picks this up."
+/>
+
+<Quiz
+  client:visible
+  question="A regression of a portfolio's excess return on the market's has an $R^2$ of 54%. What does that mean?"
+  options={["The beta is 0.54", "The market explains 54% of the variance of the portfolio's excess return; the rest is specific to the portfolio", "The beta is significant at the 54% level", "The portfolio earns 54% of the market's return"]}
+  answer={1}
+  explanation="$R^2$ is one minus the share of the variance left in the residuals. It measures how tightly the dots sit around the line, not how steep the line is or how precise its slope is."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- OLS picks the line that minimises the sum of squared residuals: $\hat\beta = (X'X)^{-1}X'y$. With one regressor,
+  the slope is $\operatorname{Cov}(y, x)/\operatorname{Var}(x)$, and the line passes through the means.
+- The slope is pinned down by the observations far from the average, so its precision depends on how noisy they
+  are.
+- Classical standard errors assume the same noise in every observation. White standard errors use each squared
+  residual and stay right when the noise changes size.
+- For big value stocks on all 1,202 months, the White standard error of beta is 2.6 times the classical one.
+  Report which standard errors a $t$-statistic uses.
+- White fixes heteroskedasticity only. It does not fix errors that are correlated over time.
+
+**Next up:** Chapter 4 looks at errors that are correlated from one month to the next, as with overlapping
+long-horizon returns, and the Newey–West standard errors that allow for them.
+
+### Further reading
+
+- Campbell, Lo & MacKinlay (1997), Appendix A
+- Cochrane (2005), Ch. 11
+- White (1980)
+- Fama and French (1993), for the portfolios and factors in the data
