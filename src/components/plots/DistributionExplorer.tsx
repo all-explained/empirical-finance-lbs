@@ -24,7 +24,7 @@ const ZOOM = 2.5;
 const pct = (v: number, digits = 1) => `${v < 0 ? '−' : ''}${Math.abs(v * 100).toFixed(digits)}%`;
 const plain = (v: number, digits = 2) => `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(digits)}`;
 const monthYear = (iso: string) =>
-  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 
 /**
  * Chapter 2: histogram of monthly market excess returns from ff3-monthly, with
@@ -97,7 +97,7 @@ export default function DistributionExplorer() {
       {shown.map((b) => (
         <Polygon
           key={b.left}
-          points={[[Math.max(b.left, x0), 0], [Math.min(b.right, x1), 0], [Math.min(b.right, x1), b.count], [Math.max(b.left, x0), b.count]]}
+          points={[[Math.max(b.left, x0), 0], [Math.min(b.right, x1), 0], [Math.min(b.right, x1), Math.min(b.count, top)], [Math.max(b.left, x0), Math.min(b.count, top)]]}
           color="var(--c-data)" fillOpacity={0.35} weight={1}
         />
       ))}
@@ -105,7 +105,7 @@ export default function DistributionExplorer() {
       {sigmaLines.map((s) => (
         <g key={s.k}>
           <Line.Segment point1={[s.at, 0]} point2={[s.at, top]} color="var(--text-muted)" weight={1} style="dashed" />
-          <Label x={s.at} y={top * 0.92} attach={s.k < 0 ? 'w' : 'e'} attachDistance={5} size={12} color="var(--text-muted)">{s.k < 0 ? '−3σ̂' : '+3σ̂'}</Label>
+          <Label x={s.at} y={top * 0.75} attach={s.k < 0 ? 'w' : 'e'} attachDistance={5} size={12} color="var(--text-muted)">{s.k < 0 ? '−3 SD' : '+3 SD'}</Label>
         </g>
       ))}
     </PlotFrame>
@@ -113,7 +113,7 @@ export default function DistributionExplorer() {
     <p style={{ padding: '1rem', margin: 0, color: 'var(--text-muted)' }}>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
   );
 
-  const range = stats ? `${monthYear(stats.dates[0])} to ${monthYear(stats.dates.at(-1)!)}` : '';
+  const range = stats ? `${monthYear(stats.dates[0])}–${monthYear(stats.dates.at(-1)!)}` : '';
   return (
     <WidgetFrame
       title="Are monthly returns normal?"
@@ -156,19 +156,19 @@ export default function DistributionExplorer() {
               <dd>{plain(stats.skew)}</dd>
               <dt>Excess kurtosis (normal: 0)</dt>
               <dd>{plain(stats.kurt)}</dd>
-              <dt>Months below −3σ̂ / above +3σ̂</dt>
+              <dt><RichText>{'Months below $-3\\hat\\sigma$ / above $+3\\hat\\sigma$'}</RichText></dt>
               <dd>{stats.below} / {stats.above} (a normal expects {stats.normalTail.toFixed(1)} / {stats.normalTail.toFixed(1)})</dd>
               <dt>Worst month</dt>
-              <dd className="bad">{monthYear(stats.worst.date)}: {pct(stats.worst.value)} ({plain(stats.worst.z, 1)}σ̂)</dd>
+              <dd className="bad">{monthYear(stats.worst.date)}: {pct(stats.worst.value)} ({plain(stats.worst.z, 1)} SD)</dd>
               <dt>Best month</dt>
-              <dd className="good">{monthYear(stats.best.date)}: +{pct(stats.best.value)} (+{plain(stats.best.z, 1)}σ̂)</dd>
+              <dd className="good">{monthYear(stats.best.date)}: +{pct(stats.best.value)} (+{plain(stats.best.z, 1)} SD)</dd>
             </dl>
           </>
         ) : (
           <p>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
         )
       }
-      caption={`Data: ff3-monthly (Kenneth French Data Library). Excess return = Mkt-RF, the value-weighted US stock market minus the one-month T-bill, in ${BINS} equal bins. Dashed curve: a normal distribution with the sample mean and volatility, scaled to months per bin. σ̂ is the sample volatility. A year = 12 × the monthly mean; volatility × √12.`}
+      caption={`Data: ff3-monthly (Kenneth French Data Library). Excess return = Mkt-RF, the value-weighted US stock market minus the one-month T-bill, in ${BINS} equal bins. Dashed curve: a normal distribution with the sample mean and volatility, scaled to months per bin. SD: one sample standard deviation (the monthly volatility). A year = 12 × the monthly mean; volatility × √12.`}
     />
   );
 }

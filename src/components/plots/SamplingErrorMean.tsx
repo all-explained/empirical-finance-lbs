@@ -58,8 +58,9 @@ export default function SamplingErrorMean({ initialT = 600 }: { initialT?: numbe
 
   const trueMean = annualiseMean(TRUE_MEAN);
   const trueVol = annualiseVolatility(TRUE_VOL);
-  const top = useTweened(Math.max(...sim.bars.map((b) => b.height)) * 1.3);
-  const markerY = top * 0.9;
+  const top = useTweened(Math.max(...sim.bars.map((b) => b.height)) * 1.45);
+  // Above the tallest bar (69% of the height) and below the axis title.
+  const markerY = top * 0.8;
   const years = T / 12;
 
   const plot = (
@@ -72,7 +73,7 @@ export default function SamplingErrorMean({ initialT = 600 }: { initialT?: numbe
       formatX={(v) => pct(v, 0)}
       formatY={(v) => `${Math.round(v)}%`}
       xLabel="sample mean, % a year"
-      yLabel="% of samples per point"
+      yLabel="% per point"
     >
       {sim.bars.map((b, i) => (
         <Polygon
@@ -82,12 +83,12 @@ export default function SamplingErrorMean({ initialT = 600 }: { initialT?: numbe
         />
       ))}
       <Line.Segment point1={[trueMean, 0]} point2={[trueMean, top]} color="var(--c-model)" weight={2} style="dashed" />
-      <Label x={trueMean} y={top * 0.72} attach="e" attachDistance={6} size={12} color="var(--c-model)">true mean</Label>
+      <Label x={trueMean} y={top * 0.95} attach="e" attachDistance={6} size={12} color="var(--c-model)">true mean</Label>
       {market && (
         <>
           <Line.Segment point1={[market.mean - 2 * market.se, markerY]} point2={[market.mean + 2 * market.se, markerY]} color="var(--c-data)" weight={2.5} />
           <Point x={market.mean} y={markerY} color="var(--c-data)" />
-          <Label x={market.mean} y={markerY} attach="n" attachDistance={9} size={12} color="var(--c-data)">market</Label>
+          <Label x={market.mean} y={markerY} attach="s" attachDistance={9} size={12} color="var(--c-data)">market</Label>
         </>
       )}
     </PlotFrame>
@@ -115,15 +116,15 @@ export default function SamplingErrorMean({ initialT = 600 }: { initialT?: numbe
           <dl className="readout-grid">
             <dt>Sample length</dt>
             <dd>{T} months ({Number.isInteger(years) ? years : years.toFixed(1)} years)</dd>
-            <dt>True mean and volatility</dt>
-            <dd>{pct(trueMean)} and {pct(trueVol)} a year</dd>
-            <dt><RichText>{`Spread (SD) of the ${SAMPLES.toLocaleString('en-US')} means $\\bar R$`}</RichText></dt>
+            <dt>True mean, volatility</dt>
+            <dd>{pct(trueMean)}, {pct(trueVol)} a year</dd>
+            <dt><RichText>{'Spread (SD) of the means $\\bar R$'}</RichText></dt>
             <dd>{pct(sim.spread)} a year</dd>
             <dt><RichText>{'Average standard error $\\hat\\sigma/\\sqrt{T}$'}</RichText></dt>
             <dd>{pct(sim.avgSe)} a year</dd>
-            <dt>Samples with a mean below zero</dt>
+            <dt>Means below zero</dt>
             <dd>{pct(sim.negative)}</dd>
-            <dt><RichText>{'Sample volatility $\\hat\\sigma$: average, spread'}</RichText></dt>
+            <dt><RichText>{'Volatility $\\hat\\sigma$: average, spread'}</RichText></dt>
             <dd>{pct(sim.vol)}, {pct(sim.volSpread)} a year</dd>
             <dt>Spread as a share of the truth</dt>
             <dd>mean {pct(sim.spread / trueMean, 0)} · volatility {pct(sim.volSpread / trueVol, 0)}</dd>
@@ -136,7 +137,7 @@ export default function SamplingErrorMean({ initialT = 600 }: { initialT?: numbe
           </dl>
         </>
       }
-      caption={`Simulated (seeded): ${SAMPLES.toLocaleString('en-US')} samples of $T$ monthly excess returns, independent and normal, with mean ${pct(TRUE_MEAN)} and volatility ${pct(TRUE_VOL)} a month. Bars: the share of sample means in each bin. Market: the mean excess return over the last $T$ months of ff3-monthly (Kenneth French Data Library${data ? `, ${monthYear(data.dates[0])}–${monthYear(data.dates.at(-1)!)}` : ''}), with a bar of ±2 standard errors. A year = 12 × the monthly mean; volatility × √12.`}
+      caption={`Simulated (seeded): ${SAMPLES.toLocaleString('en-US')} samples of $T$ monthly excess returns, independent and normal, with mean ${pct(TRUE_MEAN)} and volatility ${pct(TRUE_VOL)} a month. Bars: the percent of the sample means per percentage point of the horizontal axis. Market: the mean excess return over the last $T$ months of ff3-monthly (Kenneth French Data Library${data ? `, ${monthYear(data.dates[0])}–${monthYear(data.dates.at(-1)!)}` : ''}), with a bar of ±2 standard errors. A year = 12 × the monthly mean; volatility × √12.`}
     />
   );
 }
