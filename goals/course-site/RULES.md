@@ -1,1 +1,2 @@
 - Never commit anything under source/ (the LBS outline and paper PDFs) and never copy their text verbatim; explain in our own words and cite.
+- Route mechanical, non-creative tasks (downloads, data pipelines, scaffolding, syncing files) to codex gpt-6.1-sol high, and creative tasks (curriculum, style, chapters, widgets, planning) to claude opus high. Set the route on every new task.
