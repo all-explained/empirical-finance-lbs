@@ -77,6 +77,7 @@ flowchart TD
   end
   subgraph M_3["M-3 · Part I: Foundations"]
     TASK_018["TASK-018 Library: sample moments and Sharpe ratio"]
+    TASK_019["TASK-019 Library: small linear algebra (inverse, eigen, matrix power)"]
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
   end
