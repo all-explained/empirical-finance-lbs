@@ -5,6 +5,7 @@ milestone: M-1
 state: approved
 depends_on: []
 delivery: pr
+route: {platform: codex, model: gpt-6.1-sol, effort: high}
 ---
 
 ## Why
