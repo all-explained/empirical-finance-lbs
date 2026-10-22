@@ -58,6 +58,7 @@ flowchart TD
     TASK_013["TASK-013 Reference chapter 1: Returns"]
     TASK_014["TASK-014 Reference chapter 9: Time-varying expected returns"]
     TASK_015["TASK-015 Owner reads both reference chapters and approves how they read"]
+    TASK_016["TASK-016 Fix the preview port and the click-through slider label"]
   end
   TASK_002 --> DEC_001
   TASK_001 --> TASK_003
