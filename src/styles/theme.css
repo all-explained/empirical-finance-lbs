@@ -3,16 +3,22 @@
  * see docs/STYLE_GUIDE.md §4. Dark is the default theme.
  */
 :root {
-  --c-spot: #58c4dd;
-  --c-accent: #f4d345;
-  --c-call: #83c167;
-  --c-put: #fc6255;
-  --c-time: #5cd0b3;
-  --c-vol: #b189c6;
-  --c-rate: #ff862f;
+  /* Semantic colours: one per quantity (STYLE_GUIDE §4). */
+  --c-return: #58c4dd;
+  --c-rf: #ff862f;
+  --c-factor: #b189c6;
+  --c-sdf: #f4d345;
+  --c-signal: #5cd0b3;
+  --c-data: #7c9bff;
+  --c-model: #f27bc4;
+  --c-error: #fc6255;
   --c-prob: #d7d7d7;
-  --c-bid: #7c9bff;
-  --c-ask: #f27bc4;
+
+  /* Interface colours: chrome only, never a quantity. */
+  --ui-accent: var(--c-return);
+  --ui-highlight: var(--c-sdf);
+  --ui-good: #83c167;
+  --ui-bad: var(--c-error);
 
   --bg: #0f1117;
   --bg-raised: #171a23;
@@ -22,7 +28,7 @@
   --border: rgba(232, 230, 227, 0.14);
   --grid: rgba(232, 230, 227, 0.1);
   --axis: rgba(232, 230, 227, 0.45);
-  --link: var(--c-spot);
+  --link: var(--ui-accent);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.25);
 
   --font-body: 'Source Serif 4 Variable', 'Source Serif Pro', Georgia, serif;
@@ -35,16 +41,16 @@
 }
 
 :root[data-theme='light'] {
-  --c-spot: #1f7fa3;
-  --c-accent: #a8860b;
-  --c-call: #3e7f2a;
-  --c-put: #c0392b;
-  --c-time: #1e8c72;
-  --c-vol: #7a4e94;
-  --c-rate: #c25e12;
+  --c-return: #1a6d8c;
+  --c-rf: #a5500f;
+  --c-factor: #7a4e94;
+  --c-sdf: #7f6608;
+  --c-signal: #17705c;
+  --c-data: #2f55c8;
+  --c-model: #b02d7e;
+  --c-error: #c0392b;
   --c-prob: #555555;
-  --c-bid: #2f55c8;
-  --c-ask: #b02d7e;
+  --ui-good: #36702a;
 
   --bg: #fafaf7;
   --bg-raised: #ffffff;
@@ -58,17 +64,16 @@
   color-scheme: light;
 }
 
-/* KaTeX colour macros (\Spot, \Rate, ...) map to these classes. */
-.c-spot { color: var(--c-spot); }
-.c-accent { color: var(--c-accent); }
-.c-call { color: var(--c-call); }
-.c-put { color: var(--c-put); }
-.c-time { color: var(--c-time); }
-.c-vol { color: var(--c-vol); }
-.c-rate { color: var(--c-rate); }
+/* KaTeX colour macros (\Ret, \Rf, ...) map to these classes. */
+.c-return { color: var(--c-return); }
+.c-rf { color: var(--c-rf); }
+.c-factor { color: var(--c-factor); }
+.c-sdf { color: var(--c-sdf); }
+.c-signal { color: var(--c-signal); }
+.c-data { color: var(--c-data); }
+.c-model { color: var(--c-model); }
+.c-error { color: var(--c-error); }
 .c-prob { color: var(--c-prob); }
-.c-bid { color: var(--c-bid); }
-.c-ask { color: var(--c-ask); }
 
 /* Mafs picks up the site theme. */
 .MafsView {
@@ -76,12 +81,14 @@
   --mafs-fg: var(--text);
   --mafs-origin-color: var(--axis);
   --mafs-line-color: var(--grid);
-  --mafs-blue: var(--c-spot);
-  --mafs-yellow: var(--c-accent);
-  --mafs-green: var(--c-call);
-  --mafs-red: var(--c-put);
-  --mafs-violet: var(--c-vol);
-  --mafs-orange: var(--c-rate);
+  --mafs-blue: var(--c-return);
+  --mafs-orange: var(--c-rf);
+  --mafs-violet: var(--c-factor);
+  --mafs-yellow: var(--c-sdf);
+  --mafs-green: var(--c-signal);
+  --mafs-indigo: var(--c-data);
+  --mafs-pink: var(--c-model);
+  --mafs-red: var(--c-error);
   font-family: var(--font-ui);
 }
 

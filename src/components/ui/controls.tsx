@@ -10,11 +10,11 @@ interface SliderProps {
   step?: number;
   onChange: (value: number) => void;
   format?: (value: number) => string;
-  /** CSS colour for the thumb and track, e.g. "var(--c-accent)" */
+  /** CSS colour for the thumb and track, e.g. "var(--c-rf)" */
   color?: string;
 }
 
-export function Slider({ label, value, min, max, step = 1, onChange, format = String, color = 'var(--c-spot)' }: SliderProps) {
+export function Slider({ label, value, min, max, step = 1, onChange, format = String, color = 'var(--ui-accent)' }: SliderProps) {
   const id = useId();
   return (
     <div className="ctl-slider" style={{ ['--accent' as string]: color }}>

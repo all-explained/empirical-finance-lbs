@@ -1,0 +1,257 @@
+# Style Guide
+
+This guide is the house style for every chapter. Follow it so that 66 chapters, many of them written in
+different sessions, read like one course. `docs/CURRICULUM.md` says *what* each chapter covers; this guide says
+*how* it is written, which symbols it uses and which colours it shows.
+
+## 1. Voice
+
+- **Picture first, then the formula.** Show the shape before writing it down. A formula should feel like a
+  summary of something the reader has already seen.
+- **Data before theory, where we can.** Most chapters can open with a real series: the dividend–price ratio
+  since 1926, the returns of 25 size–value portfolios, the yield curve. Let the reader see the fact the model
+  must explain.
+- **One idea per section.** If a section needs two "aha" moments, split it in two.
+- **Start each chapter with a question the reader actually has.** For example: *"If stocks paid 7% a year
+  more than T-bills for a century, why doesn't everyone hold only stocks?"*
+- **Write to one reader, as "you".** Keep sentences short. Explain a term the first time it appears, and link
+  back to the chapter that introduced it.
+- **Give the honest version.** Simplify, but don't say false things. When a simplification is in play, say so
+  ("we treat the betas as known until Chapter 18").
+- **Say what the evidence can and cannot show.** Report standard errors, the sample period and the data
+  source with every estimate. Never call a pattern "significant" without the test behind it.
+- **Don't skip steps in derivations.** Write out every step. Steps that are pure algebra can go in a
+  collapsible `<Details>` block, but they must be there.
+- **Graduate rigour comes in gradually.** Part I uses algebra and basic statistics, and builds regression,
+  time series and the SDF from zero. The ●● Parts use matrix algebra and time series. The ●●●
+  Parts (GMM asymptotics, dynamic equilibrium models, high-dimensional estimation) use full graduate
+  notation, and always give a plain reading of each result next to it. The dots in `docs/CURRICULUM.md` set
+  each Part's level.
+- **Papers in our own words.** Explain a paper's idea and cite it. Never copy its text, figures or tables.
+
+## 2. Chapter template
+
+Every chapter is one MDX file in `src/content/chapters/NN-slug.mdx` and has these sections, in this order:
+
+| # | Section | Purpose |
+|---|---|---|
+| 1 | **Hook** | A concrete question, puzzle, or surprising fact, ideally from real data. About 1–3 paragraphs. |
+| 2 | **Intuition** | The picture, interactive where possible. No heavy notation yet. |
+| 3 | **Formalisation** | The TeX, colour-coded to match the picture. Derivations and estimators go here. |
+| 4 | **Playground** | A widget the reader can explore freely. It ends with 1–2 "try this" prompts. |
+| 5 | **Check yourself** | 2–3 short `<Quiz>` questions, answered client-side. Each answer has an explanation. |
+| 6 | **Recap & next up** | 3–5 bullet takeaways and a one-line teaser for the next chapter. |
+
+Start each `##` heading with its tag, for example `## <span class="section-tag">Hook</span> A century of
+returns`.
+
+Frontmatter:
+
+```yaml
+---
+title: "Returns"
+part: 1
+chapter: 1
+difficulty: 1          # 1 = intro, 2 = intermediate, 3 = advanced
+prerequisites: []
+summary: "Simple, log and excess returns, and why log returns add up over time."
+---
+```
+
+Length: about 1,500–3,000 words of prose. If a chapter runs longer, split it.
+
+## 3. Notation
+
+Use these symbols everywhere. If a chapter needs a new symbol, add it to this table in the same PR. The
+**Macro** column names the KaTeX colour macro for the symbol (§4); a dash means the symbol is not coloured.
+`tests/notation.test.ts` fails if a macro named here is missing from `src/lib/katexMacros.ts`.
+
+### Returns and prices
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $R_{t+1}$, $R_{i,t+1}$ | `\Ret` | Simple (net) return from $t$ to $t+1$, of the market or of asset $i$: $R_{t+1} = (P_{t+1} + D_{t+1})/P_t - 1$ |
+| $1 + R_{t+1}$ | `\Ret` | Gross return. It has no letter of its own: write $1 + R$, so a "10% return" is always $R = 0.10$ |
+| $r_{t+1}$ | `\Ret` | Log return, $r_{t+1} = \log(1 + R_{t+1})$. $\log$ is always the natural log |
+| $R^e_{t+1}$, $r^e_{t+1}$ | `\Ret` | Excess return over the risk-free rate, $R^e_{t+1} = R_{t+1} - R^f_t$, and its log version $r_{t+1} - r^f_t$ |
+| $R^f_t$, $r^f_t$ | `\Rf` | Risk-free rate from $t$ to $t+1$. It is known at $t$, so it carries the date $t$. $r^f_t = \log(1 + R^f_t)$ |
+| $R_{t \to t+k}$ | `\Ret` | Return over the $k$ periods after $t$. $k$ is a horizon in periods |
+| $P_t$, $D_t$; $p_t$, $d_t$ | — | Price and dividend; their logs $p_t = \log P_t$, $d_t = \log D_t$ |
+| $\mu$, $\sigma$, $\Sigma$ | — | Mean, standard deviation, and the $N \times N$ covariance matrix of returns. Other covariances carry a subscript: $\Sigma_\varepsilon$, $\Sigma_f$ |
+| $w$ | — | Portfolio weights, an $N$-vector |
+| $SR$ | — | Sharpe ratio $\mathbb{E}[R^e]/\sigma(R^e)$ |
+
+### Factor models and tests
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $f_t$, $f_{k,t}$ | `\Factor` | The $K$-vector of factors at $t$, and factor $k$. A factor never carries a maturity superscript (compare the forward rate $f^{(n)}_t$) |
+| $\beta_i$, $\beta_{i,k}$ | — | Exposure (beta) of asset $i$ to the factors: a $K$-vector, and its $k$-th entry. $\beta$ is only ever a regression or factor exposure |
+| $\lambda$, $\lambda_k$ | — | Risk premia (factor prices): $\mathbb{E}[R^e_i] = \beta_i'\lambda$ |
+| $\alpha_i$, $\alpha$ | `\Err` | Pricing error (alpha) of asset $i$, and the $N$-vector of them. Never a significance level |
+| $\varepsilon_{i,t}$ | `\Err` | Residual or shock. $u_t$, $v_t$ name the shocks of a second equation (for example a predictor's) |
+| $T$, $N$, $K$ | — | Sample size (periods), number of test assets, number of factors. Index them $t = 1, \dots, T$, $i = 1, \dots, N$, $k = 1, \dots, K$ |
+| $\hat\beta$, $\bar R$ | — | A hat marks an estimate or a fitted value. A bar marks a sample mean over time, $\bar R_i = \tfrac1T \sum_t R_{i,t}$ |
+| $\bar R^e_i$ | `\Data` | An observed (sample) quantity, coloured as data when a plot compares it with a model |
+| $\hat\beta_i'\hat\lambda$ | `\Model` | A fitted (model-implied) quantity, coloured as model in the same plot |
+| $q$ | — | Significance level or false-discovery rate of a test, as in "reject when $p \le q$". Never $\alpha$, which is the pricing error |
+
+### The stochastic discount factor and consumption
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $M_{t+1}$, $m_{t+1}$ | `\SDF` | Stochastic discount factor and its log, $m = \log M$. Use $M$ in every model, linear ones included: $M_{t+1} = 1 - b'(f_{t+1} - \mathbb{E}f)$ |
+| $b$ (SDF) | — | Loadings of a linear SDF on the factors (Part VI on). In predictive regressions $b$ is a slope; context separates the two |
+| $X_{t+1}$ | — | Payoff at $t+1$: $P_t = \mathbb{E}_t[M_{t+1} X_{t+1}]$ and $\mathbb{E}_t[M_{t+1}(1 + R_{t+1})] = 1$ |
+| $C_t$, $c_t$, $\Delta c_{t+1}$ | — | Consumption, its log, and log consumption growth $c_{t+1} - c_t$ |
+| $\gamma$ | — | Relative risk aversion. $\gamma$ is used for nothing else: slopes on characteristics are $c$ or $g$ |
+| $\delta$ | — | Subjective time-discount factor: $M_{t+1} = \delta (C_{t+1}/C_t)^{-\gamma}$. Never $\beta$, which is a factor exposure |
+| $\psi$ | — | Elasticity of intertemporal substitution (Epstein–Zin) |
+| $\mathbb{E}_t[\cdot]$ | — | Expectation conditional on information at $t$. $\mathbb{E}[\cdot]$ without a subscript is unconditional |
+
+### Predictability and the Campbell–Shiller decomposition
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $x_t$ | `\Signal` | A predictor or signal known at $t$: $r_{t+1} = a + b\,x_t + \varepsilon_{t+1}$. Use $a$, $b$ for predictive regressions so they never look like $\alpha$, $\beta$ |
+| $dp_t$, $pd_t$ | `\Signal` | Log dividend–price ratio $dp_t = d_t - p_t$, and its negative, the log price–dividend ratio $pd_t = p_t - d_t$ |
+| $\phi$ | — | Persistence of an AR(1) predictor: $x_{t+1} = \mu_x + \phi x_t + v_{t+1}$. $A$ is the coefficient matrix of a VAR |
+| $\rho$, $\kappa$ | — | Campbell–Shiller linearisation constants: $r_{t+1} \approx \kappa + \rho\,pd_{t+1} + \Delta d_{t+1} - pd_t$, with $\rho = e^{\overline{pd}}/(1 + e^{\overline{pd}})$. Write a correlation as $\operatorname{corr}(\cdot,\cdot)$, never $\rho$ |
+| $\Delta d_{t+1}$ | — | Log dividend growth $d_{t+1} - d_t$ |
+| $N_{CF}$, $N_{DR}$ | — | Cash-flow and discount-rate news. $N$ with a subscript is news; $N$ alone is the number of assets |
+
+### Bonds and the term structure
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $n$ | — | Maturity in periods. It always appears as a superscript in parentheses |
+| $P^{(n)}_t$, $p^{(n)}_t$ | — | Price of a zero-coupon bond paying 1 in $n$ periods, and its log. The superscript separates it from a stock price $p_t$ |
+| $y^{(n)}_t$ | — | Log yield, $y^{(n)}_t = -p^{(n)}_t/n$. The short rate is $y^{(1)}_t = r^f_t$ |
+| $f^{(n)}_t$ | — | Log forward rate, $f^{(n)}_t = p^{(n-1)}_t - p^{(n)}_t$. It always carries its maturity superscript, so it never looks like a factor $f_t$ |
+| $rx^{(n)}_{t+1}$ | `\Ret` | Log excess return of holding the $n$-period bond for one period: $p^{(n-1)}_{t+1} - p^{(n)}_t - y^{(1)}_t$ |
+
+### Probability and statistics
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $\mathbb{P}$, $\mathbb{Q}$ | — | Real-world and risk-neutral probability measures |
+| $\pi(s)$ | `\Prob` | Probability of state $s$. Use $\pi$, not $p$, which is a log price |
+| $\Phi(\cdot)$, $\varphi(\cdot)$ | — | Standard normal CDF and PDF, always written with their argument. $N$ is a count, never the normal CDF |
+| $\ell_k$ | — | $k$-th eigenvalue in principal components. Not $\lambda_k$, which is a risk premium |
+| $\theta$ | — | Parameter vector of a GMM estimator, with moments $g_T(\theta)$ and statistic $J$ |
+| $\operatorname{Var}$, $\operatorname{Cov}$, $\operatorname{corr}$ | — | Variance, covariance and correlation |
+
+Conventions:
+- Time runs in periods $t$. Monthly data is the default. Report means and volatilities annualised, in percent:
+  multiply a monthly mean by 12 and a monthly volatility by $\sqrt{12}$. Say so in every readout.
+- A random variable dated $t+1$ is not known at $t$. A quantity dated $t$, like $R^f_t$ or $x_t$, is known at
+  $t$.
+- Vectors are columns. $'$ is the transpose. $\mathbf{1}$ is a vector of ones.
+- A symbol may be reused inside one chapter only if this table lists the reuse and the chapter says so in
+  words where it first appears.
+
+## 4. Colour semantics
+
+Each quantity keeps the same colour in plots, in TeX, and in prose highlights. These are the **only** semantic
+colours. For anything else, use the neutral palette. Every colour reaches at least 4.5:1 contrast against both
+the page and the plot background in its theme.
+
+| Role | Examples | Token | Macro | Dark theme | Light theme |
+|---|---|---|---|---|---|
+| Return | $R$, $r$, $R^e$, $rx^{(n)}$ | `--c-return` | `\Ret` | `#58C4DD` | `#1A6D8C` |
+| Risk-free rate | $R^f$, $r^f$ | `--c-rf` | `\Rf` | `#FF862F` | `#A5500F` |
+| Factor | $f_t$, $f_{k,t}$ | `--c-factor` | `\Factor` | `#B189C6` | `#7A4E94` |
+| Stochastic discount factor | $M$, $m$ | `--c-sdf` | `\SDF` | `#F4D345` | `#7F6608` |
+| Predictor / signal | $x_t$, $dp_t$ | `--c-signal` | `\Signal` | `#5CD0B3` | `#17705C` |
+| Data (observed) | $\bar R^e_i$, a sample moment | `--c-data` | `\Data` | `#7C9BFF` | `#2F55C8` |
+| Model (fitted) | $\hat\beta_i'\hat\lambda$, a fitted line | `--c-model` | `\Model` | `#F27BC4` | `#B02D7E` |
+| Error / residual | $\alpha$, $\varepsilon$ | `--c-error` | `\Err` | `#FC6255` | `#C0392B` |
+| Probability / density | $\pi(s)$, a density | `--c-prob` | `\Prob` | `#D7D7D7` (filled at 25% opacity) | `#555555` |
+
+Data and model form a pair. Use them when the point of a plot is the fit, as in "average returns against
+model-predicted returns": observed points in `--c-data`, the fitted line or points in `--c-model`, and the gaps
+between them in `--c-error`. When a plot shows one kind of quantity, colour it by what it is (a return is
+`--c-return`), not by where it came from.
+
+Interface colours are for chrome only (links, focus rings, buttons, callouts, quiz feedback). They never mark
+a quantity in a plot or formula:
+
+| Token | Use | Value |
+|---|---|---|
+| `--ui-accent` | Links, focus rings, active controls | same as `--c-return` |
+| `--ui-highlight` | Eyebrows, Part numerals, key callouts | same as `--c-sdf` |
+| `--ui-good` | Right answers, gains in readouts (`.good`) | `#83C167` / `#36702A` |
+| `--ui-bad` | Wrong answers, losses in readouts (`.bad`) | same as `--c-error` |
+
+Always pair `.good` and `.bad` with a sign or a word ("+2.1%", "rejected") so colour is never the only cue.
+
+Neutral palette: background `#0F1117` (dark) / `#FAFAF7` (light), text `#E8E6E3` / `#1A1A1A`, axes in the text colour
+at 45–50% opacity and grid lines at 8–10%. All tokens live in `src/styles/theme.css`, and Mafs's named
+colours map onto the semantic ones there.
+
+In TeX, use the KaTeX macros from `src/lib/katexMacros.ts`. Don't use raw `\color{}`:
+
+```tex
+\Ret{R^e_{i,t+1}}, \Rf{R^f_t}, \Factor{f_t}, \SDF{M_{t+1}}, \Signal{dp_t}, \Data{\bar R^e_i}, \Model{\hat\beta_i'\hat\lambda}, \Err{\alpha_i}, \Prob{\pi(s)}
+```
+
+Colour a term only where it helps the reader match the formula to a plot. A formula where every symbol is
+coloured is just as hard to read as one with no colour at all.
+
+## 5. Widgets
+
+- **Every widget works without explanation.** Label the axes with units, and show the current value next to
+  every slider.
+- **Real data where it exists.** A widget that shows a historical fact loads the JSON built by the data
+  pipeline through its typed loader, never a hand-copied number. Its caption names the dataset ID from
+  `docs/DATA.md` and the sample period.
+- **Simulated widgets start at the default example**, unless the chapter's point needs something else:
+  monthly data; a market excess return with mean 0.5% (6% a year) and volatility 4.5% (about 16% a year);
+  $R^f = 0.25\%$ (3% a year); $T = 600$ months, $N = 25$ test assets, $K = 3$ factors; $\gamma = 5$ and
+  $\delta = 0.99$ a year; an AR(1) predictor with $\phi = 0.98$ a month.
+- **Widgets compute; they don't hard-code answers.** All math (estimators, test statistics, model moments)
+  comes from `src/lib/`, which is unit-tested. Never re-implement a formula inside a component.
+- **Sliders have sensible ranges:** $T \in [60, 1200]$ months; $N \in [2, 100]$; $K \in [1, 6]$;
+  $\gamma \in [0, 50]$; $\delta \in [0.9, 1]$; $\phi \in [0, 0.999]$; correlations in $[-0.99, 0.99]$.
+- **Randomness is seeded.** Simulations use `src/lib/math/rng.ts`, take a seed and offer a "re-roll" button,
+  so a figure the text describes looks the same on every load.
+- **Motion has a purpose.** Animate a transition only when the change between states is the thing to learn,
+  like a sampling distribution narrowing as $T$ grows. Respect `prefers-reduced-motion`.
+- **Build on the shared parts.** Use `PlotFrame` (axes at the plot edges, `Label` for text) and `WidgetFrame`
+  (title, plot, controls, readout, caption), the shared `Slider`, `Segmented`, `Select` and `Button` controls,
+  and `useTweened` from `animation.ts`. Colour with the CSS variables in §4, never with hex codes.
+- **Accessibility:** colour is never the only cue (also use line style, marker shape or a label), widgets work
+  by keyboard, each figure has an `aria-label` that summarises what it shows, and touch targets are at least
+  44px.
+- **Phone layout:** every widget works at 360px width. Stack the controls below the plot instead of beside it.
+- **Performance:** load widgets with `client:visible`, and lazy-load heavy libraries only in the chapters that
+  use them.
+
+### Writing widgets into a chapter
+
+```mdx
+import SamplingErrorMean from '../../components/plots/SamplingErrorMean';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz, NumericQuiz } from '../../components/ui/Quiz';
+
+<SamplingErrorMean client:visible initialT={600} title="How precise is the equity premium?" />
+
+<p class="try-this"><strong>Try this:</strong> cut the sample to 10 years...</p>
+
+<Callout type="key">The one idea to remember.</Callout>
+```
+
+- Put a short "Try this" prompt after each widget, telling the reader what to do with it.
+- In MDX, write a literal dollar sign as `\$`, because `$…$` is math. Never write `\$` inside math.
+
+## 6. Quizzes
+
+- Mostly multiple choice. Use a numeric answer with a tolerance when computing something is the point.
+- Each question tests one idea from the chapter. Avoid trick questions.
+- Every answer, right or wrong, shows a 1–3 sentence explanation.
+
+## 7. References
+
+End each chapter with a short **Further reading** list of the papers and book chapters it builds on, in the
+short form used by `docs/CURRICULUM.md` (for example Campbell (2018), Ch. 1; Cochrane (2005), Ch. 12; Fama and
+MacBeth (1973)). Cite every paper whose result the chapter shows.

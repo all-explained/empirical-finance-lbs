@@ -4,13 +4,15 @@
  * active theme (see src/styles/theme.css). See docs/STYLE_GUIDE.md §4.
  */
 export const katexMacros: Record<string, string> = {
-  '\\Spot': '\\htmlClass{c-spot}{#1}',
-  '\\Time': '\\htmlClass{c-time}{#1}',
-  '\\Vol': '\\htmlClass{c-vol}{#1}',
-  '\\Rate': '\\htmlClass{c-rate}{#1}',
+  '\\Ret': '\\htmlClass{c-return}{#1}',
+  '\\Rf': '\\htmlClass{c-rf}{#1}',
+  '\\Factor': '\\htmlClass{c-factor}{#1}',
+  '\\SDF': '\\htmlClass{c-sdf}{#1}',
+  '\\Signal': '\\htmlClass{c-signal}{#1}',
+  '\\Data': '\\htmlClass{c-data}{#1}',
+  '\\Model': '\\htmlClass{c-model}{#1}',
+  '\\Err': '\\htmlClass{c-error}{#1}',
   '\\Prob': '\\htmlClass{c-prob}{#1}',
-  '\\Bid': '\\htmlClass{c-bid}{#1}',
-  '\\Ask': '\\htmlClass{c-ask}{#1}',
 };
 
 export const katexOptions = {

@@ -19,13 +19,13 @@ const defaults = { key: 'Key idea', note: 'Note', warning: 'Common mistake' };
 
 <style>
   .callout {
-    --accent: var(--c-spot);
+    --accent: var(--ui-accent);
     margin: 1.75rem auto; padding: 0.9rem 1.2rem 0.2rem;
     border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
     background: color-mix(in srgb, var(--accent) 7%, var(--bg));
   }
-  .key { --accent: var(--c-accent); }
-  .warning { --accent: var(--c-put); }
+  .key { --accent: var(--ui-highlight); }
+  .warning { --accent: var(--ui-bad); }
   .callout-title { font-family: var(--font-ui); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
   .callout-body :global(p) { margin-bottom: 0.8rem; }
 </style>

@@ -18,7 +18,7 @@
 
 .prose blockquote {
   margin: 1.5rem auto; padding: 0.2rem 1.2rem;
-  border-left: 3px solid var(--c-accent); color: var(--text-muted); font-style: italic;
+  border-left: 3px solid var(--ui-highlight); color: var(--text-muted); font-style: italic;
 }
 
 .prose > table {
@@ -35,14 +35,14 @@
   border: 1px solid var(--border); border-radius: var(--radius);
   padding: 0.6rem 1rem; margin-bottom: 1.5rem; background: var(--bg-raised);
 }
-.prose details > summary { cursor: pointer; font-family: var(--font-ui); font-size: 0.92rem; font-weight: 600; color: var(--c-spot); }
+.prose details > summary { cursor: pointer; font-family: var(--font-ui); font-size: 0.92rem; font-weight: 600; color: var(--ui-accent); }
 .prose details[open] > summary { margin-bottom: 0.6rem; }
 
-/* Inline colour helpers for prose: <span class="c-call">call</span> */
-.prose .c-spot, .prose .c-accent, .prose .c-call, .prose .c-put, .prose .c-time, .prose .c-vol, .prose .c-rate,
-.prose .c-bid, .prose .c-ask { font-weight: 600; }
-.prose .katex .c-spot, .prose .katex .c-accent, .prose .katex .c-call, .prose .katex .c-put,
-.prose .katex .c-time, .prose .katex .c-vol, .prose .katex .c-rate, .prose .katex .c-bid, .prose .katex .c-ask { font-weight: inherit; }
+/* Inline colour helpers for prose: <span class="c-factor">factor</span> */
+.prose .c-return, .prose .c-rf, .prose .c-factor, .prose .c-sdf, .prose .c-signal,
+.prose .c-data, .prose .c-model, .prose .c-error { font-weight: 600; }
+.prose .katex .c-return, .prose .katex .c-rf, .prose .katex .c-factor, .prose .katex .c-sdf,
+.prose .katex .c-signal, .prose .katex .c-data, .prose .katex .c-model, .prose .katex .c-error { font-weight: inherit; }
 
 .prose .try-this { font-family: var(--font-ui); font-size: 0.92rem; color: var(--text-muted); }
 .prose .try-this strong { color: var(--text); }
