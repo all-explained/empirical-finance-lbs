@@ -105,6 +105,7 @@ flowchart TD
     TASK_034["TASK-034 Plan: decompose M-8"]
   end
   subgraph M_9["M-9 · Part VII: The factor zoo and shrinkage"]
+    TASK_035["TASK-035 Plan: decompose M-9"]
   end
   subgraph M_10["M-10 · Part VIII: Latent factors and large cross-sections"]
   end
@@ -164,6 +165,7 @@ flowchart TD
   TASK_031 --> TASK_032
   TASK_032 --> TASK_033
   TASK_033 --> TASK_034
+  TASK_034 --> TASK_035
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
