@@ -33,7 +33,7 @@ milestones:
   - {id: M-19, title: 'Part XVII: Frontier topics', success: [SC-7, SC-6], exit: 'Every chapter of Part XVII merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
 policy:
   decide: human         # human | experts (a committee answers worker decision requests)
-  orchestrator: {platform: codex, model: gpt-6.1-sol, effort: high}
+  orchestrator: {platform: claude, model: sonnet, effort: medium}
   max_parallel: 7
   default_route: {platform: claude, model: opus, effort: high}
   agent: claude         # claude | codex | opencode | agy
