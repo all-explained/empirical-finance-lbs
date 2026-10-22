@@ -2,9 +2,10 @@ import { describe, expect, test } from 'vitest';
 import ff25 from '../../data/series/ff25-size-bm-monthly.json';
 import gsw from '../../data/series/gsw-zero-coupon.json';
 import type { Series } from '../data/series';
+import { sampleCovariance } from '../finance/portfolio';
 import { normalRng } from '../math/rng';
 import {
-  covarianceMatrix, directionVariance, ff25Returns, gswYieldChanges, pca, projectOnDirection, reconstruct, reconstructionError,
+  directionVariance, ff25Returns, gswYieldChanges, pca, projectOnDirection, reconstruct, reconstructionError,
   rotatePair, scores,
 } from './pca';
 
@@ -21,9 +22,9 @@ function seededPanel(T = 200, seed = 7): number[][] {
   });
 }
 
-describe('covarianceMatrix', () => {
+describe('sample covariance (reused from portfolio.ts)', () => {
   test('hand example', () => {
-    const S = covarianceMatrix(HAND);
+    const S = sampleCovariance(HAND);
     expect(S[0][0]).toBeCloseTo(10 / 3, 12);
     expect(S[1][1]).toBeCloseTo(10 / 3, 12);
     expect(S[0][1]).toBeCloseTo(8 / 3, 12);
@@ -31,9 +32,9 @@ describe('covarianceMatrix', () => {
   });
 
   test('rejects short, ragged and non-finite panels', () => {
-    expect(() => covarianceMatrix([[1, 2]])).toThrow(RangeError);
-    expect(() => covarianceMatrix([[1, 2], [3]])).toThrow(RangeError);
-    expect(() => covarianceMatrix([[1, NaN], [3, 4]])).toThrow(RangeError);
+    expect(() => sampleCovariance([[1, 2]])).toThrow(RangeError);
+    expect(() => sampleCovariance([[1, 2], [3]])).toThrow(RangeError);
+    expect(() => sampleCovariance([[1, NaN], [3, 4]])).toThrow(RangeError);
   });
 });
 
@@ -81,7 +82,7 @@ describe('pca', () => {
   test('seeded panel: scores are uncorrelated with variances ℓ_k', () => {
     const X = seededPanel();
     const fit = pca(X);
-    const S = covarianceMatrix(scores(X, fit, 5));
+    const S = sampleCovariance(scores(X, fit, 5));
     S.forEach((row, i) => row.forEach((v, j) => expect(v).toBeCloseTo(i === j ? fit.values[i] : 0, 10)));
   });
 

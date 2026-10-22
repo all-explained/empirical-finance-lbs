@@ -1,4 +1,5 @@
 import { getColumn, seriesColumns, type Series } from '../data/series';
+import { sampleCovariance, sampleMeans } from '../finance/portfolio';
 import { symmetricEigen, type Matrix } from '../math/linalg';
 
 /**
@@ -21,51 +22,16 @@ export interface PCA {
   cumulativeShare: number[];
 }
 
-function checkPanel(X: readonly (readonly number[])[]): void {
-  if (X.length < 2) throw new RangeError('PCA needs at least two observations');
-  const n = X[0].length;
-  if (n === 0) throw new RangeError('PCA needs at least one series');
-  for (const row of X) {
-    if (row.length !== n) throw new RangeError('Every observation must have the same number of series');
-    if (!row.every(Number.isFinite)) throw new RangeError('Expected finite numbers');
-  }
-}
-
-function columnMeans(X: readonly (readonly number[])[]): number[] {
-  return X[0].map((_, j) => X.reduce((sum, row) => sum + row[j], 0) / X.length);
-}
-
-/** N × N sample covariance of the columns of X, divisor T - 1. */
-export function covarianceMatrix(X: readonly (readonly number[])[]): Matrix {
-  checkPanel(X);
-  const mean = columnMeans(X);
-  const n = mean.length;
-  const S = Array.from({ length: n }, () => new Array<number>(n).fill(0));
-  for (const row of X) {
-    for (let i = 0; i < n; i++) {
-      const di = row[i] - mean[i];
-      for (let j = i; j < n; j++) S[i][j] += di * (row[j] - mean[j]);
-    }
-  }
-  for (let i = 0; i < n; i++) {
-    for (let j = i; j < n; j++) {
-      S[i][j] /= X.length - 1;
-      S[j][i] = S[i][j];
-    }
-  }
-  return S;
-}
-
-/** Eigen-decomposition Σ = QΛQ' of the sample covariance, with variance shares. */
+/** Eigen-decomposition Σ = QLQ' (L = diag ℓ) of the sample covariance, with variance shares. */
 export function pca(X: readonly (readonly number[])[]): PCA {
-  const covariance = covarianceMatrix(X);
+  const covariance = sampleCovariance(X);
   const { values, vectors } = symmetricEigen(covariance);
   const total = values.reduce((sum, v) => sum + v, 0);
   if (!(total > 0)) throw new RangeError('PCA needs series that are not all constant');
   const share = values.map((v) => v / total);
   let running = 0;
   const cumulativeShare = share.map((s) => (running += s));
-  return { mean: columnMeans(X), covariance, values, loadings: vectors, share, cumulativeShare };
+  return { mean: sampleMeans(X), covariance, values, loadings: vectors, share, cumulativeShare };
 }
 
 /** Variance of the combination w'x: w'Σw. For a unit w it is the variance along direction w. */
