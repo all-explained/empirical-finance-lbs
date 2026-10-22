@@ -13,15 +13,13 @@ import Callout from '../../components/ui/Callout.astro';
 import { Quiz } from '../../components/ui/Quiz';
 
 <Callout type="note" title="What you need from Chapter 3">
-Chapter 3 is not written yet, so here is the short version of the one tool this chapter uses.
+This chapter uses one tool from [Chapter 3](../03-regression-and-standard-errors/): regression. A short reminder:
 
-- **Ordinary least squares (OLS)** fits a straight line $y_t = a + b\,x_t + \varepsilon_t$ through a cloud of
-  points. It picks the intercept $a$ and the slope $b$ that make the sum of the squared errors $\varepsilon_t$
-  as small as possible.
-- The **residuals** are the errors that are left after the fit. Their standard deviation tells you how far a
-  typical point lies from the line.
-- A **standard error** measures how much an estimate would change in a new sample. An estimate plus or minus two
-  standard errors gives a rough range for the true value.
+- **Ordinary least squares (OLS)** fits the line $y_t = a + b\,x_t + \varepsilon_t$ with the smallest sum of
+  squared errors.
+- The **residuals** are the errors left after the fit.
+- A **standard error** measures how much an estimate would change in a new sample. Two standard errors on each side
+  give a rough range for the true value.
 </Callout>
 
 ## <span class="section-tag">Hook</span> How long does an expensive market stay expensive?

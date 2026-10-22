@@ -87,6 +87,23 @@ describe('VAR(1)', () => {
   const A = [[0.5, 0.1], [0.2, 0.3]];
   const c = [1, 2];
 
+  test('hand-solved two-variable fit on five points', () => {
+    // Lagged x = (1, −1, 1, −1) and lagged y = (1, 1, −1, −1) are orthogonal to each other and to the
+    // constant, so X'X = 4I and each coefficient is (regressor · dependent) / 4.
+    // x eq: dependent (−1, 1, −1, 3) → c = 0.5, A = (−1.5, −0.5), residuals (0.5, −0.5, −0.5, 0.5).
+    // y eq: dependent (1, −1, −1, −1) → c = −0.5, A = (0.5, 0.5), the same residuals.
+    // dof = 4 − 3 = 1, so every residual (co)variance is 1 and every SE is sqrt(1/4) = 0.5.
+    // Mean solves [[2.5, 0.5], [−0.5, 0.5]] μ = (0.5, −0.5): μ = (1/3, −2/3).
+    const fit = fitVAR1([[1, -1, 1, -1, 3], [1, 1, -1, -1, -1]]);
+    const close = (got: number[][], want: number[][]) =>
+      want.forEach((row, i) => row.forEach((v, j) => expect(got[i][j]).toBeCloseTo(v, 14)));
+    close(fit.A, [[-1.5, -0.5], [0.5, 0.5]]);
+    close([fit.intercept, fit.mean], [[0.5, -0.5], [1 / 3, -2 / 3]]);
+    close(fit.residualCovariance, [[1, 1], [1, 1]]);
+    close(fit.standardErrors, [[0.5, 0.5], [0.5, 0.5]]);
+    expect(fit.nobs).toBe(4);
+  });
+
   test('a one-variable VAR(1) is the AR(1) fit', () => {
     const x = simulateAR1({ T: 300, phi: 0.8, sigma: 1, mean: 2, seed: 5 });
     const fit = fitVAR1([x]);
