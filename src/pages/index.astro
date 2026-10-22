@@ -12,8 +12,8 @@ const first = available.get(1);
       <svg class="hero-art" viewBox="0 0 400 180" aria-hidden="true">
         <line x1="20" y1="150" x2="380" y2="150" stroke="var(--axis)" stroke-width="1.5" />
         <line x1="20" y1="20" x2="20" y2="150" stroke="var(--axis)" stroke-width="1.5" />
-        <path d="M40 135 L90 115 L140 125 L190 85 L240 100 L290 55 L350 35" fill="none" stroke="var(--c-spot)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-        <circle cx="190" cy="85" r="6" fill="var(--c-accent)" />
+        <path d="M40 135 L90 115 L140 125 L190 85 L240 100 L290 55 L350 35" fill="none" stroke="var(--ui-accent)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="190" cy="85" r="6" fill="var(--ui-highlight)" />
       </svg>
       <h1>Empirical Finance, Explained</h1>
       <p class="lede">
@@ -60,7 +60,7 @@ const first = available.get(1);
   .lede { font-size: 1.25rem; color: var(--text-muted); margin: 0 0 2rem; }
   .cta {
     display: inline-block; padding: 0.8rem 1.6rem; border-radius: 999px;
-    background: var(--c-spot); color: var(--bg); font-family: var(--font-ui); font-weight: 600; text-decoration: none;
+    background: var(--ui-accent); color: var(--bg); font-family: var(--font-ui); font-weight: 600; text-decoration: none;
   }
   .cta:hover { filter: brightness(1.1); }
 
@@ -69,13 +69,13 @@ const first = available.get(1);
   .parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: 1rem; }
   .part { background: var(--bg-raised); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; font-family: var(--font-ui); }
   .part header { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.6rem; }
-  .roman { color: var(--c-accent); font-weight: 700; font-size: 0.9rem; min-width: 2.2em; }
+  .roman { color: var(--ui-highlight); font-weight: 700; font-size: 0.9rem; min-width: 2.2em; }
   .part h3 { font-family: var(--font-ui); font-size: 1rem; margin: 0; flex: 1; }
-  .diff { color: var(--c-time); font-size: 0.7rem; letter-spacing: 0.1em; white-space: nowrap; }
+  .diff { color: var(--ui-accent); font-size: 0.7rem; letter-spacing: 0.1em; white-space: nowrap; }
   ol { list-style: none; margin: 0; padding: 0; font-size: 0.9rem; line-height: 1.4; }
   li { display: flex; gap: 0.6rem; padding: 0.25rem 0; }
   .n { color: var(--text-muted); min-width: 2.2em; font-variant-numeric: tabular-nums; }
   li a { color: var(--text); font-weight: 600; text-decoration: none; }
-  li a:hover { color: var(--c-spot); }
+  li a:hover { color: var(--ui-accent); }
   .soon { color: var(--text-muted); opacity: 0.65; }
 </style>

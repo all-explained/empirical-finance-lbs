@@ -5,7 +5,7 @@ An interactive, visual course on empirical asset pricing, in English, from first
 ## Read first
 
 - `goals/course-site/README.md` describes the goal and worker protocol.
-- `docs/CURRICULUM.md` and `docs/STYLE_GUIDE.md` will define the curriculum, notation and style in later tasks.
+- `docs/CURRICULUM.md` defines the curriculum. `docs/STYLE_GUIDE.md` defines voice, template, notation, colours and widget rules.
 - Reference chapters will follow in later tasks. Do not copy private course material into the site.
 
 ## Stack
@@ -18,7 +18,7 @@ The scaffold is adapted from `all-explained/options-explained`.
 
 - `npm ci`: install the locked dependencies.
 - `npm run dev`: start the development server.
-- `npm test`: unit tests for the generic math helpers in `src/lib`.
+- `npm test`: unit tests for the math helpers in `src/lib`, and the style-guide notation vs KaTeX macros check.
 - `npm run build`: `astro check` plus the static build.
 - `npm run screenshots [filter]`: after a build, capture both themes at desktop and phone sizes.
   Fail on console errors, KaTeX errors or horizontal overflow.
@@ -31,8 +31,8 @@ The scaffold is adapted from `all-explained/options-explained`.
   Its `parts` list stays empty until TASK-005.
 - Follow the chapter template: Hook → Intuition → Formalisation → Playground → Check yourself →
   Recap & next up. Start each `##` heading with `<span class="section-tag">Hook</span>` (etc.).
-- Use the shared colour tokens and KaTeX macros in `src/lib/katexMacros.ts`.
-  TASK-003 will define the course notation and colour semantics. Do not invent them in this scaffold.
+- Use the colour tokens in `src/styles/theme.css` and the KaTeX macros in `src/lib/katexMacros.ts`.
+  A new symbol or colour goes into the `docs/STYLE_GUIDE.md` tables in the same PR.
 - `$…$` is math. Write literal dollars as `\$` in MDX prose. In widget and quiz strings,
   `RichText` uses the same rule: `"\$5"` in an attribute or `"\\$5"` inside a JavaScript string.
   Do not put `\$` inside math.
@@ -53,7 +53,7 @@ The scaffold is adapted from `all-explained/options-explained`.
 - Run `npm test`, `npm run build` and `npm run screenshots`.
 - Inspect screenshots in both themes at desktop and phone sizes for every changed page.
 - Check new widget controls and readouts with Playwright.
-- Follow the style guide once it exists. Keep the scaffold free of topic-specific widgets and chapters.
+- Follow `docs/STYLE_GUIDE.md`. Keep the scaffold free of topic-specific widgets and chapters.
 - Use local verification. Do not run, read or wait for GitHub Actions.
 
 ## Gotchas
