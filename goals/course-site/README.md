@@ -117,6 +117,7 @@ flowchart TD
     TASK_038["TASK-038 Plan: decompose M-12"]
   end
   subgraph M_13["M-13 · Part XI: The term structure: facts"]
+    TASK_039["TASK-039 Plan: decompose M-13"]
   end
   subgraph M_14["M-14 · Part XII: Term structure models"]
   end
@@ -172,6 +173,7 @@ flowchart TD
   TASK_035 --> TASK_036
   TASK_036 --> TASK_037
   TASK_037 --> TASK_038
+  TASK_038 --> TASK_039
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
