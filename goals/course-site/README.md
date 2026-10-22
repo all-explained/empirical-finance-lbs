@@ -96,6 +96,7 @@ flowchart TD
     TASK_031["TASK-031 Plan: decompose M-5"]
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
+    TASK_032["TASK-032 Plan: decompose M-6"]
   end
   subgraph M_7["M-7 · Part V: Factors, anomalies and conditional models"]
   end
@@ -158,6 +159,7 @@ flowchart TD
   TASK_022 --> TASK_030
   TASK_023 --> TASK_030
   TASK_030 --> TASK_031
+  TASK_031 --> TASK_032
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
