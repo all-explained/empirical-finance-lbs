@@ -108,6 +108,7 @@ flowchart TD
     TASK_035["TASK-035 Plan: decompose M-9"]
   end
   subgraph M_10["M-10 · Part VIII: Latent factors and large cross-sections"]
+    TASK_036["TASK-036 Plan: decompose M-10"]
   end
   subgraph M_11["M-11 · Part IX: Consumption: data and the equity premium puzzle"]
   end
@@ -166,6 +167,7 @@ flowchart TD
   TASK_032 --> TASK_033
   TASK_033 --> TASK_034
   TASK_034 --> TASK_035
+  TASK_035 --> TASK_036
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
