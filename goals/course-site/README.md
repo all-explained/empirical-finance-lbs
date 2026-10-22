@@ -81,6 +81,7 @@ flowchart TD
     TASK_020["TASK-020 Library: mean–variance portfolios and beta"]
     TASK_021["TASK-021 Library: Euler equation, SDF and Hansen–Jagannathan bound"]
     TASK_022["TASK-022 Chapter 2: Expected return and risk"]
+    TASK_023["TASK-023 Chapter 3: Regression and standard errors"]
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
   end
