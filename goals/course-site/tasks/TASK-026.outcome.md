@@ -3,12 +3,12 @@
 ## Acceptance
 
 - [x] `npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.
-  `npm test`: 16 files, 216 tests passed, including `src/lib/stats/pca.test.ts` (11 tests) and
-  `tests/chapter06-numbers.test.ts` (8 tests). `npm run build`: `Result (59 files): 0 errors, 0 warnings,
+  `npm test`: 17 files, 220 tests passed, including `src/lib/stats/pca.test.ts` (11 tests) and
+  `tests/chapter06-numbers.test.ts` (8 tests). `npm run build`: `Result (63 files): 0 errors, 0 warnings,
   0 hints`, then `[build] Complete!`.
 - [x] `npm run screenshots -- 06-principal` passes in both themes at desktop and phone size, and I inspected
   the images. Output: four `✓` lines (`dark-desktop`, `dark-phone`, `light-desktop`, `light-phone`), no console
-  errors, no KaTeX errors, no horizontal overflow. I read slices of the full-page images (Hook, Formalisation
+  errors, no KaTeX errors, no horizontal overflow. I read slices of the full-page images (the opening callout with its Chapter 2 link, Hook, Formalisation
   maths, Playground, quizzes) in both themes, and I captured the widget itself in every view (cloud, cloud
   rotated by 30°, scree, loadings, flipped loadings, yield-curve cloud/scree/loadings, 1963 loadings) in both
   themes at 1280px and 360px. An earlier 12px overflow at 360px (long preset labels in the `Select`) was fixed
@@ -18,8 +18,8 @@
   1280px, 70 actions at 360px · select "Data"; segmented "Show" option "scree"; segmented "Show" option
   "loadings"; segmented "Show" option "cloud"; select "Across"; select "Up"; slider "Rotate axes 1 and 2 by ω";
   button "Flip the signs"`. The chapter has one widget, `PCAExplorer`.
-- [x] The six `section-tag` headings are in template order (`grep -n 'section-tag'`): line 26 Hook, 42
-  Intuition, 71 Formalisation, 212 Playground, 254 Check yourself, 280 Recap & next up.
+- [x] The six `section-tag` headings are in template order (`grep -n 'section-tag'`): line 25 Hook, 41
+  Intuition, 70 Formalisation, 211 Playground, 253 Check yourself, 279 Recap & next up.
 - [x] No hex colour in the chapter or its widgets: the spec's `git diff --name-only origin/main -- … | xargs grep
   -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"` prints `no hex colours`. Colours are `var(--c-data)`,
   `var(--c-factor)`, `var(--c-error)` and `var(--text-muted)`.
@@ -28,7 +28,7 @@
   `loadSeries`, and its caption names the dataset ID and sample period. The chapter has no simulation, so there
   is no randomness to seed. The library test's random panels use `normalRng` from `src/lib/math/rng.ts`.
 - [x] Voice review and numbers table: see `## Voice review` and `## Numbers in the prose` below.
-- [x] The prose is 2,755 words, inside 1,500–3,000. Command (as in TASK-014: drops the frontmatter, imports and
+- [x] The prose is 2,742 words, inside 1,500–3,000. Command (as in TASK-014: drops the frontmatter, imports and
   `$$` display blocks; counts callouts, details, try-this paragraphs and quizzes):
   `awk 'NR>8' src/content/chapters/06-principal-components.mdx | grep -v '^import ' | awk '/^\$\$/{m=!m; next} !m' | wc -w`
 - [x] `git ls-files | grep -ciE '\.pdf$|^source/'` prints 0 (exit 1, accepted under DEC-002).
@@ -43,7 +43,7 @@ One line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1:
 | Data before theory | "The average correlation between two of these portfolios is 0.84, and even the lowest is 0.63." |
 | One idea per section | Each Formalisation subsection carries one idea: "The variance of a direction", "The best direction is $q_1$", "The first $K$ components lose the least", "Sign and rotation: what PCA does not pin down". |
 | Start with a question the reader has | "If 25 series move almost as one, how many separate things are really moving?" |
-| Write to "you", short sentences, explain terms | "A list like this is a **vector**." Chapter 2 does not exist, so the opening callout recaps variance, covariance, correlation and the covariance matrix instead of linking. |
+| Write to "you", short sentences, explain terms | "A list like this is a **vector**." The opening callout links [Chapter 2](../02-expected-return-and-risk/) for variance and volatility, and recaps only the tools Chapter 2 does not cover: covariance, correlation and the covariance matrix. |
 | Give the honest version | "A fact of linear algebra, which we use without proof, is that every covariance matrix can be written as …" and "We drop the hats to keep the formulas short." |
 | Say what the evidence can and cannot show | "PCA describes the sample. It is not a model, and it reports no standard errors in this chapter." and "a component that explains much of the **variance** of returns need not explain their **average**." |
 | Don't skip steps | The variance of a combination and the proof that no other $K$ directions beat the first $K$ components are written out in full in two `<details>` blocks; the rotation identity shows the cancelling cross terms. |
@@ -108,7 +108,7 @@ Deviations and mismatches to report (no edits to `docs/`):
   skipped. I ordered the "Show" options (scree, loadings, cloud) so that every control is driven; a script that
   re-finds controls by label would remove this constraint.
 
-Verified revision: `80a402a` (rebased on `origin/main` at `24010b0`); the full Verify sequence ran on it. The commit after it changes only this file.
+Verified revision: the review fix (opening callout links Chapter 2), rebased on `origin/main` at `e422810`; the full Verify sequence ran on it. The built link `../02-expected-return-and-risk/` resolves to `dist/chapters/02-expected-return-and-risk/index.html`.
 
 Proposed follow-ups: add the symbols above to `docs/STYLE_GUIDE.md` §3; make `clickthrough.mjs` robust to
 controls that appear and disappear with a view switch.
