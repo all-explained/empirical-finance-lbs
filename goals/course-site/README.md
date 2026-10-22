@@ -114,6 +114,7 @@ flowchart TD
     TASK_037["TASK-037 Plan: decompose M-11"]
   end
   subgraph M_12["M-12 · Part X: Habits, long-run risk and disasters"]
+    TASK_038["TASK-038 Plan: decompose M-12"]
   end
   subgraph M_13["M-13 · Part XI: The term structure: facts"]
   end
@@ -170,6 +171,7 @@ flowchart TD
   TASK_034 --> TASK_035
   TASK_035 --> TASK_036
   TASK_036 --> TASK_037
+  TASK_037 --> TASK_038
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
