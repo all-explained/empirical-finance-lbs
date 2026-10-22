@@ -6,6 +6,7 @@ state: approved
 depends_on: [TASK-003, TASK-004, TASK-005, DEC-001, TASK-008]
 delivery: pr
 kind: plan
+route: {platform: claude, model: opus, effort: high}
 ---
 
 ## Why
