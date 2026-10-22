@@ -2,14 +2,16 @@
 
 ## Acceptance
 
-- [x] `npm test` and `npm run build` pass. After `npm ci`: Vitest 11 files,
-  161 tests pass, including `src/lib/stats/autocorr.test.ts` (8 tests) and
+- [x] `npm test` and `npm run build` pass. After `npm ci` on the resumed branch
+  (rebased on `origin/main` at `5138220`): Vitest 18 files, 221 tests pass, including `src/lib/stats/autocorr.test.ts` (8 tests) and
   `tests/chapter04-numbers.test.ts` (6 tests). `astro check` reports 0 errors,
   0 warnings, 0 hints; the build ends with `Complete!`.
 - [x] `npm run screenshots -- 04-autocorrelation` passes with four ✓ lines
   (dark/light × desktop/phone), no console, KaTeX or overflow error. What I saw
   (full pages sliced, plus each widget on its own):
-  - Dark desktop: the Chapter 3 recap callout, then the six sections. All
+  - Dark desktop: the "What you need from Chapter 3" callout, which now opens
+    with a link to Chapter 3 (the built `href` resolves to
+    `dist/chapters/03-regression-and-standard-errors/`), then the six sections. All
     display maths renders; long equations are split over aligned lines. The
     `OverlapDemo` shows 36 blue monthly bars, the shared months shaded, bracket A
     (solid) and B (dotted) under the bars, and below it the smooth line of
@@ -27,15 +29,16 @@
   widgets: "Two 12-month returns that share months" (4 actions at 1280 px and at
   360 px: gap slider min/max/middle, re-roll) and "How the lag length L changes
   the standard error" (8 actions at each width: lag slider, both horizon options,
-  both data options, re-roll). Slider names print as `Gap jjj …` / `Lag length
-  LLL`; that is the known script defect all-explained/empirical-finance-lbs#16.
+  both data options, re-roll). The slider names now print cleanly
+  (`Gap j between the windows`, `Lag length L`).
   A first run failed with a 7 px overflow at 360 px from one long inline formula;
   I rewrote that sentence and the run passes.
-- [x] The six `section-tag` headings are in template order: line 27 Hook,
-  41 Intuition, 73 Formalisation, 226 Playground, 265 Check yourself,
-  291 Recap & next up.
-- [x] No hex colour: the spec's grep over `HACLagExplorer.tsx`,
-  `OverlapDemo.tsx` and the chapter prints `no hex colours`
+- [x] The six `section-tag` headings are in template order: line 28 Hook,
+  42 Intuition, 74 Formalisation, 227 Playground, 266 Check yourself,
+  292 Recap & next up.
+- [x] No hex colour: the spec's grep (diff against `origin/main`) lists only
+  this task's files, `HACLagExplorer.tsx`, `OverlapDemo.tsx` and the chapter,
+  and prints `no hex colours`
   (`hacSample.ts` and `autocorr.ts` hold none either). Colours used:
   `--c-return`, `--c-error`, `--c-model`, `--text`, `--text-muted`.
 - [x] Real data and seeded simulation: `HACLagExplorer` opens on
@@ -61,7 +64,7 @@ One line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1:
 | Data before theory | "From February 1881 to June 2023, the shiller-monthly data hold 1,709 monthly returns of the US stock market." |
 | One idea per section | Formalisation splits into "Where the classical formula goes wrong", "Overlapping returns give an MA($k-1$) error", "The Newey–West estimator", "How to choose $L$". |
 | Start with a question the reader has | "Did sliding the window one month at a time really make the estimate three times more precise?" |
-| Write to "you", short sentences, explain terms | "So the errors are **autocorrelated**: an error is correlated with the errors of the rows near it in time." Chapter 3 does not exist, so a callout recaps OLS, standard errors and White errors instead of linking. |
+| Write to "you", short sentences, explain terms | "So the errors are **autocorrelated**: an error is correlated with the errors of the rows near it in time." A callout links to Chapter 3 and keeps a short reminder of OLS, standard errors and White errors. |
 | Give the honest version | "Now treat $X$ as fixed. This is a simplification that keeps the algebra short. Large-sample theory gives the same formula without it." |
 | Say what the evidence can and cannot show | "What it cannot show is the mean to the nearest point. A standard error of about 1.4 points means a range of about plus or minus 2.8 points around 8.7%." |
 | Don't skip steps in derivations | "The middle step uses the sum $1 + 2 + \dots + (k-1)$, which equals $k(k-1)/2$." The Bartlett non-negativity proof is a 7-step `<details>` block. |
@@ -163,10 +166,22 @@ Deviations and mismatches to report (no edits made to the curriculum or style gu
 
 No library defect found; no shared code changed.
 
-Verified revision: `35d252e` (chapter, widgets, library, tests) plus this
-outcome commit. `npm ci`, tests, build, screenshots and click-through were run
-on `35d252e`.
+Verified revision: `ca08e3c` (chapter, widgets, library, tests, rebased on
+`origin/main` at `5138220`) plus this outcome commit. `npm ci`, tests, build,
+screenshots and click-through were run on `ca08e3c`.
 
-Follow-ups: fix all-explained/empirical-finance-lbs#16 (click-through prints
-math labels three times). When chapter 3 is written, replace the recap callout
-with a link.
+## Resume (review at `8599249`)
+
+The review found one false sentence: the opening callout said Chapter 3 is not
+written yet. Changes:
+
+- Rebased on `origin/main`, which now has Chapter 3 (and Chapter 8).
+- The callout now starts "[Chapter 3](../03-regression-and-standard-errors/)
+  builds these ideas in full. Here is a short reminder of what this chapter
+  uses." The three reminder bullets stay.
+- The same claim is fixed in the voice review above. The old follow-up ("when
+  chapter 3 is written, replace the recap callout") is done and removed.
+- `src/lib/stats/autocorr.ts` is unchanged.
+- The full Verify was re-run on the new base; results are in Acceptance.
+
+Follow-ups: none.
