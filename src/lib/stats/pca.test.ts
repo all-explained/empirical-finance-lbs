@@ -4,7 +4,8 @@ import gsw from '../../data/series/gsw-zero-coupon.json';
 import type { Series } from '../data/series';
 import { normalRng } from '../math/rng';
 import {
-  covarianceMatrix, directionVariance, ff25Returns, gswYieldChanges, pca, reconstruct, reconstructionError, scores,
+  covarianceMatrix, directionVariance, ff25Returns, gswYieldChanges, pca, projectOnDirection, reconstruct, reconstructionError,
+  rotatePair, scores,
 } from './pca';
 
 // Hand example: mean zero, sample covariance [[10/3, 8/3], [8/3, 10/3]] with divisor T - 1 = 3.
@@ -104,6 +105,19 @@ describe('pca', () => {
       }, 0);
       expect(error).toBeGreaterThanOrEqual(best - 1e-9);
     }
+  });
+
+  test('rotatePair keeps the total variance of the pair; projectOnDirection matches reconstruct', () => {
+    const fit = pca(HAND);
+    const [w1, w2] = rotatePair(fit.loadings[0], fit.loadings[1], Math.PI / 4);
+    // Rotating (1, 1)/√2 and (1, -1)/√2 by 45° gives (1, 0) and (0, -1) up to sign.
+    expect(Math.abs(w1[0])).toBeCloseTo(1, 12);
+    expect(Math.abs(w2[1])).toBeCloseTo(1, 12);
+    expect(directionVariance(fit.covariance, w1)).toBeCloseTo(10 / 3, 10);
+    expect(directionVariance(fit.covariance, w1) + directionVariance(fit.covariance, w2)).toBeCloseTo(6 + 2 / 3, 10);
+    const fitted = reconstruct(HAND, fit, 1);
+    HAND.forEach((z, t) => projectOnDirection(z, fit.mean, fit.loadings[0]).forEach((v, i) => expect(v).toBeCloseTo(fitted[t][i], 12)));
+    expect(() => rotatePair([1], [0, 1], 0)).toThrow(RangeError);
   });
 
   test('rejects bad K and constant panels', () => {

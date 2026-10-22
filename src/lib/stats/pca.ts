@@ -74,6 +74,23 @@ export function directionVariance(covariance: readonly (readonly number[])[], w:
   return w.reduce((sum, wi, i) => sum + wi * covariance[i].reduce((s, c, j) => s + c * w[j], 0), 0);
 }
 
+/**
+ * Rotate two orthonormal directions by an angle ω (radians) inside the plane they span:
+ * w_1 = cos ω q_1 + sin ω q_2 and w_2 = -sin ω q_1 + cos ω q_2. The plane, and so the
+ * fit of the pair, is the same for every ω.
+ */
+export function rotatePair(q1: readonly number[], q2: readonly number[], omega: number): [number[], number[]] {
+  if (q1.length !== q2.length) throw new RangeError('Directions must have the same length');
+  const [c, s] = [Math.cos(omega), Math.sin(omega)];
+  return [q1.map((v, i) => c * v + s * q2[i]), q1.map((v, i) => -s * v + c * q2[i])];
+}
+
+/** The point on the line through `mean` along the unit vector w that is closest to z: mean + w w'(z - mean). */
+export function projectOnDirection(z: readonly number[], mean: readonly number[], w: readonly number[]): number[] {
+  const s = w.reduce((sum, wi, i) => sum + wi * (z[i] - mean[i]), 0);
+  return mean.map((m, i) => m + s * w[i]);
+}
+
 function checkK(fit: PCA, K: number): void {
   if (!Number.isInteger(K) || K < 0 || K > fit.values.length) throw new RangeError('K must be an integer from 0 to N');
 }
