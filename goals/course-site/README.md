@@ -111,6 +111,7 @@ flowchart TD
     TASK_036["TASK-036 Plan: decompose M-10"]
   end
   subgraph M_11["M-11 · Part IX: Consumption: data and the equity premium puzzle"]
+    TASK_037["TASK-037 Plan: decompose M-11"]
   end
   subgraph M_12["M-12 · Part X: Habits, long-run risk and disasters"]
   end
@@ -168,6 +169,7 @@ flowchart TD
   TASK_033 --> TASK_034
   TASK_034 --> TASK_035
   TASK_035 --> TASK_036
+  TASK_036 --> TASK_037
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
