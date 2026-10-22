@@ -83,6 +83,7 @@ flowchart TD
     TASK_022["TASK-022 Chapter 2: Expected return and risk"]
     TASK_023["TASK-023 Chapter 3: Regression and standard errors"]
     TASK_024["TASK-024 Chapter 4: Autocorrelation and Newey–West"]
+    TASK_025["TASK-025 Chapter 5: Persistence: AR(1) and VAR"]
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
   end
@@ -137,6 +138,7 @@ flowchart TD
   TASK_014 --> TASK_015
   TASK_019 --> TASK_020
   TASK_018 --> TASK_022
+  TASK_019 --> TASK_025
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
