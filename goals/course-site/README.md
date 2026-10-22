@@ -91,6 +91,7 @@ flowchart TD
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
     TASK_030["TASK-030 Plan: decompose M-4"]
+    TASK_046["TASK-046 Library: Campbell–Shiller log-linearisation and variance shares"]
   end
   subgraph M_5["M-5 · Part III: Return predictability: out of sample and beyond"]
     TASK_031["TASK-031 Plan: decompose M-5"]
