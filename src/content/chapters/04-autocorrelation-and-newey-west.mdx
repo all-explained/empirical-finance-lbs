@@ -1,0 +1,312 @@
+---
+title: "Autocorrelation and Newey–West"
+part: 1
+chapter: 4
+difficulty: 2
+prerequisites: [3]
+summary: "Overlapping returns share months, so their errors move together; Newey–West standard errors correct for it."
+---
+
+import OverlapDemo from '../../components/plots/OverlapDemo';
+import HACLagExplorer from '../../components/plots/HACLagExplorer';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapter 3">
+[Chapter 3](../03-regression-and-standard-errors/) builds these ideas in full. Here is a short reminder of
+what this chapter uses.
+
+- **OLS** (ordinary least squares) fits $y_t = x_t'\beta + \Err{\varepsilon_t}$ by choosing $\hat\beta$ to make
+  the sum of squared errors as small as possible. The answer is $\hat\beta = (X'X)^{-1}X'y$, where row $t$ of
+  the matrix $X$ is $x_t'$.
+- The **standard error** of $\hat\beta$ is how far the estimate would move, typically, if you drew a new sample.
+  The **$t$-statistic** is $\hat\beta$ divided by its standard error.
+- The **classical** standard error assumes that the errors are independent and all have the same variance.
+  **White** standard errors drop the second assumption. Both keep the first.
+</Callout>
+
+## <span class="section-tag">Hook</span> Can a sliding window create information?
+
+From February 1881 to June 2023, the shiller-monthly data hold 1,709 monthly returns of the US stock market. You
+can build a 12-month return from every starting month: February 1881 to January 1882, then March 1881 to February
+1882, and so on. That gives 1,698 twelve-month returns. Their average log return is 8.7% a year.
+
+How sure can you be of that 8.7%? The standard error from a textbook regression is 0.44 percentage points, so
+the $t$-statistic is 19.7. Now cut the same months into 142 separate 12-month blocks that do not overlap. Their average is
+almost the same, 8.7%. But the standard error is 1.45 points, and the $t$-statistic is 6.0.
+
+Both numbers come from the same 1,709 months. So here is the question. Did sliding the window one month at a
+time really make the estimate three times more precise? If not, which standard error should you believe, and
+how do you fix the other one? This chapter answers both questions.
+
+## <span class="section-tag">Intuition</span> Neighbours share almost everything
+
+Take two 12-month returns that start one month apart. The first covers months 1 to 12. The second covers months
+2 to 13. They share 11 months. Only one month leaves and one month enters. So if the first window had a great
+year, the second one almost surely had a great year too.
+
+In the widget, window A is fixed on months 1 to 12. Window B starts $j$ months later. The shaded band marks
+the months they share. The lower chart shows every 12-month return of the simulation, one for each starting
+month.
+
+<OverlapDemo client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start at a gap of one month. A and B share 11 of 12 months, and
+the lower chart is a smooth line, because each point is almost the same sum as its neighbour. Now drag the gap to
+6, then to 12. At 12 the windows share nothing, and the independent months give a correlation of zero.</p>
+
+The monthly returns in this simulation are independent by construction. Yet the 12-month returns built from them
+are strongly correlated with their neighbours. At a gap of one month, the shared months alone give a
+correlation of $11/12 = 0.92$. The simulation's sample estimate is 0.91.
+
+This is the whole problem in one picture. Each 12-month return is one row of a regression. The error of
+that row is mostly the luck of the months inside the window. Rows that share months share luck. So the errors are
+**autocorrelated**: an error is correlated with the errors of the rows near it in time.
+
+The classical standard error assumes the 1,698 rows are 1,698 independent pieces of evidence. They are not. Two
+rows one month apart carry nearly the same news, counted twice. A rough count of the truly separate evidence is
+the number of non-overlapping years, about 142. A formula that believes it has 1,698 independent rows will be
+far too confident.
+
+<Callout type="key">Overlapping returns share months, so their errors move together. The classical standard
+error counts the same news many times, and so it is too small, and the $t$-statistic too large.</Callout>
+
+## <span class="section-tag">Formalisation</span> The variance of $\hat\beta$ with autocorrelated errors
+
+### Where the classical formula goes wrong
+
+Start from the regression $y_t = x_t'\beta + \Err{\varepsilon_t}$, for $t = 1, \dots, T$. Here $x_t$ is the
+vector of regressors, including the constant 1. Stack the rows into $y$ and $X$, and substitute $y =
+X\beta + \Err{\varepsilon}$ into the OLS formula:
+
+$$
+\begin{aligned}
+\hat\beta &= (X'X)^{-1}X'(X\beta + \Err{\varepsilon}) \\
+&= \beta + (X'X)^{-1}X'\Err{\varepsilon} \\
+&= \beta + (X'X)^{-1}\sum_{t=1}^{T} x_t \Err{\varepsilon_t}.
+\end{aligned}
+$$
+
+The last step writes $X'\Err{\varepsilon}$ row by row. Now treat $X$ as fixed. This is a simplification that
+keeps the algebra short. Large-sample theory gives the same formula without it. Then the only random part of
+$\hat\beta$ is the sum. Write each term of the sum as $z_t = x_t \Err{\varepsilon_t}$. Then
+
+$$
+\operatorname{Var}(\hat\beta) = (X'X)^{-1}\operatorname{Var}\big(\textstyle\sum_t z_t\big)(X'X)^{-1}.
+$$
+
+The errors have mean zero, so each $z_t$ has mean zero. The variance of a sum is the sum of all the covariances
+of its terms, one for each pair $(t, s)$:
+
+$$
+\operatorname{Var}\Big(\sum_t z_t\Big) = \sum_{t=1}^{T}\sum_{s=1}^{T} \mathbb{E}[z_t z_s'].
+$$
+
+Group the pairs by their distance in time, $j = t - s$. Define the average covariance at distance $j$ as
+$\Gamma_j = \tfrac1T \sum_t \mathbb{E}[z_t z_{t-j}']$. The pairs at distance $-j$ are the same pairs in the
+other order, so $\Gamma_{-j} = \Gamma_j'$. Then
+
+$$
+\begin{aligned}
+\operatorname{Var}\Big(\sum_t z_t\Big) &= T \sum_{j=-(T-1)}^{T-1} \Gamma_j = T\,S, \\
+S &= \Gamma_0 + \sum_{j \ge 1} \big(\Gamma_j + \Gamma_j'\big).
+\end{aligned}
+$$
+
+Put the pieces together. This is the formula that holds whatever the errors do:
+
+$$
+\operatorname{Var}(\hat\beta) = (X'X)^{-1}\,T S\,(X'X)^{-1}.
+$$
+
+The classical and White formulas both assume $\Gamma_j = 0$ for every $j \ne 0$. They keep $\Gamma_0$ only.
+When neighbouring errors are positively correlated, the dropped terms are positive, and the variance is
+understated.
+
+### Overlapping returns give an MA($k-1$) error
+
+Now make the problem concrete. Let monthly log returns $\Ret{r_t}$ be independent, with mean $\mu$ and variance
+$\sigma^2$. Regress the $k$-month return on a constant, so $x_t = 1$ and $\hat\beta$ is the sample mean of
+$\Ret{r_{t \to t+k}}$. The error is the sum of $k$ monthly surprises:
+
+$$
+\Err{\varepsilon_t} = \Ret{r_{t \to t+k}} - k\mu = \sum_{i=1}^{k} (\Ret{r_{t+i}} - \mu).
+$$
+
+Two errors $j$ months apart, with $0 \le j < k$, share $k - j$ months. Months that are not shared are
+independent, so only the shared ones add to the covariance. Each adds $\sigma^2$:
+
+$$
+\begin{aligned}
+\operatorname{Cov}(\Err{\varepsilon_t}, \Err{\varepsilon_{t-j}}) &= (k - j)\,\sigma^2, \\
+\operatorname{corr}(\Err{\varepsilon_t}, \Err{\varepsilon_{t-j}}) &= 1 - \frac{j}{k}.
+\end{aligned}
+$$
+
+For $j \ge k$ the windows share nothing, and the covariance is zero. A series built from $k$ consecutive
+independent shocks, whose autocorrelation stops after lag $k - 1$, is called a **moving average of order
+$k - 1$**, or MA($k-1$). With $k = 12$ the correlation falls in a straight line, from $11/12$ at lag 1 to $1/12$ at
+lag 11, and then is zero.
+
+How wrong is the classical standard error here? With $x_t = 1$, we have $X'X = T$, so
+$\operatorname{Var}(\hat\beta) = T S / T^2 = S/T$. Add up the covariances:
+
+$$
+\begin{aligned}
+S &= k\sigma^2 + 2\sum_{j=1}^{k-1} (k - j)\sigma^2 \\
+&= k\sigma^2 + 2\sigma^2\,\frac{k(k-1)}{2} = k^2\sigma^2.
+\end{aligned}
+$$
+
+The middle step uses the sum $1 + 2 + \dots + (k-1)$, which equals $k(k-1)/2$. The classical formula keeps only $\Gamma_0 =
+k\sigma^2$. So it understates the variance by a factor of $k$, and the standard error by a factor of
+$\sqrt{k}$. For $k = 12$, that is $\sqrt{12} = 3.46$. There is a second way to read $S/T = k\sigma^2/(T/k)$. It
+is the variance of one 12-month return, divided by $T/k$. That is what $T/k$ *independent* 12-month returns
+would give you. The overlap does not add information. It only makes the rows look more numerous.
+
+### The Newey–West estimator
+
+In real data we do not know $S$. We estimate each $\Gamma_j$ with the residuals,
+
+$$
+\hat\Gamma_j = \frac1T \sum_{t=j+1}^{T} \Err{\hat\varepsilon_t}\Err{\hat\varepsilon_{t-j}}\,x_t x_{t-j}',
+$$
+
+and then add them up to a **lag length** $L$, with weights that fall in a straight line:
+
+$$
+\begin{aligned}
+\hat S &= \hat\Gamma_0 + \sum_{j=1}^{L} w_j\,\big(\hat\Gamma_j + \hat\Gamma_j'\big), \\
+w_j &= 1 - \frac{j}{L+1}, \\
+\widehat{\operatorname{Var}}(\hat\beta) &= (X'X)^{-1}\,T\hat S\,(X'X)^{-1}.
+\end{aligned}
+$$
+
+This is the **Newey–West** estimator, also called a HAC estimator (heteroskedasticity and autocorrelation
+consistent). The weights $w_j = 1 - j/(L+1)$ are the **Bartlett weights**. With $L = 0$, the estimator is
+White's.
+
+Why not use weight 1 up to lag $L$? Flat weights are the Hansen–Hodrick choice that Chapter 9 also reports. A
+sum of estimated covariances with flat weights can come out negative, and a negative variance has no standard
+error. The Bartlett weights rule this out.
+
+<details>
+<summary>Why the Bartlett weights never give a negative variance</summary>
+
+1. Take one regressor, so each $z_t$ is a number. Treat the values before $t = 1$ and after $t = T$ as zero.
+2. Define the moving sum of $L + 1$ neighbours, $m_t = z_t + z_{t-1} + \dots + z_{t-L}$.
+3. Square it: $m_t^2 = \sum_{a=0}^{L}\sum_{b=0}^{L} z_{t-a}z_{t-b}$.
+4. Add over $t$. For each pair $(a, b)$, the sum $\sum_t z_{t-a}z_{t-b}$ is $\sum_t z_t z_{t-j}$ with $j = |a - b|$.
+5. Count the pairs with $|a - b| = j$. There are $L + 1$ pairs with $j = 0$, and $2(L + 1 - j)$ pairs for each
+   $j$ from 1 to $L$.
+6. So $\frac{1}{T(L+1)}\sum_t m_t^2 = \hat\Gamma_0 + \sum_{j=1}^{L} \frac{L+1-j}{L+1}\,2\hat\Gamma_j$, which is $\hat S$.
+7. The left side is a sum of squares, so $\hat S \ge 0$. With several regressors, apply the same steps to
+   $c'z_t$ for any vector $c$. Then $c'\hat S c \ge 0$ for every $c$.
+
+</details>
+
+Step 6 also shows what the estimator does. It measures the variance of sums of $L + 1$ neighbouring terms. That
+is the overlap idea used in reverse: if the errors move together, sums of neighbours swing more.
+
+### How to choose $L$
+
+The lag length is a choice, and it has a cost in each direction.
+
+- **Too short.** For $k$-month overlapping returns, the true autocorrelation runs to lag $k - 1$. So $L$ must be
+  at least $k - 1$. Even then, the Bartlett weights shrink the lags they keep. With $L = 11$, the weight at lag 6
+  is only $1 - 6/12 = 0.5$. So in practice choose $L$ well above $k - 1$.
+- **Too long.** Every extra lag adds one more estimated covariance, and each estimate is noisy. With $L$ close
+  to $T$, the estimate of $S$ is mostly noise.
+
+There is no single right $L$. A good habit is to show the standard error for a range of $L$ and check that the
+conclusion does not depend on the choice. That is what the Playground does.
+
+<Callout type="warning">Newey–West fixes the formula, not the data. With $T/k$ non-overlapping periods, you have
+only about $T/k$ pieces of independent evidence, and no estimator can create more.</Callout>
+
+## <span class="section-tag">Playground</span> Drag the lag length
+
+The widget runs the regression of the Formalisation on real data: 12-month log returns from shiller-monthly,
+regressed on a constant. The top chart shows the residual autocorrelations as bars, and the Bartlett weights as
+a dashed line. Bars beyond $L$ fade, because the estimator ignores them. The bottom chart shows the Newey–West
+standard error of the mean for every $L$ from 0 to 24.
+
+<HACLagExplorer client:visible />
+
+<p class="try-this"><strong>Try this:</strong> on shiller-monthly with 12-month returns, the bars fall almost in
+a straight line, from 0.95 at lag 1 to 0.07 at lag 11. Now drag $L$ from 0 to 12. The standard error grows
+from 0.44 to 1.30 points, and the $t$-statistic falls from 19.7 to 6.7. At $L = 24$ the standard error is 1.38
+and $t$ is 6.3.</p>
+
+<p class="try-this"><strong>Try this too:</strong> choose "simulated (seeded)". The flat dashed line is the true
+standard error, 2.22 points. The classical one is 0.66, a $t$-statistic of 7.9. Newey–West at $L = 24$ gives 1.97,
+still below the truth. Then press "Re-roll simulation" three times, to seed 4: the true mean is still 6% a year,
+but this sample's mean is −0.6%.</p>
+
+Look at what the real data say. The classical standard error, 0.44 points, is the one from the Hook. Newey–West
+with $L = 24$ gives 1.38 points, about 3.1 times larger. The theory of the Formalisation said $\sqrt{12} = 3.46$
+for independent months. The 142 non-overlapping years gave 1.45 points. So the corrected standard error and
+the honest count of years agree. The classical one does not.
+
+Now switch the horizon to "1 month". The same months, used one at a time, give a classical standard error of
+1.19 points a year, not 0.44. These monthly returns are not overlapping, but their lag-1 autocorrelation is 0.26.
+Newey–West does not need to know why. At $L = 24$ it gives 1.49 points, close to the 12-month answer. Used
+correctly, the two ways of slicing the data tell the same story.
+
+What can this evidence show? The average log return of the S&P composite from 1881 to 2023 is clearly
+positive: even the corrected $t$-statistic is above 6. What it cannot show is the mean to the nearest point.
+A standard error of about 1.4 points means a range of about plus or minus 2.8 points around 8.7%. The simulation
+makes the same point more sharply. With 50 years of data, one draw can miss a true 6% mean by more than six
+points.
+
+Three limits remain. First, Newey–West tends to understate the standard error in samples of this size. Across the
+simulation's seeds 1 to 200, its average at $L = 24$ is 2.00 points, below the true 2.22. Second, its $t$-statistic only follows the normal distribution in large samples. Third, the
+choice of $L$ is a judgment call, so report it.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="Monthly returns are independent. Two 24-month returns start 6 months apart. What is the correlation between them?"
+  options={["0.25", "0.50", "0.75", "1"]}
+  answer={2}
+  explanation="They share $24 - 6 = 18$ of their 24 months, so the correlation is $18/24 = 0.75$. Only the shared months add to the covariance."
+/>
+
+<Quiz
+  client:visible
+  question="You regress overlapping 12-month returns of independent months on a constant. By roughly what factor is the classical standard error too small?"
+  options={["It is not too small", "About 3.5, the square root of 12", "About 11, the number of shared months", "About 12"]}
+  answer={1}
+  explanation="The long-run variance is $S = k^2\sigma^2$, while the classical formula keeps $k\sigma^2$. The variance is understated by a factor of $k = 12$, so the standard error is understated by $\sqrt{12} \approx 3.5$."
+/>
+
+<Quiz
+  client:visible
+  question="For 12-month overlapping returns you choose Newey–West with $L = 11$. Why can the standard error still be too small?"
+  options={["Because $L$ must be at least 100", "Because the Bartlett weights shrink the true covariances, for example to half their size at lag 6", "Because Newey–West ignores lag 0", "It cannot: $L = 11$ is always exactly right"]}
+  answer={1}
+  explanation="With $L = 11$, the weight at lag $j$ is $1 - j/12$. The true autocorrelations run to lag 11, but the estimator counts them only partly. A longer $L$ reduces this shrinkage."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- Overlapping $k$-period returns share months, so their regression errors follow an MA($k-1$): the
+  correlation at lag $j$ is $1 - j/k$ when months are independent.
+- With autocorrelated errors, $\operatorname{Var}(\hat\beta) = (X'X)^{-1}\,T S\,(X'X)^{-1}$, and $S$ includes
+  the covariances at every lag. The classical formula drops them.
+- For the mean of overlapping 12-month returns, the classical standard error is too small by about
+  $\sqrt{12} = 3.46$. On shiller-monthly data, 1881–2023, it is 0.44 points against 1.38 for Newey–West with $L = 24$.
+- Newey–West adds the estimated covariances up to lag $L$ with Bartlett weights $1 - j/(L+1)$, which keep the
+  variance positive. Choose $L$ above $k - 1$ and show that the result holds for a range of $L$.
+- No estimator creates information. The effective sample is about $T/k$ separate periods.
+
+**Next up:** Chapter 5 studies series that remember their past on purpose, the AR(1) and the VAR, and measures
+how long that memory lasts.
+
+### Further reading
+
+- Cochrane (2005), Ch. 11
+- Campbell, Lo & MacKinlay (1997), Appendix A
+- Newey and West (1987)
+- Hansen and Hodrick (1980)
