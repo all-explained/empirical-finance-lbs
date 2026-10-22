@@ -28,6 +28,7 @@ flowchart TD
   end
   subgraph M_2["M-2 · Reference chapters"]
     TASK_006["TASK-006 Plan: decompose M-2"]
+    TASK_007["TASK-007 Put the reference chapters' papers in source/papers/"]
   end
   TASK_002 --> DEC_001
   TASK_001 --> TASK_003
@@ -38,6 +39,7 @@ flowchart TD
   TASK_004 --> TASK_006
   TASK_005 --> TASK_006
   DEC_001 --> TASK_006
+  DEC_001 --> TASK_007
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
