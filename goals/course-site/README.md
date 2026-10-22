@@ -93,6 +93,7 @@ flowchart TD
     TASK_030["TASK-030 Plan: decompose M-4"]
     TASK_046["TASK-046 Library: Campbell–Shiller log-linearisation and variance shares"]
     TASK_047["TASK-047 Library: VAR news decomposition and the dog test"]
+    TASK_048["TASK-048 Library: Stambaugh bias and simulated test size"]
   end
   subgraph M_5["M-5 · Part III: Return predictability: out of sample and beyond"]
     TASK_031["TASK-031 Plan: decompose M-5"]
