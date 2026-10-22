@@ -132,6 +132,7 @@ flowchart TD
     TASK_043["TASK-043 Plan: decompose M-17"]
   end
   subgraph M_18["M-18 · Part XVI: Intermediaries and frictions"]
+    TASK_044["TASK-044 Plan: decompose M-18"]
   end
   subgraph M_19["M-19 · Part XVII: Frontier topics"]
   end
@@ -182,6 +183,7 @@ flowchart TD
   TASK_040 --> TASK_041
   TASK_041 --> TASK_042
   TASK_042 --> TASK_043
+  TASK_043 --> TASK_044
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
