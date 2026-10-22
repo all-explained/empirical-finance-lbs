@@ -17,5 +17,8 @@ The site uses Astro, MDX, KaTeX and React/Mafs widgets, adapted from
 It is configured for `https://all-explained.github.io/empirical-finance-lbs/`.
 The curriculum is empty until the course-planning tasks fill it.
 
+Public datasets are checked in under `src/data/series/`. See [docs/DATA.md](docs/DATA.md) for Python setup,
+`npm run data`, source terms, units and coverage.
+
 Code is [MIT licensed](LICENSE). Original course content is [CC BY 4.0](LICENSE-CONTENT.md).
 Private source material stays in the ignored `source/` directory.
