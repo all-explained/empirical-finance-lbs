@@ -26,11 +26,11 @@ Keep the graph wide and shallow. Fill every spec; no template lines.
 ## Acceptance
 
 - `goal check --json` reports no errors.
-- `goal graph course-site` shows the new M-2 tasks with library tasks before chapter tasks and the owner-review task last.
+- `goal graph` shows the new M-2 tasks with library tasks before chapter tasks and the owner-review task last.
 
 ## Verify
 
 ```sh
 goal check --json
-goal graph course-site
+goal graph
 ```
