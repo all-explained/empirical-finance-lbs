@@ -77,8 +77,11 @@ describe('typed loader helpers', () => {
     expect(dateRange(betweenDates(series, '1800-01-01', '1800-02-01'))).toBeNull();
     expect(() => betweenDates(series, '2000-01-01', '1999-01-01')).toThrow(RangeError);
     expect(() => getColumn(series, 'unknown' as 'SMB')).toThrow(RangeError);
-    // @ts-expect-error Columns from another series must fail type checking.
-    if (false) getColumn(series, 'cape');
+    const invalidColumn = () => {
+      // @ts-expect-error Columns from another series must fail type checking.
+      return getColumn(series, 'cape');
+    };
+    void invalidColumn;
   });
 
   it('keeps unavailable predictors explicit and rejects unknown datasets', async () => {
