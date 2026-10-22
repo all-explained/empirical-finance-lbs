@@ -22,10 +22,12 @@ flowchart TD
     TASK_001["TASK-001 Scaffold the site from the options-explained stack"]
     TASK_002["TASK-002 Write docs/CURRICULUM.md from the course outline"]
     TASK_003["TASK-003 Write the style guide, notation macros and colour tokens"]
+    TASK_004["TASK-004 Build the public-data pipeline and typed loaders"]
   end
   subgraph M_2["M-2 · Reference chapters"]
   end
   TASK_001 --> TASK_003
+  TASK_001 --> TASK_004
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
