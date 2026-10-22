@@ -3,7 +3,7 @@ id: TASK-008
 title: Download every outline paper into source/papers/ and commit docs/READINGS.md
 milestone: M-1
 state: approved
-depends_on: []
+depends_on: [DEC-002]
 delivery: pr
 priority: 1
 route: {platform: codex, model: gpt-6.1-sol, effort: high}

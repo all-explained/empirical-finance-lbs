@@ -40,6 +40,7 @@ exam material, and any LBS course material (slides, problem sets) other than the
 flowchart TD
   subgraph M_1["M-1 · Site and plan"]
     DEC_001{{"DEC-001 Choose the two reference chapters"}}
+    DEC_002{{"DEC-002 May delivery accept grep status 1 when the forbidden tracked-file count is zero?"}}
     TASK_001["TASK-001 Scaffold the site from the options-explained stack"]
     TASK_002["TASK-002 Write docs/CURRICULUM.md from the course outline"]
     TASK_003["TASK-003 Write the style guide, notation macros and colour tokens"]
@@ -62,11 +63,13 @@ flowchart TD
   DEC_001 --> TASK_006
   TASK_008 --> TASK_006
   DEC_001 --> TASK_007
+  DEC_002 --> TASK_008
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
   class TASK_007 cancelled
   class DEC_001 decision
+  class DEC_002 decision
 ```
 <!-- goal:graph:end -->
 
