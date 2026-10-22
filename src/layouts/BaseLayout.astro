@@ -1,0 +1,88 @@
+---
+import '../styles/global.css';
+import ThemeToggle from '../components/layout/ThemeToggle.astro';
+import { url } from '../data/curriculum';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'An interactive, visual course on empirical asset pricing — from first principles to PhD level.' } = Astro.props;
+const fullTitle = title === 'Empirical Finance, Explained' ? title : `${title} · Empirical Finance, Explained`;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? 'https://all-explained.github.io').href;
+const previewImage = new URL(url('course-preview.svg'), Astro.site ?? 'https://all-explained.github.io').href;
+---
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Empirical Finance, Explained" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={previewImage} />
+    <meta property="og:image:alt" content="Empirical Finance, Explained: an interactive visual course on empirical asset pricing" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href={url()}>
+        <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+          <path d="M3 24 L10 17 L17 20 L29 8" fill="none" stroke="var(--c-spot)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="17" cy="20" r="3" fill="var(--c-accent)" />
+        </svg>
+        <span>Empirical Finance, Explained</span>
+      </a>
+      <div class="header-actions">
+        <slot name="header-actions" />
+        <ThemeToggle />
+      </div>
+    </header>
+    <slot />
+    <footer class="site-footer">
+      <span>© 2026 Jesus Villota Miranda</span>
+      <span aria-hidden="true">·</span>
+      <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Course content: CC BY 4.0</a>
+      <span aria-hidden="true">·</span>
+      <a href="https://github.com/all-explained/empirical-finance-lbs/blob/main/LICENSE">Code: MIT</a>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .skip-link { position: absolute; left: -999px; top: 0; }
+  .skip-link:focus { left: 1rem; top: 0.5rem; z-index: 100; background: var(--bg-raised); padding: 0.5rem 1rem; }
+  .site-header {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-ui);
+  }
+  .brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--text); text-decoration: none; font-weight: 600; font-size: 1rem; }
+  .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+  .site-footer {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.4rem;
+    padding: 1.5rem 1rem; border-top: 1px solid var(--border);
+    font-family: var(--font-ui); font-size: 0.75rem; color: var(--text-muted);
+  }
+  .site-footer a { color: inherit; }
+  .site-footer a:hover { color: var(--link); }
+</style>

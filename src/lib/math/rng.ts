@@ -1,0 +1,72 @@
+/**
+ * Seeded pseudo-random numbers, so every simulation looks the same on every load.
+ * mulberry32: small, fast, good enough for teaching (not for cryptography).
+ */
+export type Rng = () => number;
+
+export function mulberry32(seed: number): Rng {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Standard normal draws via Box–Muller, from a seeded uniform source. */
+export function normalRng(seed: number): Rng {
+  const uniform = mulberry32(seed);
+  let spare: number | null = null;
+  return () => {
+    if (spare !== null) {
+      const s = spare;
+      spare = null;
+      return s;
+    }
+    let u = 0;
+    while (u === 0) u = uniform();
+    const v = uniform();
+    const r = Math.sqrt(-2 * Math.log(u));
+    spare = r * Math.sin(2 * Math.PI * v);
+    return r * Math.cos(2 * Math.PI * v);
+  };
+}
+
+/**
+ * Standard Brownian bridge on [0, 1] sampled at n+1 equally spaced times:
+ * starts and ends at 0. Used to draw a realistic-looking path between two
+ * fixed endpoints.
+ */
+export function brownianBridge(seed: number, n: number): number[] {
+  const z = normalRng(seed);
+  const dt = 1 / n;
+  const w = [0];
+  for (let i = 1; i <= n; i++) w.push(w[i - 1] + Math.sqrt(dt) * z());
+  const w1 = w[n];
+  return w.map((wi, i) => wi - (i / n) * w1);
+}
+
+/**
+ * A seeded geometric Brownian motion path: n steps over [0, T] starting at S0,
+ * with drift mu and volatility sigma. Returns n + 1 prices.
+ */
+export function gbmPath(seed: number, S0: number, mu: number, sigma: number, T: number, n: number): number[] {
+  const z = normalRng(seed);
+  const dt = T / n;
+  const out = [S0];
+  for (let i = 1; i <= n; i++) out.push(out[i - 1] * Math.exp((mu - 0.5 * sigma * sigma) * dt + sigma * Math.sqrt(dt) * z()));
+  return out;
+}
+
+/**
+ * GBM whose volatility can change from step to step (e.g. a calm regime followed
+ * by a turbulent one): sigmas[i] applies to step i, each of length dt.
+ */
+export function gbmPathVariableVol(seed: number, S0: number, mu: number, sigmas: number[], dt: number): number[] {
+  const z = normalRng(seed);
+  const out = [S0];
+  sigmas.forEach((s, i) => out.push(out[i] * Math.exp((mu - 0.5 * s * s) * dt + s * Math.sqrt(dt) * z())));
+  return out;
+}
