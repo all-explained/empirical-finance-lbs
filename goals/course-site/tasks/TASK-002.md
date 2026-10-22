@@ -27,6 +27,7 @@ Content:
 - **Data** uses only these dataset IDs, or "simulated (seeded)": `ff3-monthly`, `ff5-monthly`, `mom-monthly`, `ff25-size-bm-monthly`, `shiller-monthly`, `goyal-welch-annual`, `goyal-welch-monthly`, `fred-treasury-monthly`, `gsw-zero-coupon`, `fred-consumption-quarterly`. TASK-004 builds exactly these. If a chapter needs other data, list it in a "Data wanted later" section at the end.
 - End with a component table (as in `options-explained`) and a **Coverage table**: every "Concepts covered" item of the outline, mapped to its chapter number(s).
 - Intro: one line saying the topic order follows the PhD course E164 "Financial Economics II: Empirical Finance" at London Business School. Do not name the lecturer.
+- If `docs/READINGS.md` exists on `origin/main`, write Readings with its keys (for example `CampbellShiller1988`).
 - Write in your own words. Do not copy sentences from the outline.
 
 ## Acceptance
