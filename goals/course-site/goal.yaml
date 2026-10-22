@@ -15,7 +15,7 @@ milestones:
   - {id: M-2, title: Reference chapters, success: [SC-5, SC-6], exit: Both reference chapter PRs merged; build and screenshots clean; owner approves how they read}
 policy:
   decide: human         # human | experts (a committee answers worker decision requests)
-  orchestrator: {platform: claude, model: sonnet, effort: medium}
+  orchestrator: {platform: claude, model: sonnet, effort: high}
   max_parallel: 7
   default_route: {platform: claude, model: opus, effort: high}
   agent: claude         # claude | codex | opencode | agy
