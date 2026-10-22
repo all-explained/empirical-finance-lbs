@@ -106,5 +106,6 @@ page overflow and readout text. Each widget gets a fresh page at each width.
 Moved preview startup, readiness, Chromium launch and cleanup into `scripts/lib/preview.mjs`.
 Both browser scripts use this helper. Screenshot viewports, themes, names and pixels stay unchanged.
 
-Verified revision: the implementation working tree based on `5e041daa5870b4f75cfdd38438424bcaea393056`.
+Verified implementation revision: `c3b53663adb6f1a54bc5477ae978018963d357fb`, rebased onto
+`origin/main` (`c37c323`) without conflicts. The final documentation commit only records this revision.
 Deviations: none. Proposed follow-ups: none. No chapters, widgets or library code are delivered.
