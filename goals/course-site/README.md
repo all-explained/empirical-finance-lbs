@@ -18,7 +18,9 @@ Build the site, curriculum, style guide and real-data pipeline for an interactiv
 <!-- goal:graph:start -->
 ```mermaid
 flowchart TD
-  subgraph M_1["M-1 · <first observable outcome>"]
+  subgraph M_1["M-1 · Site and plan"]
+  end
+  subgraph M_2["M-2 · Reference chapters"]
   end
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
