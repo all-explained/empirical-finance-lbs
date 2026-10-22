@@ -5,6 +5,7 @@ milestone: M-1
 state: approved
 depends_on: [TASK-001]
 delivery: pr
+route: {platform: claude, model: opus, effort: high}
 ---
 
 ## Why
