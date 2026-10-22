@@ -99,6 +99,7 @@ flowchart TD
     TASK_032["TASK-032 Plan: decompose M-6"]
   end
   subgraph M_7["M-7 · Part V: Factors, anomalies and conditional models"]
+    TASK_033["TASK-033 Plan: decompose M-7"]
   end
   subgraph M_8["M-8 · Part VI: GMM and tests of asset pricing models"]
   end
@@ -160,6 +161,7 @@ flowchart TD
   TASK_023 --> TASK_030
   TASK_030 --> TASK_031
   TASK_031 --> TASK_032
+  TASK_032 --> TASK_033
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
