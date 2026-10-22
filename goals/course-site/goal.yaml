@@ -1,0 +1,18 @@
+format: goal/v2
+id: course-site
+title: 'Empirical Finance course site: scaffold and reference chapters'
+objective: Build the site, curriculum, style guide and real-data pipeline for an interactive 3Blue1Brown-style course on empirical asset pricing (from zero to PhD level, following the LBS E164 topic list), and finish two polished reference chapters that later chapters copy.
+base: main
+success:
+  SC-1: <observable result and how it is verified>
+milestones:
+  - {id: M-1, title: <first observable outcome>, success: [SC-1], exit: <verifiable evidence>}
+policy:
+  decide: human         # human | experts (a committee answers worker decision requests)
+  orchestrator: {platform: claude, model: sonnet, effort: medium}
+  max_parallel: 7
+  default_route: null   # {platform: codex, model: MODEL, effort: LEVEL}
+  agent: claude         # claude | codex | opencode | agy
+  turn_budget: 40
+  plan_commits: push    # push | commit | off
+  worktree_setup: null  # shell run in each new task worktree, e.g. "uv sync"
