@@ -1,22 +1,41 @@
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { createServer } from 'node:net';
 import { chromium } from 'playwright';
 
-const PORT = 4329;
-const BASE = `http://localhost:${PORT}/empirical-finance-lbs/`;
+async function freePort() {
+  const listener = createServer();
+  listener.listen(0, '127.0.0.1');
+  await once(listener, 'listening');
+  const { port } = listener.address();
+  await new Promise((resolve, reject) => listener.close((error) => error ? reject(error) : resolve()));
+  return port;
+}
 
-async function waitForServer(server) {
+async function waitForServer(server, base, port, output, spawnError) {
   for (let i = 0; i < 60; i++) {
+    if (spawnError()) throw spawnError();
     if (server.exitCode !== null || server.signalCode !== null) {
-      throw new Error('preview server stopped before it was ready');
+      throw new Error(`preview server stopped before it was ready:\n${output()}`);
     }
-    try {
-      const res = await fetch(BASE);
-      if (res.ok) return;
-    } catch { /* not up yet */ }
+    // Only trust a URL announced by this child, never an existing HTTP listener.
+    const announced = output().match(/http:\/\/127\.0\.0\.1:(\d+)\//);
+    if (announced && Number(announced[1]) !== port) {
+      throw new Error(`preview server changed port from ${port} to ${announced[1]}; refusing to check another server`);
+    }
+    if (announced) {
+      let response;
+      try {
+        response = await fetch(base, { signal: AbortSignal.timeout(1000) });
+      } catch { /* not up yet */ }
+      if (server.exitCode !== null || server.signalCode !== null) {
+        throw new Error('preview server stopped while checking its URL');
+      }
+      if (response?.ok) return;
+    }
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error('preview server did not start');
+  throw new Error(`preview server did not start:\n${output()}`);
 }
 
 async function launch() {
@@ -30,18 +49,25 @@ async function launch() {
 
 /** Run a browser check with the shared preview URL; always release both processes. */
 export async function withPreview(check) {
+  const port = await freePort();
+  const base = `http://127.0.0.1:${port}/empirical-finance-lbs/`;
   // Run Astro directly so that killing it really stops the server.
-  const server = spawn(process.execPath, ['node_modules/astro/bin/astro.mjs', 'preview', '--port', String(PORT), '--ignore-lock'], { stdio: 'ignore' });
+  const server = spawn(process.execPath, ['node_modules/astro/bin/astro.mjs', 'preview', '--host', '127.0.0.1', '--port', String(port), '--ignore-lock'], { stdio: ['ignore', 'pipe', 'pipe'] });
+  let output = '';
+  let spawnError;
+  server.stdout.on('data', (chunk) => { output += chunk; });
+  server.stderr.on('data', (chunk) => { output += chunk; });
+  server.on('error', (error) => { spawnError = error; });
   let browser;
   try {
-    await waitForServer(server);
+    await waitForServer(server, base, port, () => output, () => spawnError);
     browser = await launch();
-    return await check(browser, BASE);
+    return await check(browser, base);
   } finally {
     try {
       await browser?.close();
     } finally {
-      if (server.exitCode === null && server.signalCode === null) {
+      if (server.pid && server.exitCode === null && server.signalCode === null) {
         const stopped = once(server, 'exit');
         server.kill();
         await stopped;
