@@ -8,7 +8,8 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "test": "vitest run",
-    "screenshots": "node scripts/screenshots.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "data": ".venv/bin/python3 scripts/data/fetch.py"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",

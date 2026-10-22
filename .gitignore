@@ -6,3 +6,7 @@ screenshots/
 scripts/_*.tmp.mjs
 # Private source material (course outline). Never commit it.
 source/
+# Public-data download cache and local Python environment.
+data-raw/
+.venv/
+__pycache__/
