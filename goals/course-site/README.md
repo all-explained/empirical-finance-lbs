@@ -135,6 +135,7 @@ flowchart TD
     TASK_044["TASK-044 Plan: decompose M-18"]
   end
   subgraph M_19["M-19 · Part XVII: Frontier topics"]
+    TASK_045["TASK-045 Plan: decompose M-19"]
   end
   TASK_002 --> DEC_001
   TASK_001 --> TASK_003
@@ -184,6 +185,7 @@ flowchart TD
   TASK_041 --> TASK_042
   TASK_042 --> TASK_043
   TASK_043 --> TASK_044
+  TASK_044 --> TASK_045
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
