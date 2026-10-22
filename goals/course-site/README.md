@@ -56,6 +56,7 @@ flowchart TD
     TASK_011["TASK-011 Library: OLS with White and Newey–West standard errors"]
     TASK_012["TASK-012 Library: predictive regressions and AR(1) horizon slopes"]
     TASK_013["TASK-013 Reference chapter 1: Returns"]
+    TASK_014["TASK-014 Reference chapter 9: Time-varying expected returns"]
   end
   TASK_002 --> DEC_001
   TASK_001 --> TASK_003
@@ -72,6 +73,9 @@ flowchart TD
   TASK_011 --> TASK_012
   TASK_009 --> TASK_013
   TASK_010 --> TASK_013
+  TASK_009 --> TASK_014
+  TASK_011 --> TASK_014
+  TASK_012 --> TASK_014
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
