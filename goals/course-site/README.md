@@ -92,6 +92,7 @@ flowchart TD
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
     TASK_030["TASK-030 Plan: decompose M-4"]
     TASK_046["TASK-046 Library: Campbell–Shiller log-linearisation and variance shares"]
+    TASK_047["TASK-047 Library: VAR news decomposition and the dog test"]
   end
   subgraph M_5["M-5 · Part III: Return predictability: out of sample and beyond"]
     TASK_031["TASK-031 Plan: decompose M-5"]
@@ -187,6 +188,7 @@ flowchart TD
   TASK_042 --> TASK_043
   TASK_043 --> TASK_044
   TASK_044 --> TASK_045
+  TASK_025 --> TASK_047
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
