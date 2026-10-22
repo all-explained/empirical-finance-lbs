@@ -20,6 +20,7 @@ Build the site, curriculum, style guide and real-data pipeline for an interactiv
 flowchart TD
   subgraph M_1["M-1 · Site and plan"]
     TASK_001["TASK-001 Scaffold the site from the options-explained stack"]
+    TASK_002["TASK-002 Write docs/CURRICULUM.md from the course outline"]
   end
   subgraph M_2["M-2 · Reference chapters"]
   end
