@@ -93,6 +93,7 @@ flowchart TD
     TASK_030["TASK-030 Plan: decompose M-4"]
   end
   subgraph M_5["M-5 · Part III: Return predictability: out of sample and beyond"]
+    TASK_031["TASK-031 Plan: decompose M-5"]
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
   end
@@ -156,6 +157,7 @@ flowchart TD
   TASK_028 --> TASK_029
   TASK_022 --> TASK_030
   TASK_023 --> TASK_030
+  TASK_030 --> TASK_031
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
