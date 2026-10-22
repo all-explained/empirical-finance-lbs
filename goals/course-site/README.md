@@ -54,6 +54,7 @@ flowchart TD
     TASK_009["TASK-009 Add the widget click-through script"]
     TASK_010["TASK-010 Library: return arithmetic"]
     TASK_011["TASK-011 Library: OLS with White and Newey–West standard errors"]
+    TASK_012["TASK-012 Library: predictive regressions and AR(1) horizon slopes"]
   end
   TASK_002 --> DEC_001
   TASK_001 --> TASK_003
@@ -67,6 +68,7 @@ flowchart TD
   TASK_008 --> TASK_006
   DEC_001 --> TASK_007
   DEC_002 --> TASK_008
+  TASK_011 --> TASK_012
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
