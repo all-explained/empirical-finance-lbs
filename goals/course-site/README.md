@@ -34,7 +34,7 @@ topic list.
 - **CRSP data.** The owner supplies the CRSP daily file at `/Users/jesusvillotamiranda/Desktop/CRSP_full_fetch.csv.gz`
   (about 7 GB compressed, 112 million rows, from 1986). Workers read it from that absolute path and never
   copy it into a worktree. Only small aggregate series (portfolio or market level) may be committed, never
-  security-level rows. The owner must confirm that publishing such aggregates is within the CRSP licence.
+  security-level rows. The owner confirmed on 2026-10-22 that publishing such aggregates in the public repo is within the CRSP licence.
 - **Cost.** About 64 chapter tasks and 40 to 60 library or data tasks. Expect several days of runs and one
   review per PR.
 - **Copyright.** The outline PDF and the papers in `source/papers/` are private inputs. They are never
