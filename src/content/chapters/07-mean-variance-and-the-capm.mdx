@@ -1,0 +1,317 @@
+---
+title: "Mean–variance and the CAPM"
+part: 1
+chapter: 7
+difficulty: 2
+prerequisites: [2, 3]
+summary: "How to mix risky assets for the best reward per unit of risk, and why, in the CAPM, only an asset's beta with the market earns a premium."
+---
+
+import FrontierBuilder from '../../components/plots/FrontierBuilder';
+import SMLPlot from '../../components/plots/SMLPlot';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapters 2 and 3">
+Those chapters are not written yet, so here is the short version of the tools this chapter uses.
+
+- **Expected return and volatility.** The expected return $\mu$ is the average return you plan for. The
+  volatility $\sigma$ is the standard deviation of the return: how far it usually lands from $\mu$.
+- **Covariance.** $\operatorname{Cov}(R_i, R_j)$ measures whether two returns move together. It is positive when
+  they tend to rise and fall at the same time. For $N$ assets, the covariances form the $N \times N$ matrix $\Sigma$.
+- **Sharpe ratio.** The reward per unit of risk: the expected excess return over its volatility,
+  $SR = \mathbb{E}[R^e]/\sigma(R^e)$.
+- **Regression.** Ordinary least squares (OLS) fits a line $y = a + b\,x$. With one regressor, the slope is
+  $\operatorname{Cov}(x, y)/\operatorname{Var}(x)$, and every estimate comes with a standard error.
+</Callout>
+
+## <span class="section-tag">Hook</span> Which risk does the market pay for?
+
+Take two groups of small US companies. The first group is **growth** stocks: their price is high compared with
+the accounting value of the firm (the book value). The second group is **value** stocks: their price is low
+compared with book value. From July 1963 to August 2026, small growth stocks earned 4.0% a year more than
+Treasury bills, on average. Small value stocks earned 13.4% a year more.
+
+Now look at risk. Small growth stocks were the riskier group by the usual measure: their volatility was 27.6% a
+year, against 21.7% for small value. So the riskier group paid *less*. The gap of 9.4 percentage points a year has
+a standard error of 1.9, so it is about five standard errors away from zero.
+
+So here is the question you probably have. If risk earns a reward, why did the riskier stocks pay less? This
+chapter gives the classic answer: the Capital Asset Pricing Model, or **CAPM**. It says that volatility is the
+wrong measure of risk. Only one part of the risk earns a reward. Then it puts the CAPM to the data, and the data
+do not agree.
+
+## <span class="section-tag">Intuition</span> Mixing assets, and the one portfolio everyone wants
+
+Start with a simple question. You can hold a few risky portfolios. How should you mix them?
+
+Each mix has an expected return and a volatility, so each mix is a point on a chart of expected return against
+volatility. Mixing helps because the assets do not move in perfect step. When one falls, another often holds up,
+so the mix moves less than the average of its parts. Push this idea as far as it goes, and for each target
+expected return you find the mix with the least volatility. Those best mixes form a curve: the **minimum-variance
+frontier**.
+
+Now add a safe asset, Treasury bills, that pays the risk-free rate $\Rf{R^f}$ with no volatility. Any straight
+line from $\Rf{R^f}$ to a risky mix shows what you get by splitting your money between the two. The steepest such
+line touches the frontier at one point: the **tangency portfolio**. That line is the **capital market line**. Its
+slope is the Sharpe ratio of the tangency portfolio, the highest reward per unit of risk you can get.
+
+The widget below builds this picture from four of the 25 size and book-to-market portfolios of Fama and French
+(1993). "Small" and "big" are the smallest and largest fifth of firms by market value. "Growth" and "value" are
+the lowest and highest fifth by book-to-market ratio.
+
+<FrontierBuilder client:visible />
+
+<p class="try-this"><strong>Try this:</strong> look at the tangency weights first. The best mix is 149% small
+value, 79% big growth, −117% small growth and −12% big value. The negative weights are short positions. Now choose
+"Small value (SV)" and shift its expected return by −2 percentage points. Its weight falls to 126%, and the best
+Sharpe ratio falls from 1.04 to 0.90.</p>
+
+Two lessons come out of this widget. First, the answer to "how should I mix them?" depends on every asset's
+expected return and every covariance at once. The weights are not a ranking of the assets. Second, the weights
+are very sensitive. A shift of 2 percentage points is smaller than the standard error of small value's average
+return, which is 2.7. You cannot tell those two expected returns apart with 63 years of data, yet they give
+quite different portfolios.
+
+Here is the step that leads to the CAPM. Suppose every investor sees the same picture and wants the highest
+Sharpe ratio. Then every investor holds the *same* tangency portfolio, plus more or less of the safe asset. If
+everyone holds the same risky portfolio, that portfolio must be the whole market. In equilibrium, the market
+portfolio is the tangency portfolio.
+
+<Callout type="key">With a safe asset, every mean–variance investor holds the same risky portfolio: the tangency
+portfolio. If all investors agree on the inputs, that portfolio is the market.</Callout>
+
+## <span class="section-tag">Formalisation</span> The frontier, the tangency portfolio and beta
+
+Write $\mu$ for the $N$-vector of expected returns, $\Sigma$ for their covariance matrix and $w$ for the
+portfolio weights. A portfolio with weights $w$ has
+
+$$
+\mu_p = w'\mu, \qquad \sigma_p^2 = w'\Sigma w.
+$$
+
+For two assets, $\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\operatorname{Cov}(R_1, R_2)$. The
+last term is where diversification lives. When the covariance is small or negative, the mix has a lower
+variance than its parts.
+
+### The minimum-variance frontier
+
+For a target mean $\mu_p$, find the fully invested portfolio with the least variance:
+
+$$
+\min_w\ \tfrac12\, w'\Sigma w \quad \text{subject to} \quad w'\mu = \mu_p,\quad w'\mathbf 1 = 1.
+$$
+
+The $\tfrac12$ only tidies the algebra. Attach a Lagrange multiplier to each constraint. We call them $\eta_1$
+and $\eta_2$, because $\lambda$ is kept for risk premia. Setting the derivative with respect to $w$ to zero gives
+
+$$
+\Sigma w = \eta_1\,\mu + \eta_2\,\mathbf 1
+\quad\Longrightarrow\quad
+w = \eta_1\,\Sigma^{-1}\mu + \eta_2\,\Sigma^{-1}\mathbf 1.
+$$
+
+So every frontier portfolio is a mix of the same two portfolios, $\Sigma^{-1}\mu$ and $\Sigma^{-1}\mathbf 1$.
+The constraints fix $\eta_1$ and $\eta_2$.
+
+<details>
+<summary>The algebra: solving for the multipliers and the frontier</summary>
+
+Define three numbers, $A = \mathbf 1'\Sigma^{-1}\mathbf 1$, $B = \mathbf 1'\Sigma^{-1}\mu$ and
+$C = \mu'\Sigma^{-1}\mu$, and let $D = AC - B^2$. Put $w = \eta_1\Sigma^{-1}\mu + \eta_2\Sigma^{-1}\mathbf 1$
+into the two constraints:
+
+$$
+w'\mu = \eta_1 C + \eta_2 B = \mu_p, \qquad w'\mathbf 1 = \eta_1 B + \eta_2 A = 1.
+$$
+
+These are two linear equations in two unknowns. Their solution is
+
+$$
+\eta_1 = \frac{A\mu_p - B}{D}, \qquad \eta_2 = \frac{C - B\mu_p}{D}.
+$$
+
+The variance follows without more work. Since $\Sigma w = \eta_1\mu + \eta_2\mathbf 1$,
+
+$$
+\sigma_p^2 = w'\Sigma w = \eta_1\, w'\mu + \eta_2\, w'\mathbf 1 = \eta_1\mu_p + \eta_2
+= \frac{A\mu_p^2 - 2B\mu_p + C}{D}.
+$$
+
+This is a parabola in $(\sigma_p^2, \mu_p)$, so the frontier is a hyperbola in $(\sigma_p, \mu_p)$. It needs
+$D > 0$, which holds when the assets do not all have the same mean.
+
+</details>
+
+### The tangency portfolio and the highest Sharpe ratio
+
+Now add the safe asset. Put weights $w$ in the risky assets and $1 - w'\mathbf 1$ in Treasury bills. The weights on
+the risky assets no longer need to sum to one. Write $\mu^e = \mu - \Rf{R^f}\mathbf 1$ for the vector of expected
+excess returns. The portfolio's excess return has mean $w'\mu^e$ and variance $w'\Sigma w$, since the safe asset
+adds no variance.
+
+Find the least variance for a target excess mean. There is one constraint now, so one multiplier, $\eta$:
+
+$$
+\min_w\ \tfrac12\, w'\Sigma w \ \text{ s.t. }\ w'\mu^e = \mu^e_p
+\quad\Longrightarrow\quad
+\Sigma w = \eta\,\mu^e
+\quad\Longrightarrow\quad
+w = \eta\,\Sigma^{-1}\mu^e.
+$$
+
+Every efficient portfolio holds the risky assets in the same proportions, $\Sigma^{-1}\mu^e$. Only the scale
+$\eta$ changes. Scale the weights to sum to one, and you get the tangency portfolio:
+
+$$
+w^* = \frac{\Sigma^{-1}\mu^e}{\mathbf 1'\Sigma^{-1}\mu^e}.
+$$
+
+What Sharpe ratio does it reach? For any $w = \eta\,\Sigma^{-1}\mu^e$ with $\eta > 0$,
+
+$$
+SR = \frac{w'\mu^e}{\sqrt{w'\Sigma w}}
+= \frac{\eta\,\mu^{e\prime}\Sigma^{-1}\mu^e}{\sqrt{\eta^2\,\mu^{e\prime}\Sigma^{-1}\Sigma\,\Sigma^{-1}\mu^e}}
+= \frac{\eta\,\mu^{e\prime}\Sigma^{-1}\mu^e}{\eta\sqrt{\mu^{e\prime}\Sigma^{-1}\mu^e}}
+= \sqrt{\mu^{e\prime}\Sigma^{-1}\mu^e}.
+$$
+
+So $SR^2_{\max} = \mu^{e\prime}\Sigma^{-1}\mu^e$. The capital market line is
+$\mu_p = \Rf{R^f} + SR_{\max}\,\sigma_p$. For uncorrelated assets, $\Sigma$ is diagonal and $SR^2_{\max}$ is the
+sum of the assets' squared Sharpe ratios. Each new independent bet adds to the best reward.
+
+### From the tangency portfolio to the CAPM
+
+The CAPM of Sharpe (1964) and Lintner (1965) adds assumptions. Investors care only about the mean and variance of
+next period's return. They agree on $\mu$ and $\Sigma$. They can borrow and lend at $\Rf{R^f}$, and there are no
+taxes or trading costs. Then, as the intuition section said, everyone holds the tangency portfolio, so the market
+weights $w_m$ satisfy $\Sigma w_m = \eta\,\mu^e$ for some $\eta > 0$.
+
+Read that equation one row at a time. The $i$-th entry of $\Sigma w_m$ is
+
+$$
+\textstyle\sum_j w_{m,j}\operatorname{Cov}(R_i, R_j) = \operatorname{Cov}\big(R_i, \sum_j w_{m,j} R_j\big)
+= \operatorname{Cov}(R_i, R_m),
+$$
+
+because the market return is $R_m = \sum_j w_{m,j}R_j$. So
+$\mathbb{E}[\Ret{R^e_i}] = \operatorname{Cov}(R_i, R_m)/\eta$ for every asset. Apply this to the market itself:
+$\mathbb{E}[\Ret{R^e_m}] = \operatorname{Var}(R_m)/\eta$, so $1/\eta = \mathbb{E}[\Ret{R^e_m}]/\operatorname{Var}(R_m)$.
+Put that back in:
+
+$$
+\mathbb{E}[\Ret{R^e_i}] = \beta_i\,\mathbb{E}[\Ret{R^e_m}], \qquad
+\beta_i = \frac{\operatorname{Cov}(R_i, R_m)}{\operatorname{Var}(R_m)}.
+$$
+
+This is why only beta earns a premium. An asset's volatility has two parts: the part that moves with the market,
+and the part that does not. The second part cancels out across the many assets in the market portfolio. What an
+asset adds to the risk of the portfolio that everyone holds is its covariance with the market. Beta is that
+covariance, measured in units of market variance.
+
+### Estimating betas and the security market line
+
+Beta is a regression slope. For each asset, run the **time-series regression**
+
+$$
+\Ret{R^e_{i,t}} = \Err{\alpha_i} + \beta_i\,\Ret{R^e_{m,t}} + \Err{\varepsilon_{i,t}}, \qquad t = 1, \dots, T.
+$$
+
+The OLS slope $\hat\beta_i$ is the sample covariance over the sample variance, as in Chapter 3. The OLS line
+passes through the sample means, so $\Data{\bar R^e_i} = \Err{\hat\alpha_i} + \hat\beta_i\,\bar R^e_m$. In words,
+the **alpha** is the average excess return minus the CAPM prediction. The CAPM says every $\Err{\alpha_i}$ is
+zero.
+
+Plot each asset's average excess return against its beta. The CAPM says the dots lie on the **security market
+line**: a line through the origin with slope $\mathbb{E}[\Ret{R^e_m}]$. On this plot, the alphas are the vertical
+gaps between the dots and the line.
+
+<Callout type="warning">Every input on this page is an estimate. The frontier, the tangency weights and the betas
+all use sample means and covariances. Sample means are noisy, so the in-sample best Sharpe ratio tends to be higher than
+what you could have earned by choosing weights in advance.</Callout>
+
+## <span class="section-tag">Playground</span> The CAPM meets 25 portfolios
+
+The next widget shows the 25 size and book-to-market portfolios. Each dot is one portfolio: its estimated beta
+across, its average excess return up. The solid line is the CAPM's security market line. The dashed line is the
+OLS fit of the 25 averages on the 25 betas. The thin vertical lines are the alphas.
+
+<SMLPlot client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens on July 1963 to August 2026, with small growth
+ringed. Its beta is 1.42, so the CAPM predicts 10.2% a year. It earned 4.0%, an alpha of −6.3% with a
+$t$-statistic of −2.94. Now ring "ME1-BM5", small value: beta 1.06, alpha +5.7% with a $t$-statistic of 3.17.</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch the sample to 1926–2026. The dots move closer to the
+CAPM line, but the fitted line is still flatter than the CAPM line.</p>
+
+The CAPM line fits the 25 portfolios badly. From July 1963 to August 2026, the market's average excess return
+is 7.2% a year, with a standard error of 1.9. That is the slope the CAPM predicts. The fitted line has a slope of
+−4.3%: across these portfolios, a higher beta goes with a slightly *lower* average return. The betas only range
+from 0.86 to 1.42, while the averages range from 4.0% to 13.4%. The alphas run from −6.3% to +5.7% a year.
+The pattern is not random. In every size group, the value portfolio has a higher alpha than the growth portfolio.
+
+The full sample from July 1926 tells a milder story. There, the market premium is 8.3% a year, and the fitted
+line has a slope of 4.8% and an intercept of 4.9%. The line still rises less than the CAPM says, and it starts
+above zero.
+
+Be careful about what this picture can show. Each alpha has a $t$-statistic, but 25 $t$-statistics are not a
+test of the CAPM: they are correlated, and some will look large by luck. The betas are estimates too, and the
+dashed line ignores their error. The CAPM's market is all wealth, while the data use the US stock market. A
+proper test asks whether all 25 alphas are zero *jointly*. Chapter 16 builds that test, and Chapters 17 and 18
+handle the cross-sectional line and its errors. Chapter 19 asks what the size and value patterns mean.
+
+<Callout type="key">On the 25 size and book-to-market portfolios, average returns do not line up with beta. Value
+stocks earn more than their betas predict, small growth stocks earn much less, and since 1963 the fitted line
+falls as beta rises.</Callout>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="The market's expected excess return is 6% a year. Under the CAPM, what is the expected excess return of a stock with $\beta = 1.5$?"
+  options={["6%", "9%", "4%", "1.5%"]}
+  answer={1}
+  explanation="$\mathbb{E}[R^e_i] = \beta_i\,\mathbb{E}[R^e_m] = 1.5 \times 6\% = 9\%$. Beta scales the market premium."
+/>
+
+<Quiz
+  client:visible
+  question="Two risky assets are uncorrelated. Their Sharpe ratios are 0.3 and 0.4. What is the highest Sharpe ratio you can get by combining them?"
+  options={["0.4", "0.5", "0.7", "0.35"]}
+  answer={1}
+  explanation="With a diagonal $\Sigma$, $SR^2_{\max} = \mu^{e\prime}\Sigma^{-1}\mu^e$ is the sum of the squared Sharpe ratios: $0.09 + 0.16 = 0.25$, so $SR_{\max} = 0.5$."
+/>
+
+<Quiz
+  client:visible
+  question="Stock A has a volatility of 40% and a beta of 0.5. Stock B has a volatility of 20% and a beta of 1.2. Which does the CAPM say should earn more?"
+  options={["A, because it is more volatile", "B, because its beta is higher", "Both the same, because the market sets one price of risk", "Neither: only alpha earns a return"]}
+  answer={1}
+  explanation="In the CAPM only covariance with the market earns a premium. Most of A's volatility does not move with the market, so it cancels out in a diversified portfolio and earns nothing."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- The minimum-variance frontier holds the least-risky portfolio for each target mean. Every frontier portfolio
+  mixes $\Sigma^{-1}\mu$ and $\Sigma^{-1}\mathbf 1$.
+- With a safe asset, the best risky portfolio is the tangency portfolio $w^* \propto \Sigma^{-1}\mu^e$, and
+  $SR^2_{\max} = \mu^{e\prime}\Sigma^{-1}\mu^e$. Its weights swing a lot when the expected returns move by less
+  than their standard errors.
+- If everyone holds the tangency portfolio, it is the market, and $\mathbb{E}[R^e_i] = \beta_i\,\mathbb{E}[R^e_m]$
+  with $\beta_i = \operatorname{Cov}(R_i, R_m)/\operatorname{Var}(R_m)$. Only beta earns a premium.
+- On ff25-size-bm-monthly data from July 1963 to August 2026, the fitted line of average excess return on beta has
+  a slope of −4.3%, against 7.2% in the CAPM. The alphas run from −6.3% to +5.7% a year. The formal tests come in
+  Part IV.
+
+**Next up:** Chapter 8 starts again from an investor who saves and consumes over time, and finds a single
+formula for every price: the stochastic discount factor.
+
+### Further reading
+
+- Campbell (2018), Ch. 2–3
+- Cochrane (2005), Ch. 5–6
+- Markowitz (1952)
+- Sharpe (1964)
+- Lintner (1965)
+- Fama and French (1993)
