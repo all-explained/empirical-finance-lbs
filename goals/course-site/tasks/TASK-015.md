@@ -2,9 +2,10 @@
 id: TASK-015
 title: Owner reads both reference chapters and approves how they read
 milestone: M-2
-state: approved
+state: done
 depends_on: [TASK-013, TASK-014]
 delivery: manual
+reason: Owner approved chapters 1 and 9
 ---
 
 ## Why
