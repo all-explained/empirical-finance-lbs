@@ -1,0 +1,300 @@
+---
+title: "Principal components"
+part: 1
+chapter: 6
+difficulty: 2
+prerequisites: [2]
+summary: "A few directions explain most of the co-movement of many return or yield series, and principal components find them."
+---
+
+import PCAExplorer from '../../components/plots/PCAExplorer';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapter 2">
+[Chapter 2](../02-expected-return-and-risk/) defines the **variance** of a series and its square root, the
+**standard deviation** or volatility. This chapter also uses three tools for two or more series.
+
+- The **covariance** of two series is the average product of their distances from their means. It is positive
+  when the two tend to be above their means at the same time.
+- The **correlation** is the covariance divided by both standard deviations. It runs from −1 to 1.
+- The **covariance matrix** $\Sigma$ of $N$ series is a square table with $N$ rows and $N$ columns. Entry $(i, j)$
+  is the covariance of series $i$ and series $j$, so the variances sit on the diagonal.
+</Callout>
+
+## <span class="section-tag">Hook</span> How many things really move?
+
+The Kenneth French Data Library sorts US stocks into 25 portfolios by two traits: size (the market value of
+the company) and book-to-market (its accounting value over its market value). Companies with a high
+book-to-market are called **value** stocks, and those with a low one are called **growth** stocks. The library
+reports the monthly return of each portfolio from July 1926 to August 2026, which is 1,202 months.
+
+To describe how 25 series move together, you need their 25 variances and 300 separate covariances. That is a
+lot of numbers. But look at the correlations. The average correlation between two of these portfolios is 0.84,
+and even the lowest is 0.63. When one portfolio has a good month, the other 24 mostly have one too.
+
+So here is the question you probably have. If 25 series move almost as one, how many separate things are really
+moving? The answer in this chapter: one direction carries 83.8% of all their variance. And in a second data set,
+monthly changes in 30 Treasury yields from December 1985 to September 2026, three directions carry 98.9%. The tool
+that finds these directions is called **principal components analysis**, or PCA.
+
+## <span class="section-tag">Intuition</span> The long axis of a cloud
+
+Start with two portfolios, so that you can see the picture. Each dot below is one month. Across is the return of
+the largest growth portfolio, and up is the return of the smallest value portfolio. Their correlation is 0.67, so
+the cloud is a tilted oval, not a round ball.
+
+<PCAExplorer client:visible />
+
+<p class="try-this"><strong>Try this:</strong> look at the solid arrow, axis 1. It points along the long side of the
+cloud, at 65° above the horizontal. The readout says it carries 88.1% of the variance of the pair. Now move the
+rotation slider to 30°. Axis 1 now carries only 69.0%, and the thin lines from the dots to the axis get longer. At
+45° it carries exactly 50%.</p>
+
+Think of the cloud as a flat, long stone. If you had to describe where each dot is with one number only, you
+would measure its position along the long side of the stone. That one number tells you most of what you need. The
+second number, the position across the stone, only adds a small correction.
+
+PCA finds that long side. The **first principal component** is the direction in which the cloud is most spread
+out. The **second** is the direction at a right angle to the first, with the most spread that is left. With two
+series there is nothing more. With 25 series, there are 25 such directions, each at a right angle to all the
+ones before.
+
+Now look at the thin lines from each dot to axis 1. They show what you lose if you keep only the first number.
+The axis that carries the most variance is the same axis that makes these lines as short as possible. That is
+not luck. You will see why in the next section.
+
+<Callout type="key">The first principal component is the direction in which many series move together the most.
+Keeping only that direction loses as little as possible.</Callout>
+
+## <span class="section-tag">Formalisation</span> Directions, variances and loadings
+
+Write $\Data{z_t}$ for the list of the $N$ values at month $t$: the 25 portfolio returns, or the 30 yield changes.
+A list like this is a **vector**. Write $\bar z$ for the vector of sample means and $\Sigma$ for the $N \times N$
+covariance matrix. Below, $\Sigma$ is the sample covariance matrix with divisor $T - 1$. We drop the hats to keep
+the formulas short.
+
+### The variance of a direction
+
+A direction is a vector $w$ of $N$ weights with length 1, which means $w'w = w_1^2 + \dots + w_N^2 = 1$. The
+position of month $t$ along that direction is the weighted sum $w'(\Data{z_t} - \bar z)$. Its variance is
+
+$$
+\operatorname{Var}(w'\Data{z_t}) = \sum_{i=1}^{N} \sum_{j=1}^{N} w_i w_j \operatorname{Cov}(z_i, z_j) = w'\Sigma w.
+$$
+
+<details>
+<summary>Every step of the algebra</summary>
+
+1. The weighted sum is $w'\Data{z_t} = w_1 z_{1,t} + \dots + w_N z_{N,t}$.
+2. The variance of a sum is the sum of all the covariances of its terms: $\operatorname{Var}(a + b) =
+   \operatorname{Var}(a) + 2\operatorname{Cov}(a, b) + \operatorname{Var}(b)$, and the same pattern holds for $N$ terms.
+3. A weight comes out of a covariance as a factor: $\operatorname{Cov}(w_i z_i, w_j z_j) = w_i w_j \operatorname{Cov}(z_i, z_j)$.
+4. So $\operatorname{Var}(w'\Data{z_t}) = \sum_i \sum_j w_i w_j \Sigma_{ij}$, and that double sum is what the
+   matrix product $w'\Sigma w$ means.
+
+</details>
+
+### The eigen-decomposition
+
+A fact of linear algebra, which we use without proof, is that every covariance matrix can be written as
+
+$$
+\Sigma = Q L Q' = \ell_1 q_1 q_1' + \ell_2 q_2 q_2' + \dots + \ell_N q_N q_N'.
+$$
+
+The columns $q_1, \dots, q_N$ of $Q$ have length 1 and are at right angles to each other: $q_j'q_k = 1$ if $j = k$
+and 0 otherwise. They are the **eigenvectors** of $\Sigma$. $L$ is a diagonal matrix with the **eigenvalues**
+$\ell_1 \ge \ell_2 \ge \dots \ge \ell_N \ge 0$ on its diagonal. We write $\ell$, not $\lambda$, because $\lambda$
+is a risk premium in this course.
+
+### The best direction is $q_1$
+
+Any direction $w$ can be written as a mix of the eigenvectors, $w = c_1 q_1 + \dots + c_N q_N$, with $c_k = q_k'w$.
+Because the $q_k$ are at right angles and have length 1, the length of $w$ is $c_1^2 + \dots + c_N^2 = 1$. Put
+this $w$ into the variance and use the decomposition:
+
+$$
+w'\Sigma w = \sum_{k=1}^{N} \ell_k (q_k'w)^2 = \sum_{k=1}^{N} \ell_k c_k^2 \le \ell_1 \sum_{k=1}^{N} c_k^2 = \ell_1.
+$$
+
+The inequality holds because every $\ell_k$ is at most $\ell_1$. It is an equality when $c_1 = 1$ and all other
+$c_k = 0$, that is, when $w = q_1$. So the direction with the most variance is $q_1$, and its variance is $\ell_1$.
+Repeat the argument for directions at a right angle to $q_1$. Then $c_1 = 0$, and the best is $q_2$ with variance
+$\ell_2$, and so on.
+
+### Components, loadings and the share of variance
+
+Component $k$ at month $t$ is the position along $q_k$:
+
+$$
+\Factor{f_{k,t}} = q_k'(\Data{z_t} - \bar z), \qquad \operatorname{Var}(\Factor{f_{k,t}}) = \ell_k.
+$$
+
+The entries of $q_k$ are the **loadings**: they say how much each series moves when component $k$ moves by one.
+Two components are uncorrelated, because $\operatorname{Cov}(\Factor{f_{j,t}}, \Factor{f_{k,t}}) = q_j'\Sigma q_k =
+\ell_k\, q_j'q_k = 0$ for $j \ne k$.
+
+The total variance is the sum of the $N$ variances on the diagonal of $\Sigma$. Entry $(i, i)$ of the decomposition
+is $\Sigma_{ii} = \sum_k \ell_k q_{k,i}^2$. Add over $i$, and use $\sum_i q_{k,i}^2 = 1$:
+
+$$
+\sum_{i=1}^{N} \Sigma_{ii} = \sum_{k=1}^{N} \ell_k \sum_{i=1}^{N} q_{k,i}^2 = \sum_{k=1}^{N} \ell_k,
+\qquad \text{share of component } k = \frac{\ell_k}{\sum_{j} \ell_j}.
+$$
+
+On the 25 portfolios from 1926 to 2026, the shares of the first three components are 83.8%, 4.4% and 3.1%.
+Together they carry 91.2%.
+
+### The first $K$ components lose the least
+
+Keep the first $K$ components and rebuild each month from them:
+$\hat z_t = \bar z + q_1 \Factor{f_{1,t}} + \dots + q_K \Factor{f_{K,t}}$. All $N$ components rebuild
+$\Data{z_t} - \bar z$ exactly, so the part you lose is $\Err{z_t - \hat z_t} = \sum_{k > K} q_k \Factor{f_{k,t}}$.
+Its squared length is $\sum_{k > K} \Factor{f_{k,t}^2}$, because the $q_k$ are at right angles. Add over the $T$
+months. Each $\sum_t \Factor{f_{k,t}^2}$ is $(T - 1)\ell_k$, because $\Factor{f_{k,t}}$ has mean zero and variance
+$\ell_k$:
+
+$$
+\sum_{t=1}^{T} \lVert \Err{z_t - \hat z_t} \rVert^2 = (T - 1) \sum_{k > K} \ell_k.
+$$
+
+No other choice of $K$ directions does better. With three components, the 25 portfolios lose 8.8% of their total
+variance, and the 30 yield changes lose 1.1%.
+
+<details>
+<summary>Why no other $K$ directions do better</summary>
+
+1. Take any $K$ directions $w_1, \dots, w_K$ of length 1 at right angles to each other. Write $e_t = \Data{z_t} - \bar z$.
+   The closest point to $e_t$ in their span is $\sum_k w_k (w_k'e_t)$.
+2. By Pythagoras, the squared distance is $\lVert e_t \rVert^2 - \sum_k (w_k'e_t)^2$.
+3. Add over $t$. Since $\sum_t (w_k'e_t)^2 = (T - 1)\,w_k'\Sigma w_k$, the total error is
+   $(T - 1)\big(\sum_j \ell_j - \sum_k w_k'\Sigma w_k\big)$. So the best directions make $\sum_k w_k'\Sigma w_k$ as large
+   as possible.
+4. By the decomposition, $\sum_k w_k'\Sigma w_k = \sum_j \ell_j h_j$ with $h_j = \sum_k (q_j'w_k)^2$.
+5. $h_j$ is the squared length of the shadow of $q_j$ on the span of the $w_k$, so $0 \le h_j \le 1$.
+   And $\sum_j h_j = \sum_k \sum_j (q_j'w_k)^2 = \sum_k w_k'w_k = K$.
+6. With weights between 0 and 1 that add up to $K$, the sum $\sum_j \ell_j h_j$ is largest when the weight 1 sits on
+   the $K$ largest $\ell_j$. That gives $\ell_1 + \dots + \ell_K$, which the first $K$ components reach.
+
+</details>
+
+### Sign and rotation: what PCA does not pin down
+
+If $q_k$ is an eigenvector, so is $-q_k$. Flip it, and the component flips too: $\Factor{f_{k,t}}$ becomes
+$-\Factor{f_{k,t}}$. The product $q_k \Factor{f_{k,t}}$, the variance $\ell_k$ and the rebuilt $\hat z_t$ all stay
+the same. So the sign of a component means nothing by itself. Our library picks the sign that makes the largest
+loading positive, but another program may pick the other one.
+
+Rotation goes further. Mix the first two directions by an angle $\omega$:
+
+$$
+w_1 = \cos\omega\, q_1 + \sin\omega\, q_2, \qquad w_2 = -\sin\omega\, q_1 + \cos\omega\, q_2.
+$$
+
+Multiply out, and the cross terms cancel because $\cos\omega \sin\omega - \sin\omega \cos\omega = 0$, while
+$\cos^2\omega + \sin^2\omega = 1$:
+
+$$
+w_1 w_1' + w_2 w_2' = q_1 q_1' + q_2 q_2'.
+$$
+
+The rebuilt $\hat z_t$ with two components uses only this sum, so the two rotated directions fit the data exactly
+as well. Only how the variance splits between them changes: $w_1'\Sigma w_1 = \cos^2\omega\,\ell_1 +
+\sin^2\omega\,\ell_2$. At $\omega = 45°$, each carries half of $\ell_1 + \ell_2$, which is why the widget showed
+50%. PCA picks the one rotation that puts as much variance as possible first. It is a convention, not a law of
+nature.
+
+<Callout type="warning">A name like "size factor" or "slope" belongs to one rotation of the components, not to the
+data. The fit of the first $K$ components together is fixed. How you split it among them is a choice.</Callout>
+
+## <span class="section-tag">Playground</span> Scree plots and loadings
+
+Switch the widget to "scree". The bars are the shares $\ell_k / \sum_j \ell_j$, and the dashed line adds them up. A
+**scree plot** is named after the loose stones at the foot of a cliff: a few tall bars, then a long flat tail.
+Then switch to "loadings", which draws $q_1$, $q_2$ and $q_3$ across the 25 portfolios.
+
+For the portfolios, every loading of component 1 is positive, from 0.13 to 0.28. All 25 portfolios move the same
+way, so component 1 behaves like the whole market. Component 2 is highest for the smallest growth portfolio and
+lowest for the largest value portfolio. It separates small stocks from big ones, with a growth tilt in the small
+ones. Component 3 is hard to read. Its two largest loadings sit on the two corner portfolios, the smallest growth
+and the largest value ones.
+
+<p class="try-this"><strong>Try this:</strong> choose the sample that starts in July 1963 and look again. Component 1
+still carries 83.2%. But component 2 now carries 6.3% and component 3 carries 3.5%, and component 3 has a clean
+shape: in every size group, its loading falls from the growth end to the value end. The same 25 portfolios give
+different minor components in a different sample.</p>
+
+Now choose "Yield changes, 1985–2026". The data are monthly changes of the 1- to 30-year zero-coupon yields. The three
+shares are 89.0%, 7.7% and 2.2%, and the loadings have three shapes you can name. Component 1 loads between 0.12
+and 0.20 on every maturity: all yields move up or down together, a change in the **level** of the curve.
+Component 2 goes from 0.38 at one year to −0.15 at thirty years and changes sign once: short and long yields move
+in opposite directions, a change in the **slope**. Component 3 is positive at both ends and negative in the middle,
+so it changes sign twice: a change in the **curvature**.
+
+<p class="try-this"><strong>Try this:</strong> on the 25 portfolios from 1926, show the scree plot and rotate by 30°.
+Component 1 drops from 83.8% to 63.9%, and component 2 grows from 4.4% to 24.2%. Their sum stays at 88.1%. Then press
+"Flip the signs" in the loadings view: every line turns upside down, and no share changes.</p>
+
+### What PCA can and cannot show
+
+PCA describes the sample. It is not a model, and it reports no standard errors in this chapter. Each share and
+loading is an estimate from one sample, and you have just seen the minor components change when the sample starts
+in 1963 instead of 1926. A component whose eigenvalue is close to the next one is pinned down badly. For the
+portfolios from 1926, components 3 and 4 carry 3.1% and 2.6%, so small changes in the data can mix them.
+
+PCA also depends on units. It works on the covariance matrix, so a series with a large variance pulls the first
+component towards itself. If you scale each series to variance 1 first, you get different components.
+
+Most importantly, a component that explains much of the **variance** of returns need not explain their
+**average**. PCA looks only at how returns move, never at what they pay on average. Whether a component earns a
+risk premium is a separate question, and Chapter 7 starts to answer it with the CAPM.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A covariance matrix of three series has eigenvalues 6, 3 and 1. What share of the total variance does the first component carry?"
+  options={["30%", "60%", "90%", "It depends on the loadings"]}
+  answer={1}
+  explanation="The share is $\ell_1 / (\ell_1 + \ell_2 + \ell_3) = 6/10 = 60\%$. The total variance is the sum of the eigenvalues, whatever the loadings are."
+/>
+
+<Quiz
+  client:visible
+  question="Two programs run PCA on the same yield data. One reports first-component loadings that are all positive. The other reports the same numbers with a minus sign. What is true?"
+  options={["One program has a bug", "They found the same component; a component is defined only up to its sign", "The second program found the slope component", "The yields must be measured in different units"]}
+  answer={1}
+  explanation="If $q_1$ is an eigenvector, so is $-q_1$. The variance, the share and the rebuilt data are the same. Only the sign of the component's value flips."
+/>
+
+<Quiz
+  client:visible
+  question="Two series have the same variance and zero correlation, so their cloud is round. What are its principal axes?"
+  options={["The 45° line and the line at a right angle to it", "The two original series", "Any pair of directions at a right angle: each carries 50%", "There are no principal axes"]}
+  answer={2}
+  explanation="With equal eigenvalues, $w'\Sigma w = \ell$ for every direction $w$. Every rotation carries the same variance, so PCA cannot pick one. That is rotation indeterminacy at its most extreme."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- PCA writes the covariance matrix as $\Sigma = Q L Q'$. Component $k$ is $\Factor{f_{k,t}} = q_k'(\Data{z_t} - \bar z)$, with
+  variance $\ell_k$ and share $\ell_k / \sum_j \ell_j$.
+- The first $K$ components lose the least when you rebuild the data from $K$ directions: the error is
+  $(T - 1)\sum_{k > K} \ell_k$.
+- One component carries 83.8% of the variance of the 25 size–value portfolios from 1926 to 2026. Three carry 98.9%
+  of monthly yield changes from 1985 to 2026: level, slope and curvature.
+- A component is fixed only up to its sign, and a group of components only up to a rotation. Names like "slope"
+  belong to one rotation.
+- PCA describes how returns move. It does not say which movements earn a premium, and its minor components change
+  with the sample.
+
+**Next up:** Chapter 7 asks which of these movements investors are paid to bear, starting with mean–variance
+portfolios and the CAPM.
+
+### Further reading
+
+- Campbell, Lo and MacKinlay (1997), Ch. 6
+- Litterman and Scheinkman (1991)
+- Fama and French (1993)
+- Gürkaynak, Sack and Wright (2007)
