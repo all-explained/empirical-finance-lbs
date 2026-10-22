@@ -1,0 +1,288 @@
+---
+title: "Expected return and risk"
+part: 1
+chapter: 2
+difficulty: 1
+prerequisites: [1]
+summary: "How to estimate a mean return, a volatility and a Sharpe ratio, why the mean is so much harder to pin down, and how real returns differ from the normal curve."
+---
+
+import SamplingErrorMean from '../../components/plots/SamplingErrorMean';
+import DistributionExplorer from '../../components/plots/DistributionExplorer';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> How sure are we about the reward for risk?
+
+[Chapter 1](../01-returns/) found that, from July 1926 to August 2026, the US stock market beat one-month
+Treasury bills by 0.70% a month on average. That is 8.3% a year. It is one of the most famous numbers in finance: the
+**equity premium**, the extra return that investors have earned for holding stocks instead of a safe asset.
+
+So here is the question you probably have. If you plan your savings around that number, how much should you
+trust it? A century sounds like a lot of data. It is 1,202 monthly returns. Surely that pins the average down?
+
+It does not, at least not well. With the tools of this chapter, the honest answer is "about 8.3% a year, give
+or take 1.8%". A range of two of those errors on each side runs from 4.7% to 12.0% a year. At 4.7%, stocks are
+a modest bet. At 12.0%, they are an excellent one. The same 1,202 months tell you the market's **volatility**,
+its typical swing, much more precisely: 18.4% a year, give or take less than one percentage point.
+
+Why can a century measure the size of the swings so well and the average so badly? This chapter answers that
+question. On the way you will meet the standard error, the Sharpe ratio, and the fat tails of real returns.
+
+## <span class="section-tag">Intuition</span> One century is one sample
+
+Imagine a world where we *know* the truth. Each month, the market's excess return is drawn at random, with a
+true mean of 0.5% and a volatility of 4.5%. That is 6.0% a year on average, with swings of about 15.6% a year,
+close to the real market. Now let 1,000 investors each live through their own sample of $T$ months from this
+world, and let each one compute the average.
+
+They do not get the same answer. Each sample has its own luck: one has a crash early on, another a long boom.
+The widget draws all 1,000 samples. The grey bars show where their averages land. The dashed line is the truth
+that every investor is trying to find.
+
+<SamplingErrorMean client:visible initialT={600} />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens at 600 months, 50 years. The averages spread
+around 6.0% with a standard deviation of 2.2% a year. Now slide $T$ down to 150 months. You have a quarter of
+the data, and the spread doubles to 4.5%. Then slide to 60 months, five years. Now 21% of the investors find a
+*negative* average, although the true reward is positive.</p>
+
+Look at the readout line "spread as a share of the truth". At 600 months, the averages miss the true mean by
+37% of its size, in a typical sample. The sample volatilities miss the true volatility by only 3%. The same
+data, the same months, and one estimate is more than ten times as precise as the other.
+
+The blue dot is the real market over its last $T$ months, with a bar of two standard errors on each side. Its
+bar is about as wide as the cloud of simulated averages. That is the point: the real century is just one draw
+from a world like this, and we never see the other 999.
+
+Why is the mean so hard? Think of a boat that drifts slowly while waves toss it up and down. Watch it for one
+minute and you can measure the height of the waves well, because every wave tells you something about wave
+height. But the drift is tiny next to the waves. To see it, you must watch for a long time and compare where
+the boat started with where it ended. Monthly returns are the same: the waves (4.5% a month) are much bigger
+than the drift (0.5% a month).
+
+<Callout type="key">Each month says a lot about the size of the swings and very little about the average. So a
+sample measures volatility well and the mean return badly.</Callout>
+
+## <span class="section-tag">Formalisation</span> Means, standard errors and Sharpe ratios
+
+Write $\Ret{R^e_t}$ for the excess return in month $t$, for $t = 1, \dots, T$. We assume for now that the months
+are independent draws with the same mean $\mu = \mathbb{E}[\Ret{R^e_t}]$ and volatility
+$\sigma$. Chapter 4 relaxes the independence.
+
+### The sample mean and its standard error
+
+The **sample mean** is the plain average:
+
+$$
+\bar R^e = \frac1T \sum_{t=1}^{T} \Ret{R^e_t}.
+$$
+
+It is a random number, because the sample is random. Its variance tells us how far it typically lands from
+$\mu$. The variance of a sum of independent terms is the sum of their variances, and a constant factor
+$\tfrac1T$ comes out squared:
+
+$$
+\operatorname{Var}(\bar R^e) = \frac{1}{T^2} \sum_{t=1}^{T} \operatorname{Var}(\Ret{R^e_t})
+= \frac{1}{T^2} \cdot T\sigma^2 = \frac{\sigma^2}{T}.
+$$
+
+The **standard error** is the square root of this variance, the typical size of the estimation error:
+
+$$
+\mathrm{se}(\bar R^e) = \frac{\sigma}{\sqrt{T}}.
+$$
+
+We do not know $\sigma$, so we use the sample volatility $\hat\sigma$ in its place. This is the formula that the
+widget's "average standard error" uses. Two features matter. First, the error shrinks like $1/\sqrt{T}$: to halve
+it you need four times as much data. Second, the error is large when $\sigma$ is large compared with $\mu$. On
+the data, $\bar R^e = 0.70\%$ a month and $\hat\sigma = 5.30\%$ a month, so
+
+$$
+\mathrm{se}(\bar R^e) = \frac{5.30\%}{\sqrt{1202}} = 0.15\% \text{ a month}.
+$$
+
+The ratio $\bar R^e / \mathrm{se}(\bar R^e) = 4.5$ is the $t$-statistic of the hypothesis "the true mean is zero".
+The mean is 4.5 standard errors above zero, so a century is enough to say that the premium is positive. It is
+not enough to say how big it is. A range of two standard errors on each side covers the true mean in about 95%
+of samples, if the sample mean is close to normal.
+
+### Why more frequent data does not help the mean
+
+To compare with yearly figures, multiply the monthly mean by 12: $\mu_{\text{ann}} = 12\mu$. A year is 12
+independent months, so its variance is $12\sigma^2$ and its volatility is $\sigma_{\text{ann}} = \sqrt{12}\,\sigma$.
+Now suppose the sample covers $T/12$ years. The standard error of the annual mean is
+
+$$
+\mathrm{se}(12\,\bar R^e) = \frac{12\,\sigma}{\sqrt{T}} = \frac{\sqrt{12}\,\sigma \cdot \sqrt{12}}{\sqrt{T}}
+= \frac{\sigma_{\text{ann}}}{\sqrt{T/12}}.
+$$
+
+The number of months has disappeared. Only the number of *years* is left. Daily data over the same years would
+give the same answer, because the mean depends on the drift, and only a longer span shows more drift. On our
+data, $\sigma_{\text{ann}} = 18.4\%$ and there are 100 years, so the standard error is 1.8% a year. To bring it
+down to 1% a year, you would need $(18.4/1)^2$, about 340 years of data.
+
+### Why the volatility is easy
+
+For the variance, every month counts. Suppose for a moment that we knew $\mu$. Then the variance estimate is an
+average of the squared deviations $(\Ret{R^e_t} - \mu)^2$, and the same rule as above gives its variance:
+
+$$
+\operatorname{Var}(\hat\sigma^2) = \frac{1}{T}\operatorname{Var}\big((\Ret{R^e_t} - \mu)^2\big)
+= \frac{\mathbb{E}[(\Ret{R^e_t} - \mu)^4] - \sigma^4}{T}.
+$$
+
+<details>
+<summary>Every step to the standard error of $\hat\sigma$</summary>
+
+1. For any random variable $Y$, $\operatorname{Var}(Y) = \mathbb{E}[Y^2] - (\mathbb{E}[Y])^2$. With
+   $Y = (\Ret{R^e_t} - \mu)^2$, $\mathbb{E}[Y^2] = \mathbb{E}[(\Ret{R^e_t} - \mu)^4]$ and $\mathbb{E}[Y] = \sigma^2$.
+   That is the last step above.
+2. The fourth moment, divided by $\sigma^4$, is the kurtosis. Write it as $3 + \text{excess kurtosis}$, because
+   a normal distribution has kurtosis 3. Then
+   $\operatorname{Var}(\hat\sigma^2) = (2 + \text{excess kurtosis})\,\sigma^4/T$.
+3. A small change in $\sigma^2$ changes $\sigma = \sqrt{\sigma^2}$ by that change divided by $2\sigma$, the
+   derivative of the square root. So $\mathrm{se}(\hat\sigma) \approx \mathrm{se}(\hat\sigma^2)/(2\sigma)$.
+4. Substitute: $\mathrm{se}(\hat\sigma) \approx \sigma^2\sqrt{(2 + \text{excess kurtosis})/T}\,/\,(2\sigma) =
+   \sigma\sqrt{(2 + \text{excess kurtosis})/(4T)}$.
+5. Using $\bar R^e$ in place of the unknown $\mu$ changes this only by terms of order $1/T$, which are small when
+   $T$ is large.
+
+</details>
+
+For normal returns the excess kurtosis is 0, and the result is simple:
+
+$$
+\frac{\mathrm{se}(\hat\sigma)}{\sigma} \approx \frac{1}{\sqrt{2T}}.
+$$
+
+This shrinks with the number of *observations*, not the number of years. With 1,202 months it is 2.0%. Compare
+the mean: its standard error is 22% of its size. That is the whole puzzle of the Hook in two formulas. Real
+returns have fat tails, which raise the error of $\hat\sigma$; we come back to this in the Playground.
+
+### The Sharpe ratio
+
+The **Sharpe ratio** measures the reward per unit of risk:
+
+$$
+SR = \frac{\mathbb{E}[\Ret{R^e}]}{\sigma(\Ret{R^e})}.
+$$
+
+On the monthly data, $SR = 0.70\% / 5.30\% = 0.13$. To annualise, put the annual mean over the annual
+volatility:
+
+$$
+SR_{\text{ann}} = \frac{12\mu}{\sqrt{12}\,\sigma} = \sqrt{12}\,\frac{\mu}{\sigma} = \sqrt{12}\,SR.
+$$
+
+So the market's annual Sharpe ratio is $\sqrt{12} \times 0.13 = 0.45$. The $\sqrt{12}$ comes from the
+volatility, and it assumes independent months. If returns were correlated from month to month, $\sqrt{12}$ would
+be the wrong factor.
+
+How precise is 0.45? Volatility is measured well, so almost all the error comes from the mean. Treat
+$\sigma_{\text{ann}}$ as known. Then the error of $SR_{\text{ann}}$ is the error of the annual mean divided by
+$\sigma_{\text{ann}}$, which is $1/\sqrt{T/12}$. With 100 years, that is 0.10. So a century says that the Sharpe
+ratio is about 0.45, give or take 0.10.
+
+### Skewness and fat tails
+
+Mean and volatility do not describe the whole shape of returns. Two more numbers help. **Skewness** measures
+whether the distribution leans to one side:
+
+$$
+\text{skewness} = \frac{\mathbb{E}[(\Ret{R^e} - \mu)^3]}{\sigma^3}.
+$$
+
+Cubing keeps the sign, so big losses push skewness down and big gains push it up. **Excess kurtosis** measures
+the weight of the tails, the very large moves in either direction:
+
+$$
+\text{excess kurtosis} = \frac{\mathbb{E}[(\Ret{R^e} - \mu)^4]}{\sigma^4} - 3.
+$$
+
+The fourth power makes big moves count enormously. A normal distribution has skewness 0 and excess kurtosis 0.
+A positive excess kurtosis means **fat tails**: more extreme months than a normal with the same volatility
+predicts. Our library estimates both by replacing each expectation with a sample average.
+
+## <span class="section-tag">Playground</span> Are monthly returns normal?
+
+The widget below shows a histogram of all 1,202 monthly excess returns. The dashed curve is the normal
+distribution with the same mean and volatility. If returns were normal, the bars would follow the curve.
+
+<DistributionExplorer client:visible />
+
+<p class="try-this"><strong>Try this:</strong> look at the whole distribution first. The bars rise higher and
+narrower in the middle than the curve. Then choose "left tail". Beyond three standard deviations below the
+mean, a normal expects 1.6 months. The data have 11. The worst, September 1931, had an excess return of −28.7%, which is 5.6
+standard deviations below the mean.</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch the sample between "before 1947" and "1947 on". Watch
+the sign of the skewness and the size of the excess kurtosis.</p>
+
+On the full sample, the skewness is 0.15 and the excess kurtosis is 7.4. A tall, narrow middle and fat tails go
+together: with the volatility held fixed, the extra weight in the tails comes from the shoulders of the
+distribution. The best month, April 1933, had an excess return of +38.8%, or 7.2 standard deviations above the mean. Of the 1,202 months, 39% had a
+negative excess return.
+
+The two subsamples tell different stories. Before 1947, the skewness is +0.49: the 1930s had huge rebounds as
+well as huge crashes. From 1947 on, it is −0.49, with an excess kurtosis of only 1.7. So the sign of the
+skewness depends on the sample, and with few extreme months it is itself estimated with a large error. Do not
+read too much into a single skewness number.
+
+There is a deeper reason for fat tails. Volatility was 28.1% a year before 1947 and 14.9% a year from 1947 on.
+A mix of calm and wild periods looks fat-tailed even if each period alone were normal: the wild months supply
+the extremes, the calm ones the tall middle. Later chapters treat volatility that changes over time.
+
+Fat tails also hurt the variance estimate. Plug the excess kurtosis of 7.4 into the formula of the Formalisation:
+the standard error of $\hat\sigma$ is 4.4% of its size, not 2.0%. That is still five times better than the mean.
+
+<Callout type="warning">A normal curve fitted to monthly returns understates crashes. A "five-standard-deviation
+month" sounds impossible under the normal, yet the US market has had several. Report skewness and excess
+kurtosis next to the volatility.</Callout>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="You estimate a mean return from 25 years of monthly data. How many years of data do you need to halve its standard error?"
+  options={["50 years", "100 years", "25 years, but with daily data", "About 35 years"]}
+  answer={1}
+  explanation="The standard error shrinks like $1/\sqrt{T}$, so halving it needs four times the data: 100 years. More frequent data over the same 25 years does not help, because the error of the annual mean depends only on the number of years."
+/>
+
+<Quiz
+  client:visible
+  question="A fund has a monthly Sharpe ratio of 0.2, and its months are independent. What is its annual Sharpe ratio?"
+  options={["2.4", "0.69", "0.2", "0.058"]}
+  answer={1}
+  explanation="The annual mean is 12 times the monthly mean and the annual volatility is $\sqrt{12}$ times the monthly one, so $SR_{\text{ann}} = \sqrt{12} \times 0.2 = 0.69$. Multiplying by 12 forgets that volatility grows only with $\sqrt{12}$."
+/>
+
+<Quiz
+  client:visible
+  question="A friend replaces 20 years of monthly returns with 20 years of daily returns. Which estimate becomes much more precise?"
+  options={["The mean return", "The volatility", "Both, by the same amount", "Neither"]}
+  answer={1}
+  explanation="The standard error of $\hat\sigma$ shrinks with the number of observations, roughly like $1/\sqrt{2T}$. The error of the annual mean depends only on the number of years, which stays at 20."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- The sample mean has standard error $\sigma/\sqrt{T}$. For the US market from 1926 to 2026, the excess return
+  is 8.3% a year with a standard error of 1.8% a year.
+- The error of the annual mean depends on the number of years, not on how often you sample. The volatility's
+  error shrinks with the number of observations, so the mean is hard to estimate and the volatility is easy.
+- Annualise with $\mu_{\text{ann}} = 12\mu$, $\sigma_{\text{ann}} = \sqrt{12}\,\sigma$ and
+  $SR_{\text{ann}} = \sqrt{12}\,SR$. The market's annual Sharpe ratio is about 0.45, give or take 0.10.
+- Monthly returns have fat tails: an excess kurtosis of 7.4, and 11 months more than three standard deviations
+  below the mean where a normal expects 1.6. The sign of the skewness depends on the sample.
+
+**Next up:** Chapter 3 moves from one average to a regression line, and asks the same question of its slope:
+how precise is it, and when is the usual standard error wrong?
+
+### Further reading
+
+- Campbell (2018), Ch. 2.
+- Campbell, Lo and MacKinlay (1997), Ch. 1.
+- Data: Kenneth French Data Library, market and risk-free returns (`ff3-monthly`); Fama and French (1993).
