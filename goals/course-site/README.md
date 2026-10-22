@@ -79,6 +79,7 @@ flowchart TD
     TASK_018["TASK-018 Library: sample moments and Sharpe ratio"]
     TASK_019["TASK-019 Library: small linear algebra (inverse, eigen, matrix power)"]
     TASK_020["TASK-020 Library: mean–variance portfolios and beta"]
+    TASK_021["TASK-021 Library: Euler equation, SDF and Hansen–Jagannathan bound"]
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
   end
