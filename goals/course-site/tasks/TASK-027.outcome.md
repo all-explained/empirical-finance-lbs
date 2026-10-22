@@ -2,10 +2,11 @@
 
 ## Acceptance
 
-Verified revision: `d298ece` (rebased on `origin/main` at `24010b0`, after TASK-023 merged Chapter 3).
+Verified on this branch rebased on `origin/main` at `5138220` (after TASK-028 merged Chapter 8). The
+prerequisite callout now links Chapter 2, which is on main, and keeps only a short reminder.
 
 - [x] `npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.
-  `npm ci` exited 0. `npm test`: 14 files, 203 tests passed (6 of them in
+  `npm ci` exited 0. `npm test`: 17 files, 213 tests passed (6 of them in
   `tests/chapter07-numbers.test.ts`). `npm run build`: "0 errors, 0 warnings, 0 hints", then "[build] Complete!".
 - [x] `npm run screenshots -- 07-mean-variance` passes in both themes at desktop and phone size, and I inspected
   the images. All four lines are ✓ (`dark-desktop`, `dark-phone`, `light-desktop`, `light-phone`). I inspected the
@@ -13,11 +14,14 @@ Verified revision: `d298ece` (rebased on `origin/main` at `24010b0`, after TASK-
   a 17px phone overflow from long `Select` option labels; ring markers that rendered as filled dots; a "+ −4.3%"
   sign in a readout; a top y tick under the axis title; and display equations that needed side-scrolling on
   phones (a Playwright check now finds 0 of them at 360px and 375px, with the `<details>` block open).
+  After the Chapter 2 fix I took new element shots of the prerequisite callout and both widgets, in both themes
+  at 1280px and 360/375px. The callout wraps cleanly, its Chapter 2 and Chapter 3 links load (HTTP 200), and the
+  widgets show no change.
 - [x] `npm run clickthrough -- 07-mean-variance` passes and reports every widget of the chapter:
   - `✓ … BUILD THE FRONTIER FROM A FEW PORTFOLIOS · 14 actions at 1280px, 14 actions at 360px · select "Asset to move"; slider "Shift in the expected return of middle"; button "Remove small growth"; button "Remove small value"; button "Remove big growth"; button "Remove big value"; button "Add middle"; button "Reset"`
   - `✓ … DOES BETA LINE UP WITH AVERAGE RETURNS? · 27 actions at 1280px, 27 actions at 360px · segmented "Sample" option "1963–2026"; segmented "Sample" option "1926–2026"; select "Ringed portfolio"`
-- [x] The six `section-tag` headings are in template order: `grep -n 'section-tag'` gives Hook (29), Intuition (45),
-  Formalisation (85), Playground (260), Check yourself (295), Recap & next up (321).
+- [x] The six `section-tag` headings are in template order: `grep -n 'section-tag'` gives Hook (30), Intuition (46),
+  Formalisation (86), Playground (261), Check yourself (296), Recap & next up (322).
 - [x] No hex colour in the chapter or its widgets. The spec command prints `no hex colours`. A direct
   `grep -nE '#[0-9a-fA-F]{3,8}\b'` on `FrontierBuilder.tsx`, `SMLPlot.tsx`, `capmSample.ts` and the MDX file also
   finds nothing (exit 1). Every colour is a `var(--…)` token.
@@ -26,7 +30,7 @@ Verified revision: `d298ece` (rebased on `origin/main` at `24010b0`, after TASK-
   name both dataset IDs and the sample period. The chapter has no simulation, so no random numbers are drawn.
 - [x] The outcome holds a voice review and a table of every number in the prose with its test. See the two
   sections below.
-- [x] The prose is 1,500–3,000 words: 2,459 words. Command (the one TASK-014 used; it drops the frontmatter, the
+- [x] The prose is 1,500–3,000 words: 2,456 words. Command (the one TASK-014 used; it drops the frontmatter, the
   imports and the display-math blocks):
   `awk 'NR>8' src/content/chapters/07-mean-variance-and-the-capm.mdx | grep -v '^import ' | awk '/^\$\$/{m=!m; next} !m' | wc -w`
 - [x] `git ls-files | grep -ciE '\.pdf$|^source/'` prints `0` and exits 1, which DEC-002 accepts.
