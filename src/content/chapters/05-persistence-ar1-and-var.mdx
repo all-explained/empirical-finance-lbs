@@ -1,0 +1,325 @@
+---
+title: "Persistence: AR(1) and VAR"
+part: 1
+chapter: 5
+difficulty: 2
+prerequisites: [3]
+summary: "An AR(1) measures how long a series remembers its past, and a VAR(1) forecasts several series together."
+---
+
+import AR1Simulator from '../../components/plots/AR1Simulator';
+import VARForecast from '../../components/plots/VARForecast';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapter 3">
+This chapter uses one tool from [Chapter 3](../03-regression-and-standard-errors/): regression. A short reminder:
+
+- **Ordinary least squares (OLS)** fits the line $y_t = a + b\,x_t + \varepsilon_t$ with the smallest sum of
+  squared errors.
+- The **residuals** are the errors left after the fit.
+- A **standard error** measures how much an estimate would change in a new sample. Two standard errors on each side
+  give a rough range for the true value.
+</Callout>
+
+## <span class="section-tag">Hook</span> How long does an expensive market stay expensive?
+
+In June 1932, the dividends of the US stock market were 13.8% of its price. That ratio, dividends over price,
+is the **dividend–price ratio**. In August 2000, its lowest month, it was 1.1%. In June 2023, the last month of our data, it was
+1.58%. Over the 1,710 months from 1881 to 2023, its typical level was 3.8%.
+
+So the ratio wanders far from its typical level, and it stays away for a long time. That gives you a practical
+question. Suppose the ratio is far below normal today. How many years should you expect to wait until it is
+back halfway to normal? One year? Ten?
+
+Chapter 9 will use the dividend–price ratio to forecast stock returns. Every result there depends on the answer
+to this question. This chapter gives you the tool to answer it: the AR(1) model. Then it stacks two series in
+one model, the VAR(1), and forecasts them together.
+
+## <span class="section-tag">Intuition</span> A series with a memory
+
+Think of a cup of hot coffee in a cold room. Each minute, the coffee loses a fixed share of its gap to room
+temperature. A large share means the coffee cools fast. A small share means it stays hot for a long time. An
+AR(1) series works the same way, plus a small random push every month.
+
+The number that matters is $\phi$, the **persistence**. Each month, the series keeps the share $\phi$ of its
+gap from the mean, and then gets a new random shock of typical size $\sigma$. The **half-life** is the number of
+months until half of today's gap is expected to be gone.
+
+<AR1Simulator client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens on the default example, $\phi = 0.98$ a month.
+The half-life is 34 months, or 2.9 years. Drag $\phi$ down to 0.5 and the path turns into noise around zero,
+because the half-life is now one month. Then drag $\phi$ up to 0.999. The path drifts in long waves, and the
+half-life is 58 years.</p>
+
+The bottom panel shows the **autocorrelation function**. At lag $k$, it is the correlation between the series
+today and the series $k$ months earlier. The dashed curve is what the model says it should be. The solid curve
+is what this one simulated path shows. Where the dashed curve crosses the grey line at 0.5, you read off the
+half-life.
+
+Now choose the preset "shiller-monthly dp". The thick line is the real log dividend–price ratio. The sliders
+jump to the values that OLS estimates on it: $\phi = 0.997$ and $\sigma = 0.043$ a month, rounded to the slider
+steps. The thin line is a simulated path with the same mean, the same length and those values. It wanders in the
+same slow way as the real data. The half-life of the estimate itself, $\hat\phi = 0.9966$, is 205 months, or
+17.1 years. The readout shows it below the half-life of the rounded slider value.
+
+<Callout type="key">Persistence is memory. With $\phi$ close to 1, a shock today is still visible many years
+later, and the half-life measures how many.</Callout>
+
+## <span class="section-tag">Formalisation</span> The AR(1) and the VAR(1)
+
+### The model
+
+Write $\Signal{x_t}$ for the series at month $t$. An **AR(1)**, an autoregression of order one, says that next
+month's value depends only on this month's value and a new shock:
+
+$$
+\Signal{x_{t+1}} = \mu_x + \phi\,\Signal{x_t} + \Err{\varepsilon_{t+1}}.
+$$
+
+The shock $\Err{\varepsilon_{t+1}}$ has mean zero and variance $\sigma_\varepsilon^2$. It is uncorrelated with
+$\Signal{x_t}$ and with every earlier value, so nobody can forecast it at $t$. The intercept $\mu_x$ is not the mean
+of $x$, as the next step shows. We assume $0 \le \phi < 1$.
+
+### The mean
+
+If the series is **stationary**, its mean and variance are the same at every date. Take the mean of both sides.
+The shock has mean zero, so $\mathbb{E}[x_{t+1}] = \mu_x + \phi\,\mathbb{E}[x_t]$. Stationarity says the two means
+are the same number $\bar x$:
+
+$$
+\bar x = \mu_x + \phi\,\bar x
+\quad\Longrightarrow\quad
+\bar x = \frac{\mu_x}{1 - \phi}.
+$$
+
+Now subtract $\bar x = \mu_x + \phi\,\bar x$ from the model. The intercept drops out, and you get the gap form:
+
+$$
+\Signal{x_{t+1}} - \bar x = \phi\,(\Signal{x_t} - \bar x) + \Err{\varepsilon_{t+1}}.
+$$
+
+This is the coffee rule. Each month keeps the share $\phi$ of the gap, and adds a shock.
+
+### The variance
+
+Take the variance of both sides of the model. $\mu_x$ is a constant, and $\Err{\varepsilon_{t+1}}$ is uncorrelated
+with $\Signal{x_t}$, so there is no covariance term:
+
+$$
+\operatorname{Var}(x_{t+1}) = \phi^2 \operatorname{Var}(x_t) + \sigma_\varepsilon^2.
+$$
+
+Stationarity sets $\operatorname{Var}(x_{t+1}) = \operatorname{Var}(x_t) = \operatorname{Var}(x)$. Move the
+$\phi^2$ term to the left and divide:
+
+$$
+\operatorname{Var}(x) = \frac{\sigma_\varepsilon^2}{1 - \phi^2}.
+$$
+
+As $\phi$ gets close to 1, the bottom gets close to 0, and the variance grows without limit. Small monthly shocks
+add up to large swings, because the series never forgets them. For the dividend–price ratio, the formula with
+$\hat\phi = 0.9966$ and $\hat\sigma_\varepsilon = 0.043$ gives a standard deviation of 0.52. The sample standard
+deviation of the log ratio is 0.45. The two are close but not equal, because $1 - \hat\phi^2$ is a small number
+that the data measure only roughly.
+
+### Forecasts many steps ahead
+
+Write the gap form for month $t+2$, and put in the gap form for month $t+1$:
+
+$$
+\begin{aligned}
+\Signal{x_{t+2}} - \bar x &= \phi\,(\Signal{x_{t+1}} - \bar x) + \Err{\varepsilon_{t+2}} \\
+&= \phi^2\,(\Signal{x_t} - \bar x) + \phi\,\Err{\varepsilon_{t+1}} + \Err{\varepsilon_{t+2}}.
+\end{aligned}
+$$
+
+Each step multiplies the old gap by $\phi$ once more and adds one new shock. After $k$ steps:
+
+$$
+\Signal{x_{t+k}} - \bar x = \phi^k\,(\Signal{x_t} - \bar x) + \sum_{j=0}^{k-1} \phi^j\,\Err{\varepsilon_{t+k-j}}.
+$$
+
+Now take the expectation given what you know at $t$. Every shock in the sum comes after $t$, so each one has
+expectation zero:
+
+$$
+\mathbb{E}_t[\Signal{x_{t+k}}] - \bar x = \phi^k\,(\Signal{x_t} - \bar x).
+$$
+
+This is the many-step forecast. The expected gap shrinks by the factor $\phi$ every month, so the forecast slides
+back to the mean along a curve that gets flatter as it goes.
+
+### Autocorrelation
+
+Multiply the $k$-step equation by $(\Signal{x_t} - \bar x)$ and take the mean. The future shocks are uncorrelated
+with $\Signal{x_t}$, so only the first term survives:
+$\operatorname{Cov}(x_{t+k}, x_t) = \phi^k \operatorname{Var}(x)$. Divide by $\operatorname{Var}(x)$ to get the
+correlation:
+
+$$
+\operatorname{corr}(x_{t+k}, x_t) = \Model{\phi^k}.
+$$
+
+That is the dashed curve in the widget. The solid curve is the **sample autocorrelation**. At lag $k$ it puts the
+sample mean $\bar x$ in place of the true one:
+
+$$
+\widehat{\operatorname{corr}}_k = \frac{\sum_{t=k+1}^{T} (x_t - \bar x)(x_{t-k} - \bar x)}{\sum_{t=1}^{T} (x_t - \bar x)^2}.
+$$
+
+### The half-life
+
+The half-life $h$ is the horizon at which the expected gap is half of today's gap. By the forecast formula, that
+means $\phi^h = 1/2$. Take logs of both sides, $h \log\phi = \log(1/2)$, and divide by $\log\phi$:
+
+$$
+h = \frac{\log(1/2)}{\log\phi}.
+$$
+
+Both logs are negative, so $h$ is positive. At $\phi = 0.5$, $h = 1$ month. At $\phi = 0.98$, $h$ is 34 months.
+Close to 1, the half-life is very sensitive to $\phi$. That fact is the main limit of this chapter.
+
+### Estimating an AR(1), and what the data cannot tell you
+
+The AR(1) is a regression of $\Signal{x_{t+1}}$ on $\Signal{x_t}$, so OLS estimates it. On the log
+dividend–price ratio from shiller-monthly, 1881 to 2023, OLS gives $\hat\phi = 0.9966$ with a classical
+standard error of 0.0023. The residual standard deviation is $\hat\sigma_\varepsilon = 0.043$.
+
+Now look at the range of two standard errors on each side. At the low end, $\phi = 0.9921$ gives a half-life of
+7.3 years. At the high end, $\phi$ is 1.0012, above 1. There the series never comes back, and the half-life is
+infinite. So the data are consistent with a half-life of seven years and with no half-life at all. Near 1, even
+the classical standard error is only a rough guide.
+
+The estimate also depends on the sample. From 1881 to 1951, $\hat\phi = 0.979$ and the half-life is 2.7 years.
+From 1952 to 2023, $\hat\phi = 0.995$ and the half-life is 12.7 years. Perhaps the true $\phi$ changed. Perhaps
+the mean of the ratio shifted down after the 1990s, which an AR(1) can only read as more persistence. These 142
+years cannot tell the two stories apart.
+
+The sample autocorrelations fall faster than the model says. At a lag of 12 months, $\hat\phi^{12} = 0.960$, but
+the sample autocorrelation is 0.892. At 120 months, the model says 0.666 and the data show 0.556. This is partly a
+small-sample effect, not only a defect of the model. In 200 seeded simulations of 1,710 months with
+$\phi = 0.9966$, the sample autocorrelation at 120 months was below $\phi^{120}$ in 188, and its average was
+0.39.
+
+<Callout type="warning">A half-life of 17 years is a point estimate, not a fact. Near $\phi = 1$, a small error
+in $\hat\phi$ is a huge error in the half-life.</Callout>
+
+### Stacking series: the VAR(1)
+
+Often you want to forecast two or more series that move together. Stack them in a column vector $z_t$. Here we
+use the log dividend–price ratio $\Signal{dp_t}$ and the log **earnings–price ratio** $\Signal{ep_t}$, the
+earnings of the market over its price, in logs:
+
+$$
+z_t = \begin{pmatrix} \Signal{dp_t} \\ \Signal{ep_t} \end{pmatrix}.
+$$
+
+A **VAR(1)**, a vector autoregression of order one, lets each series depend on last month's value of every
+series. Measure $z_t$ from its mean, as in the gap form. Then:
+
+$$
+z_{t+1} = A\,z_t + \Err{\varepsilon_{t+1}},
+$$
+
+where $A$ is a $2 \times 2$ matrix:
+
+$$
+A = \begin{pmatrix} a_{11} & a_{12} \\ a_{21} & a_{22} \end{pmatrix}.
+$$
+
+The entry $a_{12}$ says how much this month's $ep$ moves next month's $dp$. If $a_{12} = a_{21} = 0$, the VAR is
+just two separate AR(1)s.
+
+The forecast works exactly as before, with a matrix in place of the number $\phi$. One month ahead, the shock has
+expectation zero, so $\mathbb{E}_t[z_{t+1}] = A\,z_t$. Two months ahead, apply the same rule to that forecast:
+$\mathbb{E}_t[z_{t+2}] = A\,\mathbb{E}_t[z_{t+1}] = A^2 z_t$. Each step multiplies by $A$ once more:
+
+$$
+\mathbb{E}_t[z_{t+k}] = A^k z_t.
+$$
+
+$A^k$ is the matrix $A$ multiplied by itself $k$ times. To estimate a VAR, run one OLS regression per series. Each
+one has an intercept and last month's value of every series on the right. With a vector of intercepts $\mu_z$, the
+mean solves $\bar z = \mu_z + A\bar z$, so $\bar z = (I - A)^{-1} \mu_z$, the same step as for the AR(1).
+
+On shiller-monthly data, 1881 to 2023, OLS gives
+
+$$
+\hat A = \begin{pmatrix} 0.989 & 0.012 \\ -0.007 & 0.997 \end{pmatrix}.
+$$
+
+The entry 0.012 has a classical standard error of 0.0038, a $t$-statistic of 3.2. So a high earnings–price ratio,
+for a given dividend–price ratio, comes before a rising dividend–price ratio. The plain reading: when companies pay
+out a small share of their earnings, dividends tend to catch up later, or prices fall. The entry −0.007 has a
+standard error of 0.0040, a $t$-statistic of −1.7, so that link is weaker.
+
+## <span class="section-tag">Playground</span> Forecasting two ratios together
+
+The widget shows both ratios, 20 years either side of a month you choose, as percentages. The dashed lines are
+the forecast from that month. Faint lines show what really happened next.
+
+<VARForecast client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start from June 2023, at a horizon of 120 months. The
+dividend–price ratio is 1.58%. The VAR forecasts 2.64% in ten years. Now switch to "two AR(1)s". The forecast falls
+to 1.99%. The difference comes from the earnings–price ratio. In June 2023, dividends were 38% of earnings, while
+the long-run level in the VAR is 54%. The VAR expects that gap to close.</p>
+
+<p class="try-this"><strong>Try this too:</strong> forecast from December 1999 and compare the dashed lines with
+the faint lines. Ten years later, the dividend–price ratio was 2.02%. The VAR forecast 2.32% and the AR(1)s 1.63%.
+For the earnings–price ratio, the VAR forecast 7.11%, but the data show 4.59%.</p>
+
+So the VAR helps for one series and misses for the other. Be honest about what this widget can show. Both models
+are fitted on all of the data, including the years after the forecast month. An investor in 1999 could not have
+used these numbers. The long-run level itself is uncertain: the VAR puts the dividend–price ratio at 3.57% in the
+long run, and the AR(1) puts it at 3.17%. And a forecast from June 1932 slides down slowly, while the real ratio
+fell from 13.8% to 4.5% within a year. A linear model of averages cannot see a sharp rebound coming.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A monthly series is an AR(1) with $\phi = 0.9$. What is its half-life?"
+  options={["About 0.9 months", "About 6.6 months", "About 9 months", "About 10 months"]}
+  answer={1}
+  explanation="$h = \log(1/2)/\log(0.9) = -0.693/-0.105 \approx 6.6$ months. Check: $0.9^{6.6} \approx 0.5$."
+/>
+
+<Quiz
+  client:visible
+  question="An AR(1) has $\phi = 0.8$ and shocks with standard deviation $\sigma_\varepsilon = 0.06$. What is the standard deviation of the series itself?"
+  options={["0.06", "0.075", "0.10", "0.30"]}
+  answer={2}
+  explanation="$\operatorname{Var}(x) = 0.06^2/(1 - 0.8^2) = 0.0036/0.36 = 0.01$, so the standard deviation is 0.10. Persistence makes the series swing more than its shocks."
+/>
+
+<Quiz
+  client:visible
+  question="A VAR(1) in deviations from the mean has $A = \begin{pmatrix} 0.5 & 0 \\ 0.5 & 0.5 \end{pmatrix}$ and today $z_t = (1, 0)'$. What is $\mathbb{E}_t[z_{t+2}]$?"
+  options={["$(0.25, 0)'$", "$(0.25, 0.5)'$", "$(0.5, 0.5)'$", "$(1, 1)'$"]}
+  answer={1}
+  explanation="$A^2 = \begin{pmatrix} 0.25 & 0 \\ 0.5 & 0.25 \end{pmatrix}$, so $A^2 z_t = (0.25, 0.5)'$. The second series starts at its mean, but the first one pushes it up through $a_{21}$."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- An AR(1) keeps the share $\phi$ of its gap from the mean each period:
+  $\mathbb{E}_t[x_{t+k}] - \bar x = \phi^k(x_t - \bar x)$.
+- Its variance is $\sigma_\varepsilon^2/(1 - \phi^2)$, its autocorrelation at lag $k$ is $\phi^k$, and its
+  half-life is $\log(1/2)/\log\phi$.
+- On shiller-monthly data, 1881 to 2023, the log dividend–price ratio has $\hat\phi = 0.9966$ (standard error
+  0.0023) and a half-life of 17.1 years. But two standard errors span seven years to forever, and the estimate
+  changes with the sample.
+- A VAR(1) stacks several series: $\mathbb{E}_t[z_{t+k}] = A^k z_t$. Cross terms in $A$ let one series forecast
+  another, as the earnings–price ratio does for the dividend–price ratio.
+
+**Next up:** Chapter 6 looks at many series at once and asks how few common patterns, its principal components,
+explain most of their movement.
+
+### Further reading
+
+- Campbell, Lo and MacKinlay (1997), Ch. 7
+- Cochrane (2005), Ch. 20
+- Shiller (2015), the source of the shiller-monthly data
