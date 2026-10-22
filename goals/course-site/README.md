@@ -102,6 +102,7 @@ flowchart TD
     TASK_033["TASK-033 Plan: decompose M-7"]
   end
   subgraph M_8["M-8 · Part VI: GMM and tests of asset pricing models"]
+    TASK_034["TASK-034 Plan: decompose M-8"]
   end
   subgraph M_9["M-9 · Part VII: The factor zoo and shrinkage"]
   end
@@ -162,6 +163,7 @@ flowchart TD
   TASK_030 --> TASK_031
   TASK_031 --> TASK_032
   TASK_032 --> TASK_033
+  TASK_033 --> TASK_034
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
