@@ -65,6 +65,7 @@ flowchart TD
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
+  class TASK_007 cancelled
   class DEC_001 decision
 ```
 <!-- goal:graph:end -->

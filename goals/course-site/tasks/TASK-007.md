@@ -2,9 +2,10 @@
 id: TASK-007
 title: Put the reference chapters' papers in source/papers/
 milestone: M-2
-state: approved
+state: cancelled
 depends_on: [DEC-001]
 delivery: manual
+reason: "Replaced by TASK-008: a worker downloads all outline papers first, not only the reference chapters' papers."
 ---
 
 ## Why

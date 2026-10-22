@@ -1,1 +1,2 @@
 {"at":"2026-10-22T12:22:00.341549Z","node":"TASK-005","action":"route","actor":"human:jesusvillota","summary":"Set route codex gpt-6.1-sol high","rationale":"","refs":{"route":{"platform":"codex","model":"gpt-6.1-sol","effort":"high"}}}
+{"at":"2026-10-22T12:22:47.808597Z","node":"TASK-007","action":"cancel","actor":"human:jesusvillota","summary":"Cancelled TASK-007","rationale":"Replaced by TASK-008: a worker downloads all outline papers first, not only the reference chapters' papers.","refs":{}}
