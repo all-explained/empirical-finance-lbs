@@ -85,6 +85,7 @@ flowchart TD
     TASK_024["TASK-024 Chapter 4: Autocorrelation and Newey–West"]
     TASK_025["TASK-025 Chapter 5: Persistence: AR(1) and VAR"]
     TASK_026["TASK-026 Chapter 6: Principal components"]
+    TASK_027["TASK-027 Chapter 7: Mean–variance and the CAPM"]
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
   end
@@ -141,6 +142,7 @@ flowchart TD
   TASK_018 --> TASK_022
   TASK_019 --> TASK_025
   TASK_019 --> TASK_026
+  TASK_020 --> TASK_027
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
