@@ -76,6 +76,7 @@ flowchart TD
     TASK_017["TASK-017 Allow Part XVII in the chapter schema"]
   end
   subgraph M_3["M-3 · Part I: Foundations"]
+    TASK_018["TASK-018 Library: sample moments and Sharpe ratio"]
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
   end
