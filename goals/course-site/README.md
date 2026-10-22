@@ -97,6 +97,7 @@ flowchart TD
     TASK_049["TASK-049 Chapter 10: The Campbell–Shiller decomposition"]
     TASK_050["TASK-050 Chapter 11: Cash-flow and discount-rate news"]
     TASK_051["TASK-051 Chapter 12: Stambaugh bias"]
+    TASK_052["TASK-052 Owner reads Part II and approves how it reads"]
   end
   subgraph M_5["M-5 · Part III: Return predictability: out of sample and beyond"]
     TASK_031["TASK-031 Plan: decompose M-5"]
@@ -197,6 +198,9 @@ flowchart TD
   TASK_046 --> TASK_050
   TASK_047 --> TASK_050
   TASK_048 --> TASK_051
+  TASK_049 --> TASK_052
+  TASK_050 --> TASK_052
+  TASK_051 --> TASK_052
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
