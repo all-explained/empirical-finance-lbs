@@ -53,6 +53,7 @@ flowchart TD
     TASK_007["TASK-007 Put the reference chapters' papers in source/papers/"]
     TASK_009["TASK-009 Add the widget click-through script"]
     TASK_010["TASK-010 Library: return arithmetic"]
+    TASK_011["TASK-011 Library: OLS with White and Newey–West standard errors"]
   end
   TASK_002 --> DEC_001
   TASK_001 --> TASK_003
