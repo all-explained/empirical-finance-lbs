@@ -6,6 +6,7 @@ import { describe, expect, test } from 'vitest';
 import ff3Json from '../src/data/series/ff3-monthly.json';
 import ff25Json from '../src/data/series/ff25-size-bm-monthly.json';
 import type { Series } from '../src/lib/data/series';
+import { maxSharpeSquared } from '../src/lib/finance/portfolio';
 import { arithmeticMean, sampleVariance } from '../src/lib/finance/returns';
 import { annualiseMean, annualiseVolatility, meanStandardError } from '../src/lib/stats/moments';
 import { annualMoments, capmSample, frontierView, PERIODS, smlView, type Portfolio } from '../src/components/plots/capmSample';
@@ -27,6 +28,11 @@ describe('chapter 7 prose numbers', () => {
     expect([post.dates[0], post.dates.at(-1), post.dates.length]).toEqual(['1963-07-01', '2026-08-01', 758]);
     expect(fixed(post.dates.length / 12, 0)).toBe('63'); // "63 years of data"
     expect([full.dates[0], full.dates.at(-1)]).toEqual(['1926-07-01', '2026-08-01']);
+    expect([post.names.length, sml.beta.length]).toEqual([25, 25]); // "the 25 size and book-to-market portfolios"
+  });
+
+  test('quiz 2: two uncorrelated assets with Sharpe ratios 0.3 and 0.4', () => {
+    expect(fixed(Math.sqrt(maxSharpeSquared([0.3, 0.4], [[1, 0], [0, 1]])), 2)).toBe('0.50');
   });
 
   test('hook: small growth against small value, 1963–2026', () => {

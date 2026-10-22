@@ -100,15 +100,22 @@ variance than its parts.
 For a target mean $\mu_p$, find the fully invested portfolio with the least variance:
 
 $$
-\min_w\ \tfrac12\, w'\Sigma w \quad \text{subject to} \quad w'\mu = \mu_p,\quad w'\mathbf 1 = 1.
+\begin{aligned}
+&\min_w\ \tfrac12\, w'\Sigma w \\
+&\text{subject to}\quad w'\mu = \mu_p,\quad w'\mathbf 1 = 1.
+\end{aligned}
 $$
 
 The $\tfrac12$ only tidies the algebra. Attach a Lagrange multiplier to each constraint. We call them $\eta_1$
 and $\eta_2$, because $\lambda$ is kept for risk premia. Setting the derivative with respect to $w$ to zero gives
 
 $$
-\Sigma w = \eta_1\,\mu + \eta_2\,\mathbf 1
-\quad\Longrightarrow\quad
+\Sigma w = \eta_1\,\mu + \eta_2\,\mathbf 1.
+$$
+
+Multiply both sides by $\Sigma^{-1}$:
+
+$$
 w = \eta_1\,\Sigma^{-1}\mu + \eta_2\,\Sigma^{-1}\mathbf 1.
 $$
 
@@ -123,20 +130,26 @@ $C = \mu'\Sigma^{-1}\mu$, and let $D = AC - B^2$. Put $w = \eta_1\Sigma^{-1}\mu 
 into the two constraints:
 
 $$
-w'\mu = \eta_1 C + \eta_2 B = \mu_p, \qquad w'\mathbf 1 = \eta_1 B + \eta_2 A = 1.
+\begin{aligned}
+w'\mu &= \eta_1 C + \eta_2 B = \mu_p, \\
+w'\mathbf 1 &= \eta_1 B + \eta_2 A = 1.
+\end{aligned}
 $$
 
 These are two linear equations in two unknowns. Their solution is
 
 $$
-\eta_1 = \frac{A\mu_p - B}{D}, \qquad \eta_2 = \frac{C - B\mu_p}{D}.
+\eta_1 = \frac{A\mu_p - B}{D}, \quad \eta_2 = \frac{C - B\mu_p}{D}.
 $$
 
 The variance follows without more work. Since $\Sigma w = \eta_1\mu + \eta_2\mathbf 1$,
 
 $$
-\sigma_p^2 = w'\Sigma w = \eta_1\, w'\mu + \eta_2\, w'\mathbf 1 = \eta_1\mu_p + \eta_2
-= \frac{A\mu_p^2 - 2B\mu_p + C}{D}.
+\begin{aligned}
+\sigma_p^2 = w'\Sigma w &= \eta_1\, w'\mu + \eta_2\, w'\mathbf 1 \\
+&= \eta_1\mu_p + \eta_2 \\
+&= \frac{A\mu_p^2 - 2B\mu_p + C}{D}.
+\end{aligned}
 $$
 
 This is a parabola in $(\sigma_p^2, \mu_p)$, so the frontier is a hyperbola in $(\sigma_p, \mu_p)$. It needs
@@ -154,8 +167,12 @@ adds no variance.
 Find the least variance for a target excess mean. There is one constraint now, so one multiplier, $\eta$:
 
 $$
-\min_w\ \tfrac12\, w'\Sigma w \ \text{ s.t. }\ w'\mu^e = \mu^e_p
-\quad\Longrightarrow\quad
+\min_w\ \tfrac12\, w'\Sigma w \quad \text{subject to}\quad w'\mu^e = \mu^e_p.
+$$
+
+Setting the derivative to zero, and then multiplying by $\Sigma^{-1}$, gives
+
+$$
 \Sigma w = \eta\,\mu^e
 \quad\Longrightarrow\quad
 w = \eta\,\Sigma^{-1}\mu^e.
@@ -171,10 +188,12 @@ $$
 What Sharpe ratio does it reach? For any $w = \eta\,\Sigma^{-1}\mu^e$ with $\eta > 0$,
 
 $$
-SR = \frac{w'\mu^e}{\sqrt{w'\Sigma w}}
-= \frac{\eta\,\mu^{e\prime}\Sigma^{-1}\mu^e}{\sqrt{\eta^2\,\mu^{e\prime}\Sigma^{-1}\Sigma\,\Sigma^{-1}\mu^e}}
-= \frac{\eta\,\mu^{e\prime}\Sigma^{-1}\mu^e}{\eta\sqrt{\mu^{e\prime}\Sigma^{-1}\mu^e}}
+\begin{aligned}
+SR &= \frac{w'\mu^e}{\sqrt{w'\Sigma w}}
+= \frac{\eta\,\mu^{e\prime}\Sigma^{-1}\mu^e}{\sqrt{\eta^2\,\mu^{e\prime}\Sigma^{-1}\Sigma\,\Sigma^{-1}\mu^e}} \\
+&= \frac{\eta\,\mu^{e\prime}\Sigma^{-1}\mu^e}{\eta\sqrt{\mu^{e\prime}\Sigma^{-1}\mu^e}}
 = \sqrt{\mu^{e\prime}\Sigma^{-1}\mu^e}.
+\end{aligned}
 $$
 
 So $SR^2_{\max} = \mu^{e\prime}\Sigma^{-1}\mu^e$. The capital market line is
@@ -191,8 +210,11 @@ weights $w_m$ satisfy $\Sigma w_m = \eta\,\mu^e$ for some $\eta > 0$.
 Read that equation one row at a time. The $i$-th entry of $\Sigma w_m$ is
 
 $$
-\textstyle\sum_j w_{m,j}\operatorname{Cov}(R_i, R_j) = \operatorname{Cov}\big(R_i, \sum_j w_{m,j} R_j\big)
-= \operatorname{Cov}(R_i, R_m),
+\begin{aligned}
+&\textstyle\sum_j w_{m,j}\operatorname{Cov}(R_i, R_j) \\
+&\quad= \operatorname{Cov}\big(R_i, \textstyle\sum_j w_{m,j} R_j\big) \\
+&\quad= \operatorname{Cov}(R_i, R_m),
+\end{aligned}
 $$
 
 because the market return is $R_m = \sum_j w_{m,j}R_j$. So
@@ -201,8 +223,10 @@ $\mathbb{E}[\Ret{R^e_m}] = \operatorname{Var}(R_m)/\eta$, so $1/\eta = \mathbb{E
 Put that back in:
 
 $$
-\mathbb{E}[\Ret{R^e_i}] = \beta_i\,\mathbb{E}[\Ret{R^e_m}], \qquad
+\begin{gathered}
+\mathbb{E}[\Ret{R^e_i}] = \beta_i\,\mathbb{E}[\Ret{R^e_m}], \\
 \beta_i = \frac{\operatorname{Cov}(R_i, R_m)}{\operatorname{Var}(R_m)}.
+\end{gathered}
 $$
 
 This is why only beta earns a premium. An asset's volatility has two parts: the part that moves with the market,
@@ -212,10 +236,11 @@ covariance, measured in units of market variance.
 
 ### Estimating betas and the security market line
 
-Beta is a regression slope. For each asset, run the **time-series regression**
+Beta is a regression slope. For each asset, run the **time-series regression** over the months
+$t = 1, \dots, T$:
 
 $$
-\Ret{R^e_{i,t}} = \Err{\alpha_i} + \beta_i\,\Ret{R^e_{m,t}} + \Err{\varepsilon_{i,t}}, \qquad t = 1, \dots, T.
+\Ret{R^e_{i,t}} = \Err{\alpha_i} + \beta_i\,\Ret{R^e_{m,t}} + \Err{\varepsilon_{i,t}}.
 $$
 
 The OLS slope $\hat\beta_i$ is the sample covariance over the sample variance, as in
