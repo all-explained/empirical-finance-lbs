@@ -56,12 +56,20 @@ async function driveWidget(browser, base, path, index, viewport) {
     const controls = widget.locator('input[type="range"], .ctl-segmented [role="radio"], select, button.ctl-button');
     for (let i = 0; i < await controls.count(); i++) {
       const control = controls.nth(i);
-      const info = await control.evaluate((element) => ({
-        kind: element.matches('input') ? 'slider' : element.matches('select') ? 'select' : element.matches('[role="radio"]') ? 'segmented' : 'button',
-        label: Array.from(element.labels ?? []).map((label) => (label.querySelector('.ctl-label') ?? label).textContent.trim()).join(' ')
-          || element.closest('[role="radiogroup"]')?.getAttribute('aria-label')
-          || element.textContent.trim(),
-      }));
+      const info = await control.evaluate((element) => {
+        function visibleLabel(node) {
+          const copy = node.cloneNode(true);
+          copy.querySelectorAll('.katex-mathml, math, annotation, annotation-xml').forEach((hidden) => hidden.remove());
+          return copy.textContent.trim();
+        }
+        return {
+          kind: element.matches('input') ? 'slider' : element.matches('select') ? 'select' : element.matches('[role="radio"]') ? 'segmented' : 'button',
+          label: element.getAttribute('aria-label')
+            || Array.from(element.labels ?? []).map((label) => visibleLabel(label.querySelector('.ctl-label') ?? label)).join(' ')
+            || element.closest('[role="radiogroup"]')?.getAttribute('aria-label')
+            || visibleLabel(element),
+        };
+      });
       controlName = `${info.kind} "${info.label || i + 1}"${info.kind === 'segmented' ? ` option "${(await control.innerText()).trim()}"` : ''}`;
       controlsRun.push(controlName);
 
