@@ -3,8 +3,8 @@
 ## Acceptance
 
 - [x] `npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.
-  `npm test`: 15 files, 216 tests passed, including `src/lib/stats/pca.test.ts` (11 tests) and
-  `tests/chapter06-numbers.test.ts` (8 tests). `npm run build`: `Result (55 files): 0 errors, 0 warnings,
+  `npm test`: 16 files, 216 tests passed, including `src/lib/stats/pca.test.ts` (11 tests) and
+  `tests/chapter06-numbers.test.ts` (8 tests). `npm run build`: `Result (59 files): 0 errors, 0 warnings,
   0 hints`, then `[build] Complete!`.
 - [x] `npm run screenshots -- 06-principal` passes in both themes at desktop and phone size, and I inspected
   the images. Output: four `✓` lines (`dark-desktop`, `dark-phone`, `light-desktop`, `light-phone`), no console
@@ -108,7 +108,7 @@ Deviations and mismatches to report (no edits to `docs/`):
   skipped. I ordered the "Show" options (scree, loadings, cloud) so that every control is driven; a script that
   re-finds controls by label would remove this constraint.
 
-Verified revision: the commit that adds this file (rebased on `origin/main` at `24010b0`).
+Verified revision: `80a402a` (rebased on `origin/main` at `24010b0`); the full Verify sequence ran on it. The commit after it changes only this file.
 
 Proposed follow-ups: add the symbols above to `docs/STYLE_GUIDE.md` §3; make `clickthrough.mjs` robust to
 controls that appear and disappear with a view switch.
