@@ -90,6 +90,7 @@ flowchart TD
     TASK_029["TASK-029 Owner reads Part I and approves how it reads"]
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
+    TASK_030["TASK-030 Plan: decompose M-4"]
   end
   subgraph M_5["M-5 · Part III: Return predictability: out of sample and beyond"]
   end
@@ -153,6 +154,8 @@ flowchart TD
   TASK_026 --> TASK_029
   TASK_027 --> TASK_029
   TASK_028 --> TASK_029
+  TASK_022 --> TASK_030
+  TASK_023 --> TASK_030
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed

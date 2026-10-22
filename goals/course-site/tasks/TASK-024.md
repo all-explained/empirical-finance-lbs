@@ -15,7 +15,7 @@ SC-7 and M-3. Part I gives the reader the tools that Weeks 1–9 assume. This ch
 
 Write chapter 4 of `docs/CURRICULUM.md`, "Autocorrelation and Newey–West", as `src/content/chapters/04-autocorrelation-and-newey-west.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md`, `docs/DATA.md`, the finished chapters `src/content/chapters/01-returns.mdx` and `src/content/chapters/09-time-varying-expected-returns.mdx` (the two models to copy), and the library code named below: `src/lib/stats/ols.ts` (Newey–West and Hansen–Hodrick already exist) and `src/lib/finance/predictive.ts`. If you need a sample autocorrelation function or Bartlett weights that the library lacks, add them to a new file `src/lib/stats/autocorr.ts` with tests.
 
-Readings. The readings of this chapter are books and are not in `source/papers/`: the owner has not supplied them.  Cite readings in the short form ("Cochrane (2005)"). Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened; list it under further reading. If a PDF exists, read it with `pdftotext -layout` and name the page for any number you quote.
+Readings. The readings of this chapter are books and are not in `source/papers/`: the owner has not supplied them. Cite readings in the short form ("Cochrane (2005)"). Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened; list it under further reading. If a PDF exists, read it with `pdftotext -layout` and name the page for any number you quote.
 
 Chapter:
 - Frontmatter: `part: 1`, `chapter: 4`, `difficulty: 2`, `prerequisites: [3]`, a one-sentence `summary`. A prerequisite chapter that does not exist yet renders as plain text; link nothing that does not exist. Where a prerequisite is not yet written, add a short callout that recaps what the reader needs in plain words.
@@ -47,7 +47,7 @@ npm run build
 npm run screenshots -- 04-autocorrelation
 npm run clickthrough -- 04-autocorrelation
 grep -n 'section-tag' src/content/chapters/04-autocorrelation-and-newey-west.mdx
-grep -nE '#[0-9a-fA-F]{3,8}\b' src/content/chapters/04-autocorrelation-and-newey-west.mdx src/components/plots/*.tsx | grep -iE '04' || echo "no hex colours"
+git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/04-autocorrelation-and-newey-west.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
 git ls-files | grep -ciE '\.pdf$|^source/'
 ```
 
