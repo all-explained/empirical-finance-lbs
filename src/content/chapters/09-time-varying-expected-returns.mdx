@@ -1,0 +1,261 @@
+---
+title: "Time-varying expected returns"
+part: 2
+chapter: 9
+difficulty: 2
+prerequisites: [4, 5]
+summary: "A high dividend–price ratio forecasts high stock returns over many years, so expected returns change over time."
+---
+
+import PredictiveRegression from '../../components/plots/PredictiveRegression';
+import HorizonCurve from '../../components/plots/HorizonCurve';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapters 4 and 5">
+Those chapters are not written yet, so here is the short version of the three tools this chapter uses.
+
+- **An AR(1) series** is a series that remembers its last value: $x_{t+1} = \mu_x + \phi x_t + v_{t+1}$.
+  The number $\phi$ is its **persistence**. Near 1, a high value today means a high value for many years.
+- **Overlapping observations.** A five-year return that starts in 1950 and one that starts in 1951 share four
+  years. They are not two independent facts, so their errors move together.
+- **Newey–West standard errors** are standard errors that allow for this kind of shared error. They are usually
+  larger than the classical ones, and that is the honest direction.
+</Callout>
+
+## <span class="section-tag">Hook</span> Are stocks expensive, and does it matter?
+
+At the end of 1931, the dividends of the US stock market were 10.1% of its price. At the end of 1999, they were
+1.1%. That ratio, dividends over price, is the **dividend–price ratio**. It is low when prices are high compared
+with the cash that companies pay out. At the end of 2025 it was 1.15%, almost back to the 1999 low.
+
+Now look at what came next. Take the ten years after the end of 1949, when the ratio was 6.8%. Over that decade,
+money in stocks grew 4.8 times as much as money in Treasury bills. Take the ten years after 1999. Over that
+decade, money in stocks ended 29% *behind* money in Treasury bills.
+
+So here is the question you probably have. When prices are high compared with dividends, should you expect lower
+returns? If yes, then the reward for holding stocks is not a fixed number. It goes up and down over time. This
+chapter tests that idea on 100 years of data, and it is honest about how much those 100 years can show.
+
+## <span class="section-tag">Intuition</span> A scatter of today against the future
+
+The test is a picture. Each dot is one year. Across, you see the log dividend–price ratio at the end of that year.
+Up, you see the log excess return over the next $k$ years: the stock return minus the Treasury bill return, added
+up year by year. If a high ratio comes before high returns, the dots slope upward.
+
+<PredictiveRegression client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start at a horizon of 1 year. The cloud is nearly flat, and the
+readout shows a slope of 0.042 and an $R^2$ of 1.2%. Now move the horizon to 5 years and then to 10 years. Watch
+the line get steeper and the cloud get narrower around it.</p>
+
+At one year, the pattern is weak. The fitted line rises, but the dots scatter far above and below it. The slope
+is 0.042 and the Newey–West $t$-statistic is 0.94. One-year returns are mostly noise: their standard deviation is 19.3% a
+year, while their average is 6.5%.
+
+At ten years, the picture changes. The slope is 0.39, with a Newey–West $t$-statistic of 1.63, and the $R^2$
+is 11.8%. Years with a high ratio were mostly
+followed by good decades. Years with a low ratio, like the late 1990s, were mostly followed by poor ones.
+
+Why should the slope grow? Think of the ratio as a slow-moving weather front. A front does not tell you much
+about one hour of rain. But it tells you a lot about the total rain of the next week, because it stays in place
+for days. In the same way, a high ratio adds a little to the expected return of *each* coming year. It also
+moves slowly, so the little extras add up over a long horizon.
+
+<Callout type="key">The dividend–price ratio barely forecasts next year's return. It forecasts the next ten years
+much better, because it is slow and its small effect on each year adds up.</Callout>
+
+## <span class="section-tag">Formalisation</span> The predictive regression and its horizon
+
+Write $\Signal{dp_t} = d_t - p_t$ for the log dividend–price ratio at the end of year $t$. Write
+$\Ret{r^e_{t+1}}$ for the log excess return during year $t+1$. The return over the next $k$ years is the sum of
+the yearly log excess returns, because log returns add up over time:
+
+$$
+\Ret{r^e_{t \to t+k}} = \Ret{r^e_{t+1}} + \Ret{r^e_{t+2}} + \dots + \Ret{r^e_{t+k}}.
+$$
+
+The **predictive regression** puts the future on the left and today on the right:
+
+$$
+\Ret{r^e_{t \to t+k}} = a_k + b_k\,\Signal{dp_t} + \Err{\varepsilon_{t+k}}.
+$$
+
+We use $a$ and $b$, not $\alpha$ and $\beta$, so that the slope never looks like a pricing error or a factor
+exposure. The error $\Err{\varepsilon_{t+k}}$ is the part of the return that $\Signal{dp_t}$ cannot see. Ordinary
+least squares (OLS) picks $a_k$ and $b_k$ to make those errors as small as possible.
+
+### Why the slope grows with the horizon
+
+Here is a simple model that explains the picture. It has two equations. The one-year return depends on last
+year's ratio, and the ratio is an AR(1):
+
+$$
+\Ret{r^e_{t+1}} = a + b_1\,\Signal{dp_t} + \Err{\varepsilon_{t+1}}, \qquad
+\Signal{dp_{t+1}} = \mu_x + \phi\,\Signal{dp_t} + v_{t+1}.
+$$
+
+The shocks $\Err{\varepsilon}$ and $v$ cannot be forecast with anything known at the time. Take the expectation
+of the AR(1) given what you know at $t$. One year ahead, $\mathbb{E}_t[\Signal{dp_{t+1}}] = \mu_x +
+\phi\,\Signal{dp_t}$. Two years ahead, apply the same rule to that forecast:
+
+$$
+\mathbb{E}_t[\Signal{dp_{t+2}}] = \mu_x + \phi\,\mathbb{E}_t[\Signal{dp_{t+1}}] = \mu_x(1 + \phi) +
+\phi^2\,\Signal{dp_t}.
+$$
+
+Each step multiplies the effect of today's ratio by $\phi$ once more. So $j$ years ahead the coefficient on
+$\Signal{dp_t}$ is $\phi^j$. Now forecast the return in year $t+j$. It depends on the ratio one year earlier:
+
+$$
+\mathbb{E}_t[\Ret{r^e_{t+j}}] = a + b_1\,\mathbb{E}_t[\Signal{dp_{t+j-1}}] = \text{constant} +
+b_1\,\phi^{\,j-1}\,\Signal{dp_t}.
+$$
+
+Add these forecasts for $j = 1, \dots, k$. The coefficient on $\Signal{dp_t}$ is a sum of powers of $\phi$:
+
+$$
+b_1(1 + \phi + \phi^2 + \dots + \phi^{k-1}) = b_1\,\frac{1 - \phi^k}{1 - \phi}.
+$$
+
+The last step is the sum of a geometric series. The forecast error over $k$ years is uncorrelated with
+$\Signal{dp_t}$, so the regression slope is this coefficient:
+
+$$
+b_k = b_1\,\frac{1 - \phi^k}{1 - \phi}.
+$$
+
+Two cases show what it means. If $\phi = 0$, the ratio forgets itself after one year, and $b_k = b_1$ at every
+horizon. If $\phi$ is close to 1, then $b_k$ is close to $k\,b_1$: the slope grows almost in proportion to the
+horizon. On our data the estimated persistence is $\phi = 0.92$. Then $\phi^{10} = 0.45$, and the ten-year slope
+should be about 7.2 times the one-year slope. With $b_1 = 0.042$, that gives 0.30. The direct estimate is 0.39.
+The two numbers are close but not equal, because the model is a simplification and 100 years are few.
+
+### Why $R^2$ grows too
+
+$R^2$ is the share of the return variance that the fitted line explains:
+
+$$
+R^2_k = \frac{b_k^2\,\operatorname{Var}(\Signal{dp_t})}{\operatorname{Var}(\Ret{r^e_{t \to t+k}})}.
+$$
+
+When $\phi$ is close to 1, the top grows like $k^2$, because $b_k$ grows like $k$. If yearly returns are close to
+independent, the bottom grows only like $k$. So $R^2$ rises roughly in step with the horizon at first. It levels
+off once $\phi^k$ gets small and $b_k$ stops growing.
+
+### What the $t$-statistic can and cannot tell you
+
+There is a catch. With 100 years of data and a ten-year horizon, the regression has 90 observations. But
+neighbouring observations share nine of their ten years of returns. Return data from 1927 to 2025 contain only 9
+separate, non-overlapping decades. That is the real amount of information about ten-year returns.
+
+The classical OLS standard error treats the 90 observations as 90 independent facts. It is far too small. The
+Newey–West and Hansen–Hodrick estimators allow for errors that are shared across $k$ neighbouring observations.
+At ten years, the classical $t$-statistic is 3.43, the Newey–West one is 1.63 and the Hansen–Hodrick one is 1.44.
+Only the first one looks impressive, and it is the wrong one.
+
+Even the corrected $t$-statistics are only approximations when there are so few independent decades. Later
+chapters return to this, and to other small-sample problems of these regressions.
+
+<Callout type="warning">A large $t$-statistic at a long horizon is not, by itself, strong evidence. Overlapping
+returns make the effective sample small. Always check which standard errors the number uses.</Callout>
+
+## <span class="section-tag">Playground</span> Slopes, $R^2$ and a world where we know the truth
+
+The next widget runs the same regression at every horizon from 1 to 10 years. In the "slope" view, the dots are
+the estimates, with bars of two Newey–West standard errors on each side. The dashed line is the slope that the
+AR(1) formula predicts.
+
+The widget opens in a simulated world. It has the same length, persistence, one-year slope and shock sizes as
+the real data. But in that world the AR(1) story is true by construction, so the dashed line is the *true*
+slope. The simulation is seeded, so you see the same sample on every visit.
+
+<HorizonCurve client:visible initialSource="sim" />
+
+<p class="try-this"><strong>Try this:</strong> in the simulated world, the true ten-year slope is 0.30. But this
+one sample estimates 0.63, with a Newey–West $t$-statistic of 3.02. Then choose "goyal-welch-annual", compare the
+dots with the dashed line, and switch to the $R^2$ view. On the real data, $R^2$ climbs from 1.2% to 11.8%.</p>
+
+<p class="try-this"><strong>Try this too:</strong> press "Re-roll simulation" four times, to seed 5. Now the
+ten-year estimate is −0.49 with a $t$-statistic of −2.13, although the true slope is still 0.30. Keep re-rolling
+and notice how far the long-horizon dots wander from the dashed line.</p>
+
+The simulation shows why the warning above matters. In seeds 1 and 5, the model and its parameters are the same.
+Only the luck of the draw changes. With 100 years, a ten-year slope can come out twice the truth or the wrong
+sign, and both can look "significant". The real data are one draw like these.
+
+The evidence also depends on the sample. In the scatter widget above, the full sample gives a one-year
+$t$-statistic of 0.94. Cochrane (2011) studies returns from 1947 to 2009 (Table I, p. 1). On our data, the
+one-year regression with returns over those years gives a slope of 0.12, a Newey–West $t$-statistic of 2.46 and
+an $R^2$ of 10.1%. The same model looks much stronger in the shorter, post-war sample.
+
+### How to read the evidence
+
+So what does the evidence say? It says that the **expected return** on stocks, the average return you should
+plan for, is not a constant. A low dividend–price ratio means investors pay a high price for each dollar of
+dividends. If those dividends do not grow faster later, the high price must come with lower returns. Cochrane
+(2011, p. 2) reads the evidence this way. High prices compared with dividends have been followed by years of
+poor returns, and low prices by years of good ones.
+
+How big is the change? The standard deviation of $\Signal{dp_t}$ is 0.50. With a one-year slope of 0.042, a
+one-standard-deviation move in the ratio moves the expected one-year return by about 2.1 percentage points. The
+average excess return is 6.5% a year, so that change is large. A forecast with a small $R^2$ can still matter,
+because one-year returns contain so much noise that no forecast could explain most of it.
+
+The second limit is just as important. Everything here is **in-sample**. The slope uses all 100 years, including
+years that an investor in 1950 could not have seen. A good in-sample fit is not a trading result. Welch and Goyal
+(2008, p. 1455) find that the dividend–price ratio and many other predictors forecast poorly out of sample, and
+would not have helped an investor to time the market. Later chapters test forecasts the way an investor would
+have used them.
+
+<Callout type="key">Read the dividend–price ratio as a measure of expected returns that change over time. Do not
+read it as a trading signal. The in-sample fit and the overlapping horizons both make the evidence look stronger
+than it is.</Callout>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="The dividend–price ratio is an AR(1) with persistence $\phi = 0.5$, and the one-year slope is $b_1 = 0.1$. What is the two-year slope $b_2$?"
+  options={["0.10", "0.15", "0.20", "0.05"]}
+  answer={1}
+  explanation="$b_2 = b_1(1 + \phi) = 0.1 \times 1.5 = 0.15$. The second year adds the effect of today's ratio on next year's ratio, which is $\phi$ times smaller."
+/>
+
+<Quiz
+  client:visible
+  question="A ten-year predictive regression on 100 years of annual data reports a classical $t$-statistic of 3.4. What should you conclude first?"
+  options={["The ratio forecasts returns with more than 99% confidence", "The overlapping ten-year returns make the classical standard error too small, so check Newey–West or Hansen–Hodrick errors", "The slope must be biased downward", "$R^2$ must be above 50%"]}
+  answer={1}
+  explanation="Neighbouring ten-year returns share nine of their years. The classical formula treats them as independent, so it understates the uncertainty. On our data the Newey–West $t$-statistic is 1.63, not 3.43."
+/>
+
+<Quiz
+  client:visible
+  question="Why does the $R^2$ of the predictive regression grow with the horizon?"
+  options={["Longer returns are less noisy in total", "The slowly moving ratio adds a small expected return to each future year, so the explained part grows faster than the noise", "OLS works better with fewer observations", "Dividends become more predictable over long horizons"]}
+  answer={1}
+  explanation="With $\phi$ near 1, the slope grows almost like $k$, so the explained variance grows like $k^2$. The noise of a sum of nearly independent yearly returns grows only like $k$."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- A predictive regression puts the return over the next $k$ years on the left and today's dividend–price ratio on
+  the right.
+- On goyal-welch-annual data from 1926 to 2025, the slope grows from 0.042 at one year to 0.39 at ten years, and
+  $R^2$ grows from 1.2% to 11.8%.
+- With a persistent AR(1) predictor, $b_k = b_1(1 - \phi^k)/(1 - \phi)$: a small, slow effect adds up over the
+  horizon.
+- Overlapping returns make the effective sample small. Use Newey–West or Hansen–Hodrick errors, and still read
+  long-horizon $t$-statistics with care. In-sample fit is not a trading result.
+- The best reading of the evidence: expected returns change over time.
+
+**Next up:** Chapter 10 asks *why* a high price must forecast low returns, with an identity of Campbell and
+Shiller (1988) that links the dividend–price ratio to future returns and future dividend growth.
+
+### Further reading
+
+- Cochrane (2011)
+- Campbell (2018)
+- Campbell and Shiller (1988)
+- Welch and Goyal (2008)
