@@ -120,6 +120,7 @@ flowchart TD
     TASK_039["TASK-039 Plan: decompose M-13"]
   end
   subgraph M_14["M-14 · Part XII: Term structure models"]
+    TASK_040["TASK-040 Plan: decompose M-14"]
   end
   subgraph M_15["M-15 · Part XIII: Horizons, entropy and the equity term structure"]
   end
@@ -174,6 +175,7 @@ flowchart TD
   TASK_036 --> TASK_037
   TASK_037 --> TASK_038
   TASK_038 --> TASK_039
+  TASK_039 --> TASK_040
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
