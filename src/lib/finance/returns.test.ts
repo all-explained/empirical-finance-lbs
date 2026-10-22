@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { betweenDates, loadSeries } from '../data/series';
 import { normalRng } from '../math/rng';
 import {
-  arithmeticMean, excessReturn, ff3MarketReturns, geometricMean, grossGrowth,
-  growthPath, logReturn, meanLogApprox, sampleVariance, simpleFromLog, simpleReturn,
+  addedPath, arithmeticMean, excessReturn, ff3MarketReturns, geometricMean, grossGrowth,
+  growthPath, logReturn, meanLogApprox, repeatedSum, sampleVariance, simpleFromLog, simpleReturn,
 } from './returns';
 
 describe('return arithmetic', () => {
@@ -46,6 +46,24 @@ describe('return arithmetic', () => {
     expect(simplePath).toEqual([1, 1.5, 0.75]);
     simplePath.forEach((value, i) => expect(Math.abs(value - logPath[i])).toBeLessThan(1e-12));
     expect(returns).toEqual([0.5, -0.5]);
+  });
+
+  it('adds equal returns over k periods and builds the wrong added path', () => {
+    // 10 * ln(1.1) = 0.9531017980432486 = ln(1.1^10); 12 * 0.0097 = 0.1164.
+    expect(repeatedSum(logReturn(0.1), 10)).toBeCloseTo(0.9531017980432486, 14);
+    expect(repeatedSum(logReturn(0.1), 10)).toBeCloseTo(logReturn(grossGrowth(Array(10).fill(0.1)) - 1), 14);
+    expect(repeatedSum(0.0097, 12)).toBeCloseTo(0.1164, 14);
+    expect(repeatedSum(-Infinity, 0)).toBe(0);
+    expect(repeatedSum(-Infinity, 3)).toBe(-Infinity);
+    expect(() => repeatedSum(0.1, 1.5)).toThrow(RangeError);
+    expect(() => repeatedSum(NaN, 2)).toThrow(RangeError);
+    // 1 + j * 0.1 for j = 0..3, against compounding 1.1^3 = 1.331.
+    const added = addedPath(0.1, 3);
+    [1, 1.1, 1.2, 1.3].forEach((v, j) => expect(added[j]).toBeCloseTo(v, 14));
+    expect(growthPath([0.1, 0.1, 0.1], 'simple')[3]).toBeCloseTo(1.331, 14);
+    // Adding a -50% return three times gives -0.5, below zero: impossible wealth.
+    expect(addedPath(-0.5, 3)[3]).toBe(-0.5);
+    expect(() => addedPath(-1.5, 2)).toThrow(RangeError);
   });
 
   it('preserves the starting dollar with no returns and zero wealth after a total loss', () => {

@@ -1,0 +1,296 @@
+---
+title: "Returns"
+part: 1
+chapter: 1
+difficulty: 1
+prerequisites: []
+summary: "Simple, log and excess returns, and why log returns add up over time."
+---
+
+import CompoundingPath from '../../components/plots/CompoundingPath';
+import ReturnCalculator from '../../components/plots/ReturnCalculator';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> What happened to one dollar since 1926?
+
+Suppose someone put \$1 into the US stock market in July 1926 and never touched it. They kept every
+dividend, the cash a company pays to its owners, and bought more shares with it. What would that dollar be
+worth in August 2026?
+
+The answer, from the monthly data in this course: about \$19,700. The same dollar in Treasury bills, short loans
+to the US government that are about as safe as an investment gets, grew to about \$25.50. Neither number
+adjusts for inflation, so both overstate what the money can buy. But the gap between them is huge.
+
+Here is a second fact that looks like a mistake. Over those 1,202 months, the stock market's average monthly
+return was 0.97%. If you grow \$1 by 0.97% every month for 1,202 months, you get about \$104,000. That is
+more than five times the \$19,700 the dollar really became. The average is correct, and the final value is
+correct. So where did the missing \$84,000 go?
+
+This chapter answers that question. On the way, you will learn the three kinds of return that every later
+chapter uses: the simple return, the log return and the excess return.
+
+## <span class="section-tag">Intuition</span> Growth multiplies
+
+A **return** is how much an investment gains or loses over a period, as a fraction of what you put in. If
+you pay \$100 for a share, and a month later it is worth \$103, your return for the month is 3%. Returns
+let you compare a \$5 share with a \$5,000 share, because they measure gains per dollar invested.
+
+The key fact is that returns **multiply** over time. They do not add. A 10% gain on \$100 gives \$110. A
+second 10% gain is 10% of \$110, not of \$100, so you end at \$121, not \$120. The extra dollar is a gain on
+the earlier gain. This snowball effect is called **compounding**.
+
+Compounding also works against you. Suppose you gain 50% in one month and lose 50% the next. The two
+returns average to zero. But \$100 becomes \$150, and then half of \$150 is \$75. You lost a quarter of your
+money while your average return was zero. A loss hurts more than an equal-sized gain helps, because the loss
+hits a bigger pile.
+
+That is the whole secret of the missing \$84,000. Stock returns swing up and down a lot from month to month.
+Each swing is like the +50% and −50% pair, only smaller. The ups and downs cancel in the *average*, but
+they do not cancel in the *final value*. So the average simple return overstates how fast your money
+really grows.
+
+The widget below shows the real data. The solid blue line, labelled "market", is \$1 in the stock market.
+The solid orange line, labelled "T-bills", is \$1 in T-bills. The dashed line grows \$1 at the *average*
+monthly return, every month.
+
+<CompoundingPath client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start on "simple returns" and the log scale. The dashed line
+ends far above the solid blue line: that is the \$104,000 against \$19,700. Now switch to "log returns", a
+second way to measure each month's return. The Formalisation section below defines it. The dashed line now
+ends exactly on the real final value. Then move the start year to 1980 or 2000, and check that the same
+thing happens in every sample.</p>
+
+Two more things to notice. First, switch to the linear scale. On a linear scale, the stock line looks flat for
+50 years and then shoots up. That is misleading. In 1930 the dollar was worth between \$1.23 and \$2.01, so a
+1% move was one or two cents. In 2020 it was worth between \$6,091 and \$9,470, so a 1% move was \$61 to
+\$95. On a **log scale**, each labelled line is a fixed multiple of the one below it: 10 or 100 times,
+as the range needs. So equal vertical distances mean
+equal *percentage* changes, and a steady growth rate looks like a straight line. For growth over long
+periods, the log scale is almost always the honest picture.
+
+Second, the T-bill line is smooth and the stock line is rough. From August 1929 to June 1932, the stock line
+fell by about 84%. The reward for living with that roughness is the big gap at the right edge.
+
+<Callout type="key">Returns multiply over time. Ups and downs that cancel in the average still cost you
+money in the final value. So the average simple return is higher than the growth rate you actually get.</Callout>
+
+## <span class="section-tag">Formalisation</span> Three kinds of return
+
+Now we write the pictures down. Time runs in periods $t = 0, 1, 2, \dots$, and in this course a period is
+usually a month. $P_t$ is the price of an asset at the end of period $t$, and $D_{t+1}$ is the dividend it
+pays during the next period.
+
+### The simple return
+
+The **simple return** (or net return) from $t$ to $t+1$ is what you get back, divided by what you paid,
+minus one:
+
+$$
+\Ret{R_{t+1}} = \frac{P_{t+1} + D_{t+1}}{P_t} - 1 = \underbrace{\frac{P_{t+1} - P_t}{P_t}}_{\text{price change}} + \underbrace{\frac{D_{t+1}}{P_t}}_{\text{dividend yield}}.
+$$
+
+Example: you buy at $P_t = 100$, the price rises to $P_{t+1} = 108$, and you receive a dividend of
+$D_{t+1} = 2$. Then $\Ret{R_{t+1}} = 110/100 - 1 = 0.10$, a 10% return: 8% from the price and 2% from the
+dividend. We always write returns as decimals, so "10%" means $\Ret{R} = 0.10$. Return data without dividends is
+called a *price-only* return. It misses the second term, and over a century it misses a lot.
+
+The **gross return** is $1 + \Ret{R_{t+1}}$. It is the number your money is multiplied by. In the example, it is
+1.10.
+
+### Compounding over many periods
+
+Over $k$ periods, you multiply the gross returns. Write $\Ret{R_{t \to t+k}}$ for the return over the $k$
+periods after $t$. Then
+
+$$
+1 + \Ret{R_{t \to t+k}} = (1 + \Ret{R_{t+1}})(1 + \Ret{R_{t+2}}) \cdots (1 + \Ret{R_{t+k}}) = \prod_{j=1}^{k} (1 + \Ret{R_{t+j}}).
+$$
+
+The symbol $\prod$ means "multiply all of these together", as $\sum$ means "add all of these". This
+product is exactly the solid lines in the widget: each month, the value of your \$1 is multiplied by that
+month's gross return.
+
+### The log return
+
+Products are awkward. A long product of numbers close to one is hard to think about, and the statistics
+you will learn in Chapter 2 work best with sums. The log return turns the product into a sum, with a tool
+called the logarithm.
+
+A **logarithm** answers one question: to what power must I raise a fixed base to get this number? With base
+10, $\log_{10} 1000 = 3$, because $10^3 = 1000$. The log scale in the widget uses base 10. In this course,
+$\log$ always means the **natural logarithm**, whose base is the number $e \approx 2.718$. The number $e$ is
+what \$1 becomes in one period at a 100% rate, if the interest is added in tiny pieces all through the
+period, so each piece earns interest too. It is the base for growth that compounds all the time, which is
+why it fits returns. The **log return** is
+
+$$
+\Ret{r_{t+1}} = \log(1 + \Ret{R_{t+1}}).
+$$
+
+In the example, $\Ret{r_{t+1}} = \log 1.10 = 0.0953$, because $e^{0.0953} = 1.10$: a log return of 9.53%.
+For small returns the two are close: a simple return of 1% is a log return of 0.995%. For big returns they
+differ a lot: a simple return of $-100\%$, a total loss, is a log return of minus infinity.
+
+The log of a product is the sum of the logs, $\log(ab) = \log a + \log b$. Take logs of the product above:
+
+$$
+\Ret{r_{t \to t+k}} = \log(1 + \Ret{R_{t \to t+k}}) = \sum_{j=1}^{k} \log(1 + \Ret{R_{t+j}}) = \sum_{j=1}^{k} \Ret{r_{t+j}}.
+$$
+
+So **log returns add over time**. To get the log return over a year, add the 12 monthly log returns. To get
+back to dollars, undo the log with the exponential, $e$ to that power:
+$1 + \Ret{R_{t \to t+k}} = e^{\Ret{r_{t \to t+k}}}$. The "+50%, then −50%" example becomes easy. The log
+returns are $\log 1.5 = 0.405$ and $\log 0.5 = -0.693$. They add to $-0.288$, and $e^{-0.288} = 0.75$. You
+keep 75 cents of each dollar.
+
+### Across assets, simple returns add
+
+Log returns win over time, but simple returns win across assets. A **portfolio** is a mix of assets. Put a
+fraction $w_i$ of your money in asset $i$, with weights that add to one. Each dollar in asset $i$ becomes
+$1 + \Ret{R_{i,t+1}}$ dollars. So the whole portfolio becomes $\sum_i w_i (1 + \Ret{R_{i,t+1}})$, and since
+$\sum_i w_i = 1$, the portfolio's simple return is
+
+$$
+\Ret{R_{p,t+1}} = \sum_i w_i \Ret{R_{i,t+1}}.
+$$
+
+The portfolio's log return has no such formula: the log of a sum is not the sum of the logs. Take half in an
+asset that gains 50% and half in one that loses 50%. The portfolio's simple return is
+$0.5(0.5) + 0.5(-0.5) = 0$, and its log return is $\log 1 = 0$. But the weighted average of the two log returns
+is $0.5(0.405) + 0.5(-0.693) = -0.144$, which is wrong.
+
+<Callout type="key">Log returns add over time. Simple returns add across assets. Use log returns for long
+horizons and simple returns for portfolios.</Callout>
+
+### The excess return
+
+An investment is only good relative to what you could get without risk. The **risk-free rate**
+$\Rf{R^f_t}$ is the return on a safe asset from $t$ to $t+1$. In our data it is the one-month T-bill. It carries
+the date $t$, not $t+1$, because you know it when you buy: the bill's price today fixes what it pays next month.
+The **excess return** is the return above it:
+
+$$
+\Ret{R^e_{t+1}} = \Ret{R_{t+1}} - \Rf{R^f_t}, \qquad \Ret{r^e_{t+1}} = \Ret{r_{t+1}} - \Rf{r^f_t}, \quad \Rf{r^f_t} = \log(1 + \Rf{R^f_t}).
+$$
+
+The excess return is the reward for taking risk. For the US market, the average monthly excess return from July
+1926 to August 2026 is 0.70%, about 8.3% a year, with a standard error of 0.15% a month (data `ff3-monthly`).
+The standard error measures how far the average from one sample could be from the true mean.
+Chapter 2 explains it from zero. For now, note that this average is about four and a half
+standard errors above zero.
+
+### Why the average log return is lower
+
+Now the missing \$84,000. Compounding the average *log* return gets the final value exactly right, because log
+returns add: $T$ months of $\Ret{\bar r}$ sum to the true total $\sum_t \Ret{r_t}$. Compounding the average
+*simple* return does not. How far apart are the two averages?
+
+Write $\mu = \mathbb{E}[\Ret{R}]$ for the mean of the simple return and $\sigma^2 = \operatorname{Var}(\Ret{R})$ for
+its variance, the average squared distance from the mean. The square root of the variance, $\sigma$, is the
+**standard deviation**. It is a typical size of the distance from the mean, in the same units as the return:
+if monthly returns are often 5% above or below their mean, $\sigma$ is about 5%. In finance, the standard
+deviation of returns is called **volatility**. For a return near zero, the log is close to a parabola:
+
+$$
+\log(1 + \Ret{R}) \approx \Ret{R} - \tfrac12 \Ret{R}^2.
+$$
+
+Take the expectation, the long-run average, of both sides:
+
+$$
+\mathbb{E}[\Ret{r}] \approx \mathbb{E}[\Ret{R}] - \tfrac12\,\mathbb{E}[\Ret{R}^2] = \mu - \tfrac12(\sigma^2 + \mu^2) \approx \mu - \tfrac12\sigma^2.
+$$
+
+<details>
+<summary>Every step of the algebra</summary>
+
+1. The Taylor series of the log around zero is $\log(1 + \Ret{R}) = \Ret{R} - \tfrac12 \Ret{R}^2 + \tfrac13 \Ret{R}^3 - \dots$.
+   We keep the first two terms. The rest are small when $\Ret{R}$ is a few percent.
+2. The expectation of a sum is the sum of the expectations, so $\mathbb{E}[\Ret{R} - \tfrac12 \Ret{R}^2] = \mathbb{E}[\Ret{R}] - \tfrac12 \mathbb{E}[\Ret{R}^2]$.
+3. The variance is $\sigma^2 = \mathbb{E}[(\Ret{R} - \mu)^2] = \mathbb{E}[\Ret{R}^2] - 2\mu\,\mathbb{E}[\Ret{R}] + \mu^2 = \mathbb{E}[\Ret{R}^2] - \mu^2$.
+   So $\mathbb{E}[\Ret{R}^2] = \sigma^2 + \mu^2$.
+4. Substitute: $\mathbb{E}[\Ret{r}] \approx \mu - \tfrac12\sigma^2 - \tfrac12\mu^2$.
+5. For monthly stock returns, $\mu \approx 0.01$, so $\tfrac12\mu^2 \approx 0.00005$, while
+   $\tfrac12\sigma^2 \approx 0.0014$. We drop the $\mu^2$ term, which is about 30 times smaller.
+
+</details>
+
+So the average log return is below the average simple return by about half the variance. This is a
+simplification, and we say so: it drops the cubic and higher terms, and it is only good when returns are
+small. Check it on the data. From July 1926 to August 2026, the market's average simple monthly return is
+$\Ret{\bar R} = 0.97\%$ and its standard deviation is $\hat\sigma = 5.29\%$. (A bar marks an average over
+time, and a hat marks a value estimated from the data.) The formula gives
+$0.97\% - \tfrac12(5.29\%)^2 = 0.97\% - 0.14\% = 0.83\%$. The actual average log return is
+$\Ret{\bar r} = 0.82\%$. The widget's readout shows the same three numbers for any start year.
+
+This gap of 0.14% a month looks small. But over 1,202 months it adds up. The exact gap between the two final
+values is a total log return of 1.66, and $e^{1.66}$ is about 5.3. That is the "more than five times" from the
+Hook. The missing \$84,000 was never there: it was the cost of volatility, hidden by the average.
+
+<Callout type="warning">Do not grow money at the average simple return to predict long-run wealth. Volatility
+makes the true growth rate lower, by about $\tfrac12\sigma^2$ per period.</Callout>
+
+## <span class="section-tag">Playground</span> Make your own returns
+
+Type a price today, a price next period and a dividend. The calculator shows each kind of return. Then use the
+slider to repeat the same move many times. The solid line compounds it. The dashed line adds the simple
+returns instead, which is the mistake from the Intuition section.
+
+<ReturnCalculator client:visible />
+
+<p class="try-this"><strong>Try this:</strong> set the dividend to 0 and the next price to 150, then to 50. A
+gain of 50% has a log return of +40.5%, and a loss of 50% has a log return of −69.3%. The log return
+punishes losses more than it rewards gains of the same size.</p>
+
+<p class="try-this"><strong>Try this:</strong> set a 1% simple return (prices 100 and 101, no dividend) and
+slide to 30 periods. The two lines nearly touch. Now try a 20% return. For small returns, adding them is a fair
+shortcut. For big returns or long horizons, it is badly wrong.</p>
+
+## <span class="section-tag">Check yourself</span> Three quick questions
+
+<Quiz
+  client:visible
+  question="A stock gains 20% one month and loses 20% the next. What is its total simple return over the two months?"
+  options={["0%", "−4%", "+4%", "−20%"]}
+  answer={1}
+  explanation="Gross returns multiply: $1.2 \times 0.8 = 0.96$, so the total return is $0.96 - 1 = -0.04$. The loss of 20% is taken from a bigger amount than the one the gain was taken from."
+/>
+
+<Quiz
+  client:visible
+  question="You put half your money in asset A, which returns 10%, and half in asset B, which returns −2%. What is the portfolio's simple return?"
+  options={["4%", "8%", "The average of the two log returns, turned back into a simple return", "It cannot be computed without more data"]}
+  answer={0}
+  explanation="Simple returns add across assets with the portfolio weights: $0.5(0.10) + 0.5(-0.02) = 0.04$. Averaging log returns across assets does not give the portfolio's return, because the log of a sum is not the sum of the logs."
+/>
+
+<Quiz
+  client:visible
+  question="A fund's monthly simple return has mean 1% and standard deviation 6%. About what is its average monthly log return?"
+  options={["1.18%", "1%", "0.82%", "0.64%"]}
+  answer={2}
+  explanation="Use $\mathbb{E}[\Ret{r}] \approx \mu - \tfrac12\sigma^2 = 0.01 - \tfrac12(0.06)^2 = 0.01 - 0.0018 = 0.0082$. Volatility always pulls the average log return below the average simple return."
+/>
+
+## <span class="section-tag">Recap & next up</span> What you now know
+
+- The simple return is $\Ret{R_{t+1}} = (P_{t+1} + D_{t+1})/P_t - 1$. It includes the dividend, and the gross
+  return $1 + \Ret{R_{t+1}}$ is what your money is multiplied by.
+- Returns compound: over many periods you multiply gross returns. The log return
+  $\Ret{r_{t+1}} = \log(1 + \Ret{R_{t+1}})$ turns that product into a sum, so log returns add over time.
+- Simple returns add across assets, with the portfolio weights. Log returns do not.
+- The excess return $\Ret{R^e_{t+1}} = \Ret{R_{t+1}} - \Rf{R^f_t}$ is the reward for risk. For the US market
+  since 1926, it has averaged about 0.70% a month.
+- The average log return is lower than the average simple return by about $\tfrac12\sigma^2$. That is why
+  \$1 in stocks became about \$19,700, not \$104,000.
+
+**Next up:** the 0.70% a month is an estimate from one century of data. Chapter 2 asks how precise it is,
+and why the average return is so much harder to pin down than the volatility.
+
+### Further reading
+
+- Campbell (2018), Ch. 1.
+- Campbell, Lo and MacKinlay (1997), Ch. 1.
+- Data: Kenneth French Data Library, market and risk-free returns (`ff3-monthly`); Fama and French (1993).
