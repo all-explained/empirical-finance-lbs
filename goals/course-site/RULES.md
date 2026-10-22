@@ -1,0 +1,1 @@
+- Never commit anything under source/ (the LBS outline and paper PDFs) and never copy their text verbatim; explain in our own words and cite.
