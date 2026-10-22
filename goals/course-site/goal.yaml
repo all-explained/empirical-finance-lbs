@@ -1,7 +1,7 @@
 format: goal/v2
 id: course-site
 title: 'Empirical Finance course site: scaffold and reference chapters'
-objective: Build the site, curriculum, style guide and real-data pipeline for an interactive 3Blue1Brown-style course on empirical asset pricing (from zero to PhD level, following the LBS E164 topic list), and finish two polished reference chapters that later chapters copy.
+objective: Build the site, curriculum, style guide and real-data pipeline for an interactive 3Blue1Brown-style course on empirical asset pricing (from zero to PhD level, following the LBS E164 topic list), finish two polished reference chapters that later chapters copy, and then write all 66 chapters of the curriculum, one Part at a time.
 base: main
 success:
   SC-1: The site builds and deploys to https://all-explained.github.io/empirical-finance-lbs/ on the options-explained stack; verified by `npm test`, `npm run build`, `npm run screenshots` (no console, KaTeX or overflow errors) and `curl` returning 200 for the home page.
@@ -10,9 +10,27 @@ success:
   SC-4: Real public data (Ken French library, Shiller, Goyal–Welch, FRED) is downloaded by one script into small committed JSON files with source and citation, and loaded through typed helpers in src/lib with Vitest reference-value tests; verified by `npm run data` and `npm test`.
   SC-5: Two reference chapters follow the template, use real data in at least one widget, and pass build, screenshots and a Playwright click-through; the owner approves how they read.
   SC-6: The LBS outline PDF never enters git, and no outline text is copied verbatim; verified by `git log --all --name-only | grep -ci pdf` returning 0.
+  SC-7: All 66 chapters of docs/CURRICULUM.md exist as MDX files with their widgets and library maths, each passing build, screenshots and click-through, and the owner approves how each Part reads; verified by `ls src/content/chapters/*.mdx | wc -l` printing 66 and by each chapter task's Verify commands.
 milestones:
   - {id: M-1, title: Site and plan, success: [SC-1, SC-2, SC-3, SC-4, SC-6], exit: Scaffold, curriculum, style guide and data PRs merged; site live; reference chapters chosen}
   - {id: M-2, title: Reference chapters, success: [SC-5, SC-6], exit: Both reference chapter PRs merged; build and screenshots clean; owner approves how they read}
+  - {id: M-3, title: 'Part I: Foundations', success: [SC-7, SC-6], exit: 'Every chapter of Part I merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-4, title: 'Part II: Return predictability: the evidence', success: [SC-7, SC-6], exit: 'Every chapter of Part II merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-5, title: 'Part III: Return predictability: out of sample and beyond', success: [SC-7, SC-6], exit: 'Every chapter of Part III merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-6, title: 'Part IV: Cross-sectional tests', success: [SC-7, SC-6], exit: 'Every chapter of Part IV merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-7, title: 'Part V: Factors, anomalies and conditional models', success: [SC-7, SC-6], exit: 'Every chapter of Part V merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-8, title: 'Part VI: GMM and tests of asset pricing models', success: [SC-7, SC-6], exit: 'Every chapter of Part VI merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-9, title: 'Part VII: The factor zoo and shrinkage', success: [SC-7, SC-6], exit: 'Every chapter of Part VII merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-10, title: 'Part VIII: Latent factors and large cross-sections', success: [SC-7, SC-6], exit: 'Every chapter of Part VIII merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-11, title: 'Part IX: Consumption: data and the equity premium puzzle', success: [SC-7, SC-6], exit: 'Every chapter of Part IX merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-12, title: 'Part X: Habits, long-run risk and disasters', success: [SC-7, SC-6], exit: 'Every chapter of Part X merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-13, title: 'Part XI: The term structure: facts', success: [SC-7, SC-6], exit: 'Every chapter of Part XI merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-14, title: 'Part XII: Term structure models', success: [SC-7, SC-6], exit: 'Every chapter of Part XII merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-15, title: 'Part XIII: Horizons, entropy and the equity term structure', success: [SC-7, SC-6], exit: 'Every chapter of Part XIII merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-16, title: 'Part XIV: Learning', success: [SC-7, SC-6], exit: 'Every chapter of Part XIV merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-17, title: 'Part XV: Asset management', success: [SC-7, SC-6], exit: 'Every chapter of Part XV merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-18, title: 'Part XVI: Intermediaries and frictions', success: [SC-7, SC-6], exit: 'Every chapter of Part XVI merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
+  - {id: M-19, title: 'Part XVII: Frontier topics', success: [SC-7, SC-6], exit: 'Every chapter of Part XVII merged with its widgets; build, screenshots and click-through clean; owner approves how the Part reads'}
 policy:
   decide: human         # human | experts (a committee answers worker decision requests)
   orchestrator: {platform: claude, model: sonnet, effort: high}

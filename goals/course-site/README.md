@@ -15,14 +15,28 @@ The outline PDF lives at `source/course-outline-e164-spr26.pdf` in the main chec
 git-ignored, so worker worktrees do not contain it: specs give absolute paths.
 
 In scope: the site skeleton, `docs/CURRICULUM.md` (a Foundations part first, then the outline's weeks),
-`docs/STYLE_GUIDE.md` with notation and colours, a reproducible pipeline for real public data, and two
-polished reference chapters (M-2, planned once DEC-001 is accepted).
+`docs/STYLE_GUIDE.md` with notation and colours, a reproducible pipeline for real public data, two
+polished reference chapters (M-2), and then all 66 chapters of the curriculum, with their widgets and
+library maths. Since 2026-10-22 the owner has widened the goal: one milestone per Part (M-3 is Part I,
+M-4 is Part II, and so on up to M-19 for Part XVII). Only M-3 is detailed up front. Each later milestone
+opens with a `Plan: decompose M-n` task that the orchestrator handles. Each chapter is one task and one PR.
+Chapters, widgets and the maths libraries behind them go to claude opus high. Data downloads, scaffolding
+and fixes go to codex gpt-6.1-sol high.
 
-Non-goals: chapters beyond the two reference chapters (later goals, one per Part), problem sets,
-exam material, and any LBS course material (slides, problem sets) other than the topic list.
+Non-goals: problem sets, exam material, and any LBS course material (slides, problem sets) other than the
+topic list.
 
 ## Risks and open questions
 
+- **Missing readings.** Eight readings are not in `source/papers/` (see `docs/READINGS.md`): five books, and
+  Fama & French (1992), Gibbons, Ross & Shanken (1989) and Kleibergen & Zhan (2020). A chapter states no fact
+  taken from a reading it does not have. It lists the reading under further reading in the short form.
+- **CRSP data.** The owner supplies the CRSP daily file at `/Users/jesusvillotamiranda/Desktop/CRSP_full_fetch.csv.gz`
+  (about 7 GB compressed, 112 million rows, from 1986). Workers read it from that absolute path and never
+  copy it into a worktree. Only small aggregate series (portfolio or market level) may be committed, never
+  security-level rows. The owner must confirm that publishing such aggregates is within the CRSP licence.
+- **Cost.** About 64 chapter tasks and 40 to 60 library or data tasks. Expect several days of runs and one
+  review per PR.
 - **Copyright.** The outline PDF and the papers in `source/papers/` are private inputs. They are never
   committed. Chapters explain papers in our own words and cite them; they do not reproduce figures or tables.
 - **Data downloads.** A source may block automated download or change its file layout. TASK-004 then
@@ -60,6 +74,40 @@ flowchart TD
     TASK_015["TASK-015 Owner reads both reference chapters and approves how they read"]
     TASK_016["TASK-016 Fix the preview port and the click-through slider label"]
     TASK_017["TASK-017 Allow Part XVII in the chapter schema"]
+  end
+  subgraph M_3["M-3 · Part I: Foundations"]
+  end
+  subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
+  end
+  subgraph M_5["M-5 · Part III: Return predictability: out of sample and beyond"]
+  end
+  subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
+  end
+  subgraph M_7["M-7 · Part V: Factors, anomalies and conditional models"]
+  end
+  subgraph M_8["M-8 · Part VI: GMM and tests of asset pricing models"]
+  end
+  subgraph M_9["M-9 · Part VII: The factor zoo and shrinkage"]
+  end
+  subgraph M_10["M-10 · Part VIII: Latent factors and large cross-sections"]
+  end
+  subgraph M_11["M-11 · Part IX: Consumption: data and the equity premium puzzle"]
+  end
+  subgraph M_12["M-12 · Part X: Habits, long-run risk and disasters"]
+  end
+  subgraph M_13["M-13 · Part XI: The term structure: facts"]
+  end
+  subgraph M_14["M-14 · Part XII: Term structure models"]
+  end
+  subgraph M_15["M-15 · Part XIII: Horizons, entropy and the equity term structure"]
+  end
+  subgraph M_16["M-16 · Part XIV: Learning"]
+  end
+  subgraph M_17["M-17 · Part XV: Asset management"]
+  end
+  subgraph M_18["M-18 · Part XVI: Intermediaries and frictions"]
+  end
+  subgraph M_19["M-19 · Part XVII: Frontier topics"]
   end
   TASK_002 --> DEC_001
   TASK_001 --> TASK_003
