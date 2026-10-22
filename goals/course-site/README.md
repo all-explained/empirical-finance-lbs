@@ -94,6 +94,7 @@ flowchart TD
     TASK_046["TASK-046 Library: Campbell–Shiller log-linearisation and variance shares"]
     TASK_047["TASK-047 Library: VAR news decomposition and the dog test"]
     TASK_048["TASK-048 Library: Stambaugh bias and simulated test size"]
+    TASK_049["TASK-049 Chapter 10: The Campbell–Shiller decomposition"]
   end
   subgraph M_5["M-5 · Part III: Return predictability: out of sample and beyond"]
     TASK_031["TASK-031 Plan: decompose M-5"]
@@ -190,6 +191,7 @@ flowchart TD
   TASK_043 --> TASK_044
   TASK_044 --> TASK_045
   TASK_025 --> TASK_047
+  TASK_046 --> TASK_049
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
