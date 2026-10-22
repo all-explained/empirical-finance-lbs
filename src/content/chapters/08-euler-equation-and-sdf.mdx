@@ -1,0 +1,321 @@
+---
+title: "The Euler equation and the stochastic discount factor"
+part: 1
+chapter: 8
+difficulty: 2
+prerequisites: [1, 7]
+summary: "One equation, p = E[Mx], prices every asset, and the market's Sharpe ratio tells you how much the discount factor M must vary."
+---
+
+import SDFExplorer from '../../components/plots/SDFExplorer';
+import HJBound from '../../components/plots/HJBound';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapters 1 and 7">
+[Chapter 1](/empirical-finance-lbs/chapters/01-returns/) defines the simple return $\Ret{R}$, the gross return
+$1 + \Ret{R}$ and the excess return $\Ret{R^e} = \Ret{R} - \Rf{R^f}$. Chapter 7 is not written yet, so here is the
+short version of the three tools this chapter uses from it.
+
+- **Covariance and correlation.** $\operatorname{Cov}(X, Y)$ is positive when $X$ and $Y$ tend to be high
+  together. The correlation $\operatorname{corr}(X, Y) = \operatorname{Cov}(X, Y)/(\sigma(X)\sigma(Y))$ is the same
+  idea on a scale from $-1$ to $1$.
+- **The Sharpe ratio** of an asset is its mean excess return divided by its standard deviation,
+  $SR = \mathbb{E}[\Ret{R^e}]/\sigma(\Ret{R^e})$: the reward for each unit of risk.
+- **A beta** is a regression slope. $\beta_{i,M}$ is the slope of asset $i$'s excess return on a variable $M$:
+  $\operatorname{Cov}(\Ret{R^e_i}, \SDF{M})/\operatorname{Var}(\SDF{M})$.
+</Callout>
+
+## <span class="section-tag">Hook</span> What does the equity premium say about investors?
+
+From July 1926 to August 2026, the US stock market paid 8.3% a year more than one-month Treasury bills, on
+average. The data is the market excess return in ff3-monthly, 1,202 months. That reward came with risk: the
+volatility of the excess return was 18.4% a year. Divide the first number by the second and you get the market's
+**Sharpe ratio**, 0.45.
+
+So here is the question. That reward was paid to the people who held the stocks. Why did they need it? A price is
+a deal between a buyer today and a payoff later. Somewhere inside that deal sits a rule that says how much a
+risky dollar next year is worth today. If you could see the rule, could you tell from 0.45 what kind of
+investors set it?
+
+This chapter builds that rule from one decision: how much to save. It gives one formula for the price of any asset,
+$p = \mathbb{E}[\SDF{M}x]$. At the end, the number 0.45 turns into a fact about the rule itself. The discount
+factor $\SDF{M}$ must swing by at least 45% of its mean every year.
+
+## <span class="section-tag">Intuition</span> Not every dollar is worth the same
+
+Think of next year as two possible **states of the world**: bad times and good times. In bad times, jobs are lost
+and you consume little. In good times, you consume a lot. A payoff is a list of what an asset pays in each state.
+
+An extra dollar is worth more to you when you have few of them. So a dollar that arrives in bad times is worth
+more today than a dollar that arrives in good times. The **stochastic discount factor** (SDF) $\SDF{M}$ puts a
+number on this. It is a list with one value per state: what one dollar in that state is worth to you today, per
+unit of probability. "Stochastic" means random: you do not know today which value applies.
+
+The price of a payoff then follows from one rule. For each state, multiply the payoff by $\SDF{M}$ and by the
+probability of the state. Then add up the states. That is an expected value: $p = \mathbb{E}[\SDF{M}x]$.
+
+<SDFExplorer client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens with an SDF of 1.10 in bad times and 0.80 in good
+times, each state with probability one half. Click "stock", "bond" and "insurance" in turn. All three payoffs have
+the same expected value, 1.05. Watch the price change from 0.960 to 0.998 to 1.035.</p>
+
+The bond pays 1.05 in both states. Its price, 0.998, is the expected payoff discounted at the risk-free rate. Here
+that rate is 5.3%. The bond is the benchmark: it carries no risk, so its expected return is exactly the risk-free
+rate.
+
+The stock pays 0.80 in bad times and 1.30 in good times. It pays least when a dollar is worth most. So it is
+worth less than the bond. Its price falls to 0.960, and its expected return rises to 9.4%. The extra 4.1% is its
+**risk premium**: the pay for holding an asset that lets you down in bad times.
+
+The insurance pays 1.30 in bad times and 0.80 in good times. It pays most when a dollar is worth most. So you pay
+more for it than for the bond: 1.035. Its expected return is only 1.4%, and its risk premium is −3.8%. People
+accept a low return because insurance pays off in exactly the states they fear.
+
+<Callout type="key">An asset's price depends on *when* it pays, not only on how much it pays on average. An asset
+that pays in bad times is expensive and has a low expected return. An asset that pays in good times is cheap and
+has a high expected return.</Callout>
+
+## <span class="section-tag">Formalisation</span> From a saver's choice to $p = \mathbb{E}[\SDF{M}x]$
+
+### The Euler equation
+
+Take an investor who lives for two dates, $t$ and $t+1$. Their utility is
+
+$$
+u(C_t) + \delta\,\mathbb{E}_t[u(C_{t+1})].
+$$
+
+Here $u$ is a utility function: it rises with consumption $C$, but each extra unit adds less. $\delta$ is the
+**time-discount factor**, a number just below 1 that says how impatient the investor is. $\mathbb{E}_t$ is the
+expectation given what the investor knows at $t$.
+
+The investor has an income $e_t$ today and $e_{t+1}$ next period. They can buy $\xi$ units of an asset at price
+$P_t$, and each unit pays $X_{t+1}$ at $t+1$. So
+
+$$
+C_t = e_t - P_t\,\xi, \qquad C_{t+1} = e_{t+1} + X_{t+1}\,\xi.
+$$
+
+The investor picks $\xi$ to make utility as large as possible. At the best $\xi$, the derivative of utility with
+respect to $\xi$ is zero. Use the chain rule. Today's part gives $u'(C_t) \times (-P_t)$. Next period's part
+gives $\delta\,\mathbb{E}_t[u'(C_{t+1}) \times X_{t+1}]$, because the derivative of an expectation is the
+expectation of the derivative. Set the sum to zero:
+
+$$
+-P_t\,u'(C_t) + \delta\,\mathbb{E}_t[u'(C_{t+1})\,X_{t+1}] = 0
+\quad\Longrightarrow\quad
+P_t\,u'(C_t) = \mathbb{E}_t[\delta\,u'(C_{t+1})\,X_{t+1}].
+$$
+
+This is the **consumption Euler equation**. Read it as a balance. On the left is the cost of one more unit: you
+give up $P_t$ of consumption today, and each unit of it is worth $u'(C_t)$. On the right is the benefit: $X_{t+1}$
+more consumption next period, each unit worth $\delta\,u'(C_{t+1})$, on average.
+
+Now divide both sides by $u'(C_t)$. It is known at $t$, so it can move inside $\mathbb{E}_t$:
+
+$$
+P_t = \mathbb{E}_t\!\left[\SDF{M_{t+1}}\,X_{t+1}\right],
+\qquad
+\SDF{M_{t+1}} = \delta\,\frac{u'(C_{t+1})}{u'(C_t)}.
+$$
+
+This is $p = \mathbb{E}[\SDF{M}x]$ from the widget, with dates on it. $\SDF{M_{t+1}}$ is high when consumption next
+period is low, because $u'$ is then high. That is the "bad times" of the widget.
+
+### Power utility
+
+A common choice is **power utility**, $u(C) = C^{1-\gamma}/(1-\gamma)$. Its derivative is $u'(C) = C^{-\gamma}$.
+Put this into the ratio:
+
+$$
+\SDF{M_{t+1}} = \delta\,\frac{C_{t+1}^{-\gamma}}{C_t^{-\gamma}} = \delta \left(\frac{C_{t+1}}{C_t}\right)^{-\gamma}.
+$$
+
+The number $\gamma$ is **relative risk aversion**: the larger it is, the more a fall in consumption hurts. For
+example, take $\delta = 0.99$ and $\gamma = 5$. If consumption grows by 2%, then $\SDF{M} = 0.99 \times
+1.02^{-5} = 0.90$. If it falls by 2%, then $\SDF{M} = 0.99 \times 0.98^{-5} = 1.10$. A bad year raises $\SDF{M}$.
+
+### Returns and the risk-free rate
+
+Divide $P_t = \mathbb{E}_t[\SDF{M_{t+1}}X_{t+1}]$ by $P_t$. Again $P_t$ is known at $t$, and $X_{t+1}/P_t$ is the
+gross return $1 + \Ret{R_{t+1}}$:
+
+$$
+1 = \mathbb{E}_t\!\left[\SDF{M_{t+1}}\,(1 + \Ret{R_{t+1}})\right].
+$$
+
+Take the unconditional expectation of both sides. The average of a conditional expectation is the plain
+expectation (the law of iterated expectations), so $1 = \mathbb{E}[\SDF{M}(1 + \Ret{R})]$ holds too. From here on
+we drop the dates. We also treat $\Rf{R^f}$ as a constant. That is a simplification: the real risk-free rate moves,
+and the conditional version above allows for it.
+
+The risk-free asset pays the same $1 + \Rf{R^f}$ in every state. So it comes out of the expectation:
+
+$$
+1 = \mathbb{E}[\SDF{M}]\,(1 + \Rf{R^f})
+\quad\Longrightarrow\quad
+1 + \Rf{R^f} = \frac{1}{\mathbb{E}[\SDF{M}]}.
+$$
+
+In the widget, $\mathbb{E}[\SDF{M}] = 0.95$, so $\Rf{R^f} = 1/0.95 - 1 = 5.3\%$.
+
+### Risk premia are covariances
+
+Write the pricing equation for a risky asset and for the risk-free asset, and subtract the second from the
+first. The excess return $\Ret{R^e} = \Ret{R} - \Rf{R^f}$ costs nothing to hold:
+
+$$
+0 = \mathbb{E}[\SDF{M}(1 + \Ret{R})] - \mathbb{E}[\SDF{M}(1 + \Rf{R^f})] = \mathbb{E}[\SDF{M}\,\Ret{R^e}].
+$$
+
+By the definition of covariance, $\mathbb{E}[XY] = \mathbb{E}[X]\,\mathbb{E}[Y] + \operatorname{Cov}(X, Y)$.
+Apply it here, then solve for the mean excess return, and use $1/\mathbb{E}[\SDF{M}] = 1 + \Rf{R^f}$:
+
+$$
+0 = \mathbb{E}[\SDF{M}]\,\mathbb{E}[\Ret{R^e}] + \operatorname{Cov}(\SDF{M}, \Ret{R^e})
+\quad\Longrightarrow\quad
+\mathbb{E}[\Ret{R^e}] = -\frac{\operatorname{Cov}(\SDF{M}, \Ret{R^e})}{\mathbb{E}[\SDF{M}]}
+= -(1 + \Rf{R^f})\operatorname{Cov}(\SDF{M}, \Ret{R^e}).
+$$
+
+This is the key result of the chapter. An asset earns a positive premium when its return is low in the states where
+$\SDF{M}$ is high: a negative covariance. The stock in the widget is such an asset. The insurance has a positive
+covariance, so its premium is negative. Its own volatility does not enter at all. Only its covariance with
+$\SDF{M}$ is priced.
+
+### The Hansen–Jagannathan bound
+
+A covariance is a correlation times two standard deviations:
+$\operatorname{Cov}(\SDF{M}, \Ret{R^e}) = \operatorname{corr}(\SDF{M}, \Ret{R^e})\,\sigma(\SDF{M})\,\sigma(\Ret{R^e})$.
+Put this into the premium, divide both sides by $\sigma(\Ret{R^e})$, and use $1 + \Rf{R^f} = 1/\mathbb{E}[\SDF{M}]$:
+
+$$
+\frac{\mathbb{E}[\Ret{R^e}]}{\sigma(\Ret{R^e})} = -\operatorname{corr}(\SDF{M}, \Ret{R^e})\,
+\frac{\sigma(\SDF{M})}{\mathbb{E}[\SDF{M}]}.
+$$
+
+The left side is the Sharpe ratio. A correlation is never larger than 1 in absolute value. So take absolute values
+on both sides:
+
+$$
+\frac{\sigma(\SDF{M})}{\mathbb{E}[\SDF{M}]} \;\ge\; \frac{|\mathbb{E}[\Ret{R^e}]|}{\sigma(\Ret{R^e})} = |SR|.
+$$
+
+This is the **Hansen–Jagannathan bound**. Any SDF that prices an asset must be volatile enough: its standard
+deviation, as a share of its mean, is at least the asset's Sharpe ratio. A high Sharpe ratio in the data demands
+a volatile SDF.
+
+### The beta form
+
+Start again from $\mathbb{E}[\Ret{R^e_i}] = -\operatorname{Cov}(\SDF{M}, \Ret{R^e_i})/\mathbb{E}[\SDF{M}]$ for an
+asset $i$. Multiply and divide by $\operatorname{Var}(\SDF{M})$:
+
+$$
+\mathbb{E}[\Ret{R^e_i}]
+= \frac{\operatorname{Cov}(\Ret{R^e_i}, \SDF{M})}{\operatorname{Var}(\SDF{M})}
+\times \left(-\frac{\operatorname{Var}(\SDF{M})}{\mathbb{E}[\SDF{M}]}\right)
+= \beta_{i,M}\,\lambda_M.
+$$
+
+The first factor, $\beta_{i,M}$, is the slope of a regression of the asset's excess return on $\SDF{M}$. It is
+specific to the asset. The second factor, $\lambda_M$, is the same for every asset, and it is negative. For the
+stock in the widget, $\beta_{i,M} = -1.74$ and $\lambda_M = -0.024$, and their product is the 4.1% premium. Every
+factor model in this course has this shape: expected return equals a beta times a price of risk.
+
+<Callout type="key">$p = \mathbb{E}[\SDF{M}x]$ gives three results in a few lines. $1 + \Rf{R^f} =
+1/\mathbb{E}[\SDF{M}]$. Risk premia are minus covariances with $\SDF{M}$. And no asset's Sharpe ratio can exceed
+$\sigma(\SDF{M})/\mathbb{E}[\SDF{M}]$.</Callout>
+
+## <span class="section-tag">Playground</span> How volatile must the SDF be?
+
+The bound turns the market's Sharpe ratio into a region. Plot every candidate SDF by its mean $\mathbb{E}[\SDF{M}]$
+across and its volatility $\sigma(\SDF{M})$ up. An SDF that can price the market must sit above a straight line
+through the origin with slope 0.45. The widget shades that region.
+
+It also shows one model. The dot is a power-utility SDF, $\SDF{M} = \delta(C_{t+1}/C_t)^{-\gamma}$, with
+$\delta = 0.99$. Its consumption growth is simulated, with a fixed seed: 2,000 equally likely years with a mean of
+2% and a volatility of 2%. These two numbers are an assumption, not data. Chapter 35 measures them.
+
+<HJBound client:visible />
+
+<p class="try-this"><strong>Try this:</strong> at $\gamma = 5$, this SDF's ratio $\sigma(\SDF{M})/\mathbb{E}[\SDF{M}]$
+is only 0.10, far below the bound. Move the slider up until the dot enters the shaded region. With seed 1 that
+happens at $\gamma = 22$. Now read the implied risk-free rate: 41.5% a year.</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch the sample to 1963–2026 and then to 2000–2026. The line
+barely moves, but the dashed band around it widens. Press "Re-roll simulation" a few times and watch the lowest
+$\gamma$ inside the region. In the first five seeds it is 22 or 23.</p>
+
+### What the bound can and cannot show
+
+The power-utility SDF in this simulation needs a risk aversion above 20 to price the market. With that much risk
+aversion it also implies a risk-free rate far above any rate in the data. That is the start of a famous puzzle,
+which Part IX studies with real consumption data. Here, keep the limits of the evidence in view.
+
+First, 0.45 is an estimate. Its standard error is about 0.10 a year, since it is close to $\sqrt{12/T}$ with
+$T = 1{,}202$ months. Two standard errors on each side give a range from 0.25 to 0.65. The subsamples agree on
+the level: 0.47 since 1963 and 0.48 since 2000. But with fewer months their standard errors grow to 0.13 and 0.19.
+The annual figures also assume that monthly returns are independent, so that the ratio scales with
+$\sqrt{12}$.
+
+Second, the bound uses one asset. Other assets or portfolios may have higher Sharpe ratios, and each of them
+raises the line. So the market alone gives a lower limit on how volatile the SDF must be, not the full demand.
+
+Third, the bound is a necessary condition, not a sufficient one. An SDF above the line is volatile enough. It
+still has to have the right correlation with returns. A model inside the region can still misprice the market.
+
+Even so, the lower limit is large. A risk-free rate of 3.2% a year, the ff3-monthly average, gives
+$\mathbb{E}[\SDF{M}] = 1/1.032 = 0.97$. Then $\sigma(\SDF{M}) \ge 0.97 \times 0.45 = 0.44$. The value of a dollar
+across states must vary by about 44% a year.
+
+<Callout type="warning">The Hansen–Jagannathan bound is a test that any model of the SDF must pass, not a proof that
+a model is right. It rests on an estimated Sharpe ratio, so report the standard error with it.</Callout>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="Two states are equally likely. The SDF is 1.2 in the bad state and 0.8 in the good state. A payoff pays 2 in the bad state and 0 in the good state. What is its price?"
+  options={["1.0", "1.2", "0.8", "2.0"]}
+  answer={1}
+  explanation="$p = \mathbb{E}[\SDF{M}x] = 0.5 \times 1.2 \times 2 + 0.5 \times 0.8 \times 0 = 1.2$. Its expected payoff is only 1.0, but it pays in the state where a dollar is worth more."
+/>
+
+<Quiz
+  client:visible
+  question="An asset's return is high exactly when consumption is low. What does the SDF model say about its expected excess return?"
+  options={["It is positive, because the asset is risky", "It is negative, because the return covaries positively with $\SDF{M}$", "It is zero, because only volatility is priced", "It equals the Sharpe ratio of the market"]}
+  answer={1}
+  explanation="$\SDF{M}$ is high when consumption is low, so $\operatorname{Cov}(\SDF{M}, \Ret{R^e}) > 0$. Then $\mathbb{E}[\Ret{R^e}] = -(1 + \Rf{R^f})\operatorname{Cov}(\SDF{M}, \Ret{R^e})$ is negative: the asset works like insurance."
+/>
+
+<Quiz
+  client:visible
+  question="The market's Sharpe ratio is 0.45 a year and $\mathbb{E}[\SDF{M}] = 0.97$. What is the smallest $\sigma(\SDF{M})$ that can price the market?"
+  options={["0.45", "0.44", "0.97", "0.22"]}
+  answer={1}
+  explanation="The bound says $\sigma(\SDF{M}) \ge \mathbb{E}[\SDF{M}] \times |SR| = 0.97 \times 0.45 = 0.44$. A smaller volatility cannot produce a Sharpe ratio this high, whatever the correlation."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- A saver's choice gives the Euler equation $P_t\,u'(C_t) = \mathbb{E}_t[\delta\,u'(C_{t+1})X_{t+1}]$, so every
+  price is $p = \mathbb{E}[\SDF{M}x]$ with $\SDF{M} = \delta\,u'(C_{t+1})/u'(C_t)$. With power utility,
+  $\SDF{M} = \delta(C_{t+1}/C_t)^{-\gamma}$.
+- The risk-free rate is $1 + \Rf{R^f} = 1/\mathbb{E}[\SDF{M}]$.
+- Risk premia are covariances: $\mathbb{E}[\Ret{R^e}] = -(1 + \Rf{R^f})\operatorname{Cov}(\SDF{M}, \Ret{R^e})$.
+  The same premium in beta form is $\beta_{i,M}\lambda_M$.
+- The Hansen–Jagannathan bound: $\sigma(\SDF{M})/\mathbb{E}[\SDF{M}] \ge |SR|$. On ff3-monthly, 1926–2026, the
+  market's Sharpe ratio is 0.45 a year, with a standard error of 0.10.
+- A power-utility SDF with smooth consumption needs a very high risk aversion to pass the bound.
+
+**Next up:** [Chapter 9](/empirical-finance-lbs/chapters/09-time-varying-expected-returns/) opens Part II with
+the evidence that expected returns, and so the SDF behind them, change over time.
+
+### Further reading
+
+- Cochrane (2005), Ch. 1–2
+- Campbell (2018), Ch. 4
+- Hansen and Jagannathan (1991)
