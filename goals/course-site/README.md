@@ -45,6 +45,7 @@ flowchart TD
     TASK_003["TASK-003 Write the style guide, notation macros and colour tokens"]
     TASK_004["TASK-004 Build the public-data pipeline and typed loaders"]
     TASK_005["TASK-005 Sync src/data/curriculum.ts with the curriculum"]
+    TASK_008["TASK-008 Download every outline paper into source/papers/ and commit docs/READINGS.md"]
   end
   subgraph M_2["M-2 · Reference chapters"]
     TASK_006["TASK-006 Plan: decompose M-2"]
