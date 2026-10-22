@@ -28,9 +28,9 @@ topic list.
 
 ## Risks and open questions
 
-- **Missing readings.** Eight readings are not in `source/papers/` (see `docs/READINGS.md`): five books, and
-  Fama & French (1992), Gibbons, Ross & Shanken (1989) and Kleibergen & Zhan (2020). A chapter states no fact
-  taken from a reading it does not have. It lists the reading under further reading in the short form.
+- **Missing readings.** Five readings are not in `source/papers/` (see `docs/READINGS.md`): the books Cochrane
+  (2005), Campbell (2018), Campbell, Lo and MacKinlay (1997), Duffie (2001) and Singleton (2006). A chapter states
+  no fact taken from a reading it does not have. It lists the reading under further reading in the short form.
 - **CRSP data.** The owner supplies the CRSP daily file at `/Users/jesusvillotamiranda/Desktop/CRSP_full_fetch.csv.gz`
   (about 7 GB compressed, 112 million rows, from 1986). Workers read it from that absolute path and never
   copy it into a worktree. Only small aggregate series (portfolio or market level) may be committed, never
