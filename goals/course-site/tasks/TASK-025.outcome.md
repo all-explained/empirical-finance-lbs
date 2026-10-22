@@ -2,15 +2,17 @@
 
 ## Acceptance
 
-- [x] `npm test` and `npm run build` pass. Vitest: 14 files, 202 tests pass,
-  including 14 tests in `src/lib/stats/var.test.ts` and 8 in
+- [x] `npm test` and `npm run build` pass. Vitest: 18 files, 230 tests pass,
+  including 15 tests in `src/lib/stats/var.test.ts` and 8 in
   `tests/chapter05-numbers.test.ts`. `astro check` reports 0 errors, 0 warnings
-  and 0 hints ("Result (55 files)"); the static build writes 4 pages.
+  and 0 hints ("Result (68 files)"); the static build writes 7 pages.
 - [x] `npm run screenshots -- 05-persistence` passes with four ✓ lines
   (dark/light × desktop/phone) and no console, KaTeX or overflow error. I
   inspected the page and close-ups of each widget, in both themes, at 1280 px and 360/375 px:
-  - Opening callout "What you need from Chapter 3" (OLS, residuals, standard
-    errors), then the six sections. Every display equation renders. All
+  - Header line "Builds on Ch. 3 Regression and standard errors" is a link.
+    Opening callout "What you need from Chapter 3" links to Chapter 3 and keeps a
+    three-line reminder (OLS, residuals, standard errors and the two-standard-error
+    range that Formalisation uses), then the six sections. Every display equation renders. All
     display math fits a 360 px column: a Playwright check counts 0
     `.katex-display` blocks wider than their box, after I split three long
     equations into shorter lines.
@@ -36,8 +38,8 @@
   clicked the right answer of each quiz with Playwright: explanations show, 0
   KaTeX errors, no console errors.
 - [x] The six `section-tag` headings are in template order (`grep -n 'section-tag'`):
-  line 27 Hook, 41 Intuition, 72 Formalisation, 260 Playground, 282 Check
-  yourself, 308 Recap & next up.
+  line 25 Hook, 39 Intuition, 70 Formalisation, 258 Playground, 280 Check
+  yourself, 306 Recap & next up.
 - [x] No hex colour. The spec's grep runs over `AR1Simulator.tsx`,
   `VARForecast.tsx` and the chapter, and prints `no hex colours`.
   `persistenceSample.ts` and `var.ts` also have 0 matches. Widgets colour only
@@ -49,7 +51,7 @@
   `src/lib/math/rng.ts`. The widget starts at seed 1 and "Re-roll simulation" adds 1.
 - [x] Voice review: see `## Voice review`.
 - [x] Numbers table: see `## Numbers in the prose`.
-- [x] Prose length: 2,411 words, inside 1,500–3,000. Command (the TASK-014 one:
+- [x] Prose length: 2,365 words, inside 1,500–3,000. Command (the TASK-014 one:
   drops frontmatter, imports and `$$` display blocks):
   `awk 'NR>8' src/content/chapters/05-persistence-ar1-and-var.mdx | grep -v '^import ' | awk '/^\$\$/{m=!m; next} !m' | wc -w`
 - [x] `git ls-files | grep -ciE '\.pdf$|^source/'` prints 0 (exit 1, accepted under DEC-002).
@@ -64,7 +66,7 @@ One line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1:
 | Data before theory | "In June 1932, the dividends of the US stock market were 13.8% of its price." |
 | One idea per section | Formalisation has one idea per subsection: "The model", "The mean", "The variance", "Forecasts many steps ahead", "Autocorrelation", "The half-life", "Estimating an AR(1), and what the data cannot tell you", "Stacking series: the VAR(1)". |
 | Start with a question the reader has | "Suppose the ratio is far below normal today. How many years should you expect to wait until it is back halfway to normal?" |
-| Write to "you", short sentences, explain terms | "The **half-life** is the number of months until half of today's gap is expected to be gone." Chapter 3 does not exist, so a callout recaps OLS instead of linking. |
+| Write to "you", short sentences, explain terms | "The **half-life** is the number of months until half of today's gap is expected to be gone." The callout links to Chapter 3 and keeps a short reminder of OLS. |
 | Give the honest version | "The two are close but not equal, because $1 - \hat\phi^2$ is a small number that the data measure only roughly." |
 | Say what the evidence can and cannot show | "So the data are consistent with a half-life of seven years and with no half-life at all." |
 | Don't skip steps in derivations | "Move the $\phi^2$ term to the left and divide:" and the $t+2$ step written out before the $k$-step formula, for both the AR(1) and the VAR. |
@@ -162,13 +164,13 @@ Deviations and mismatches (no change made to the curriculum or style guide):
   intercepts), $h$ (half-life), $\sigma_\varepsilon$ (AR(1) shock s.d., from the
   curriculum) and $\widehat{\operatorname{corr}}_k$ (sample autocorrelation). I
   report them and did not add them, as the spec says. No new colour.
-- `sampleAutocorrelation` lives in `var.ts`. TASK-024 may add a sample ACF in
-  `src/lib/stats/autocorr.ts` in parallel. If it does, one of the two can be
-  removed later.
-- Prerequisite Chapter 3 does not exist. The page shows "Builds on Ch. 3" as plain
-  text, and a callout recaps OLS. Nothing links to a missing page.
+- `sampleAutocorrelation` lives in `var.ts`. TASK-024 (PR #28) adds a sample ACF
+  in `src/lib/stats/autocorr.ts`. PR #28 was still open at this revision, so I did
+  not dedupe; one of the two can be removed after it merges.
+- Chapter 3 is on main. The "Builds on Ch. 3" header and the callout link to it;
+  the callout keeps only a short reminder of what this chapter uses.
 
-Verified revision: `3f7747e` (code). The full spec Verify sequence (`npm ci`,
+Verified revision: `5699975` (code, rebased on origin/main `5138220`). The full spec Verify sequence (`npm ci`,
 `npm test`, `npm run build`, `npm run screenshots -- 05-persistence`,
 `npm run clickthrough -- 05-persistence`, the `section-tag` grep, the hex grep, the
 tracked-file grep) ran on that revision. Everything passed; the last grep printed 0 with exit 1.
