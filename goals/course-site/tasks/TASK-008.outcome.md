@@ -8,14 +8,14 @@ Read the full outline with `pdftotext -layout`. There are **69 reading mentions*
 
 Publisher access was attempted first. Bot blocks required legal author, institutional, NBER, and arXiv alternatives. Citation corrections and differing draft titles/dates are recorded in the bibliography. No shadow libraries were used. No PDF or outline text is committed.
 
-Verified revision: bibliography content in this outcome's commit, based on `e3353e313c7ae2f0028014cc359b6d90fb4e3ca2`. The only PR changes are the bibliography and this outcome. No application code changed; no application test suite is relevant. Local file, title, table, DOI, and git checks decide acceptance. GitHub Actions were not read or run.
+Verified revision: bibliography commit `6ac4f6879b9b6b434884b61c680f2cc524bd6e4a`, after rebasing this branch onto `origin/main`. The only PR changes are the bibliography and this outcome. Rechecked the full outline, all table keys, all 55 PDF types/sizes and first-page titles in the resumed session on 2026-10-22. The two text-extraction exceptions were rendered and visually checked again. Local checks decide acceptance. GitHub Actions were not read or run.
 
 ## Acceptance
 
 - [x] **Every distinct outline reading occurs once.** Outline count **63**; table count **63**; unique keys **63**. Both requested table `grep -cE` commands print **63**. General and all ten weeks have tables. Repeated assignments retain chapter/week cross-references.
 - [x] **Every published or working-paper row has a valid file.** All **55** referenced files exist in `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/`. `file -b` reports PDF for each; sizes range from **232,054 to 3,899,650 bytes**, all above **51,200 bytes**. The requested loop emits no errors. First-page titles were checked with `pdftotext -l 1`; Campbell–Cochrane (1999) required rendered-page inspection because its font mapping is broken. Jagannathan–Wang (1996) required rendered-page inspection because it is scanned. Both visual checks confirm title and authors.
 - [x] **Every owner-to-supply reading has a reason.** All **eight** rows are listed below and in `docs/READINGS.md`.
-- [x] **No PDF or source path is tracked.** `git ls-files | grep -ciE '\.pdf$|^source/'` prints **0**. A separate assertion of zero forbidden paths exits **0**. The literal grep command itself returns **1**, the blocking delivery conflict described below.
+- [x] **No PDF or source path is tracked.** `git ls-files | grep -ciE '\.pdf$|^source/'` prints **0** and returns **1**, as accepted in DEC-002. An explicit assertion requires exact output `0`, accepts only the expected no-match status, rejects grep errors, and exits **0**.
 
 ## Local Verify evidence
 
@@ -28,7 +28,26 @@ The exact supplied Verify block was run on 2026-10-22. It emitted no `NOT PDF` o
 0
 ```
 
-The block exits **1**, because its last command is `grep -c` with zero matches. This is normal grep behavior. A separate check asserted the expected output `0` and expected grep status `1`; that check exits **0**. No command was masked or reported as passing with a different status.
+The block exits **1**, because its last command is `grep -c` with zero matches. This is normal grep behavior. DEC-002 option 1, accepted by jesusvillota on 2026-10-22, permits this exact result. The resumed session repeated the block and separately asserted the expected output `0` and expected grep status `1`; that assertion exits **0**. No command was masked or reported as passing with a different status.
+
+The exact count assertion used in the resumed session was:
+
+```python
+import subprocess
+
+tracked = subprocess.run(['git', 'ls-files'], capture_output=True, check=True)
+result = subprocess.run(
+    ['grep', '-ciE', r'\.pdf$|^source/'],
+    input=tracked.stdout, capture_output=True,
+)
+assert result.returncode in (0, 1), result.stderr  # Reject grep errors.
+assert result.stdout == b'0\n'                   # Require exact zero count.
+assert result.returncode == 1                    # Expected no-match status.
+```
+
+The independent outline-to-key comparison found **69 mentions, 63 distinct readings, 63 rows and 63 unique keys**, with no missing or extra keys. All eight owner-to-supply keys occur in the list below. GitHub's PR review-thread, review and comment queries returned empty lists; there were no open review comments to address.
+
+Repository checks after the rebase also pass: `npm ci --no-audit --no-fund`; `npm test` (**10 tests passed**); `npm run build` (**0 diagnostic errors/warnings**, one page built); and `npm run screenshots` (**four home-page theme/viewport checks passed**, no console, KaTeX or overflow errors). The build reports the expected empty chapter collection. This task changes no site pages or widgets.
 
 DOI titles were audited through Crossref and OpenAlex. This corrected the Lettau–Ludvigson JPE DOI to `10.1086/323282` and Nagel's survey DOI to `10.1146/annurev-financial-110112-121009`. Crossref rate limits required OpenAlex fallback. The arXiv DOI is registered outside Crossref and was confirmed through OpenAlex. `git diff --check` passes.
 
@@ -43,19 +62,8 @@ DOI titles were audited through Crossref and OpenAlex. This corrected the Lettau
 - `GibbonsRossShanken1987` — bot block: JSTOR PDF returns an HTML challenge; no verified legal open PDF found.
 - `KleibergenZhan2019` — bot block: Wiley, University of Amsterdam repository, and SSRN all return HTTP 403.
 
-## Decision request
+## Accepted decision
 
-**Question:** May delivery accept grep status 1 when the forbidden tracked-file count is zero?
-
-The task requires both a zero tracked-file count and exit status 0 from an unmodified block ending in `grep -c`. Normal grep cannot satisfy both. The work satisfies all four content acceptance requirements, but the literal delivery command cannot pass. This is reported in https://github.com/all-explained/empirical-finance-lbs/issues/3. The task spec has not been changed.
-
-Options and trade-offs:
-
-1. Accept the exact output `0` plus grep status `1` as success. Keep the count assertion, accept only that expected status, and reject grep errors. This preserves all substantive acceptance checks.
-2. Require the unmodified command to exit 0. This remains impossible while no forbidden paths are tracked. Tracking a PDF to change grep's status would violate acceptance and is unacceptable.
-
-### Recommendation
-
-Accept option 1. Use an explicit assertion that the forbidden path count is zero. After that decision, resume TASK-008 and mark the PR ready. No paper downloads or bibliography changes are needed for the decision.
+DEC-002 option 1 was accepted by jesusvillota on 2026-10-22: accept exact output `0` with grep status `1`, retain the zero-count assertion, and reject grep errors. The assertion above implements that decision. The prior delivery block is resolved; no bibliography or download changes were required. The related report is https://github.com/all-explained/empirical-finance-lbs/issues/3. The task spec has not been changed.
 
 Proposed follow-ups: the owner supplies the eight documented book or bot-blocked readings when needed. This task explicitly permits those entries. No new task, decision record, or goal specification was created or edited.
