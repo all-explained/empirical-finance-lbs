@@ -28,13 +28,13 @@
   `ONE DOLLAR IN STOCKS AND IN T-BILLS · 7 actions at 1280px, 7 actions at 360px` and
   `RETURN CALCULATOR · 3 actions at 1280px, 3 actions at 360px`.
 - [x] The six `section-tag` headings are present in the template order: lines 15 Hook, 33 Intuition,
-  77 Formalisation, 233 Playground, 249 Check yourself, 275 Recap & next up.
+  79 Formalisation, 235 Playground, 251 Check yourself, 277 Recap & next up.
 - [x] No hex colour appears in the chapter or the new components: the grep prints `no hex colours`.
 - [x] Voice review: see `## Voice review` below.
-- [x] The prose is 2,814 words by the command
+- [x] The prose is 2,838 words by the command
   `awk '/^---$/{c++; next} c>=2' src/content/chapters/01-returns.mdx | grep -vE '^import ' | wc -w`
   (everything after the frontmatter except import lines). A stricter count that also drops display-math
-  blocks and JSX tag and attribute lines gives 2,382:
+  blocks and JSX tag and attribute lines gives 2,406:
   `awk '/^---$/{c++; next} c<2{next} /^\$\$$/{m=!m; next} m{next} {print}' src/content/chapters/01-returns.mdx | grep -vE '^(import |<|/>|  [a-z]+=)' | wc -w`.
   Both are inside 1,500–3,000.
 
@@ -57,7 +57,7 @@ One quoted line per rule of style guide §1:
 7. Say what the evidence can and cannot show. "...the average monthly excess return from July 1926 to August
    2026 is 0.70%, about 8.3% a year, with a standard error of 0.15% a month (data `ff3-monthly`)."
 8. Don't skip steps. The `<details>` block "Every step of the algebra" writes each step, for example
-   "3. The variance is $\sigma^2 = \mathbb{E}[(R - \mu)^2] = \mathbb{E}[R^2] - 2\mu\,\mathbb{E}[R] + \mu^2 = \mathbb{E}[R^2] - \mu^2$."
+   "3. The variance is $\sigma^2 = \mathbb{E}[(\Ret{R} - \mu)^2] = \mathbb{E}[\Ret{R}^2] - 2\mu\,\mathbb{E}[\Ret{R}] + \mu^2 = \mathbb{E}[\Ret{R}^2] - \mu^2$."
 9. Graduate rigour comes in gradually. Part I level, so even notation is explained: "The symbol $\prod$ means
    "multiply all of these together", as $\sum$ means "add all of these"."
 10. Papers in our own words. The books appear only in Further reading ("Campbell (2018), Ch. 1."). Every number
@@ -94,6 +94,20 @@ Lines changed after the PR #13 review at `6c7f556` (each money figure rechecked 
   match a formula to a plot; these lines point at the readout.
 - Rewrapped the uneven lines (the widget intro, the 1929–1932 line, the "more than five times" line, and the
   paragraphs touched above) to the file's width of about 110 characters.
+
+Lines changed after the second review (each checked in the browser):
+
+- "On a **log scale**, each step up the axis multiplies the value by 10." was wrong for the default view, whose
+  labels are \$1, \$100, \$10k, \$1M. A first fix said "by 100", but a Playwright read of the y-axis labels
+  showed the step depends on the range: 100 for 1926 with simple returns, 10 for 1926 with log returns and for
+  1980 and 2000 in both modes. It became "each labelled line is a fixed multiple of the one below it: 10 or 100
+  times, as the range needs."
+- "Now switch to "log returns"." used a term the chapter defines only later. It became "Now switch to "log
+  returns", a second way to measure each month's return. The Formalisation section below defines it."
+- Every $R$ and $r$ in math that stands for a return is now wrapped in `\Ret`, as style guide §4 asks: the
+  "10% means $\Ret{R} = 0.10$" line, the log approximation $\log(1 + \Ret{R}) \approx \Ret{R} - \tfrac12
+  \Ret{R}^2$, all five steps of "Every step of the algebra", and the explanation of quiz 3. A scan of every
+  math segment in the chapter and of the strings in both widgets finds no bare $R$ or $r$ left.
 
 ## Summary
 
@@ -149,7 +163,7 @@ Deviations and mismatches to report:
   includes MathML and HTML copies. This is cosmetic, in the shared script.
 - No new symbols or colours, so the style guide tables did not change.
 
-Verified revision: the review-fix commit on top of `6c7f556` (chapter, widgets, `returns.ts` and its test);
+Verified revision: the second-review commit on top of `53da590` (chapter, widgets, `returns.ts` and its test);
 this outcome is committed with it. Verify was rerun after the final code change.
 
 Local Verify output (run in this order, after the final code change):
@@ -161,7 +175,7 @@ npm ci                → exit 0 (npm warns about fsevents install scripts)
 - 0 errors
 - 0 warnings
 - 0 hints
-[build] 2 page(s) built in 897ms
+[build] 2 page(s) built in 797ms
 [build] Complete!
 ✓ chapters_01-returns-dark-desktop.png
 ✓ chapters_01-returns-dark-phone.png
@@ -171,10 +185,10 @@ npm ci                → exit 0 (npm warns about fsevents install scripts)
 ✓ chapters/01-returns/ · RETURN CALCULATOR · 3 actions at 1280px, 3 actions at 360px · slider "Repeat the move kkk times"
 15:## <span class="section-tag">Hook</span> What happened to one dollar since 1926?
 33:## <span class="section-tag">Intuition</span> Growth multiplies
-77:## <span class="section-tag">Formalisation</span> Three kinds of return
-233:## <span class="section-tag">Playground</span> Make your own returns
-249:## <span class="section-tag">Check yourself</span> Three quick questions
-275:## <span class="section-tag">Recap & next up</span> What you now know
+79:## <span class="section-tag">Formalisation</span> Three kinds of return
+235:## <span class="section-tag">Playground</span> Make your own returns
+251:## <span class="section-tag">Check yourself</span> Three quick questions
+277:## <span class="section-tag">Recap & next up</span> What you now know
 no hex colours
 0
 exit=1   (accepted under DEC-002: the printed count is exactly 0)

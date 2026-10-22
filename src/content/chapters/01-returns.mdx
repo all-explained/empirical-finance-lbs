@@ -57,14 +57,16 @@ monthly return, every month.
 <CompoundingPath client:visible />
 
 <p class="try-this"><strong>Try this:</strong> start on "simple returns" and the log scale. The dashed line
-ends far above the solid blue line: that is the \$104,000 against \$19,700. Now switch to "log returns". The
-dashed line now ends exactly on the real final value. Then move the start year to 1980 or 2000, and check
-that the same thing happens in every sample.</p>
+ends far above the solid blue line: that is the \$104,000 against \$19,700. Now switch to "log returns", a
+second way to measure each month's return. The Formalisation section below defines it. The dashed line now
+ends exactly on the real final value. Then move the start year to 1980 or 2000, and check that the same
+thing happens in every sample.</p>
 
 Two more things to notice. First, switch to the linear scale. On a linear scale, the stock line looks flat for
 50 years and then shoots up. That is misleading. In 1930 the dollar was worth between \$1.23 and \$2.01, so a
 1% move was one or two cents. In 2020 it was worth between \$6,091 and \$9,470, so a 1% move was \$61 to
-\$95. On a **log scale**, each step up the axis multiplies the value by 10. So equal vertical distances mean
+\$95. On a **log scale**, each labelled line is a fixed multiple of the one below it: 10 or 100 times,
+as the range needs. So equal vertical distances mean
 equal *percentage* changes, and a steady growth rate looks like a straight line. For growth over long
 periods, the log scale is almost always the honest picture.
 
@@ -91,7 +93,7 @@ $$
 
 Example: you buy at $P_t = 100$, the price rises to $P_{t+1} = 108$, and you receive a dividend of
 $D_{t+1} = 2$. Then $\Ret{R_{t+1}} = 110/100 - 1 = 0.10$, a 10% return: 8% from the price and 2% from the
-dividend. We always write returns as decimals, so "10%" means $R = 0.10$. Return data without dividends is
+dividend. We always write returns as decimals, so "10%" means $\Ret{R} = 0.10$. Return data without dividends is
 called a *price-only* return. It misses the second term, and over a century it misses a lot.
 
 The **gross return** is $1 + \Ret{R_{t+1}}$. It is the number your money is multiplied by. In the example, it is
@@ -192,7 +194,7 @@ if monthly returns are often 5% above or below their mean, $\sigma$ is about 5%.
 deviation of returns is called **volatility**. For a return near zero, the log is close to a parabola:
 
 $$
-\log(1 + R) \approx R - \tfrac12 R^2.
+\log(1 + \Ret{R}) \approx \Ret{R} - \tfrac12 \Ret{R}^2.
 $$
 
 Take the expectation, the long-run average, of both sides:
@@ -204,12 +206,12 @@ $$
 <details>
 <summary>Every step of the algebra</summary>
 
-1. The Taylor series of the log around zero is $\log(1 + R) = R - \tfrac12 R^2 + \tfrac13 R^3 - \dots$.
-   We keep the first two terms. The rest are small when $R$ is a few percent.
-2. The expectation of a sum is the sum of the expectations, so $\mathbb{E}[R - \tfrac12 R^2] = \mathbb{E}[R] - \tfrac12 \mathbb{E}[R^2]$.
-3. The variance is $\sigma^2 = \mathbb{E}[(R - \mu)^2] = \mathbb{E}[R^2] - 2\mu\,\mathbb{E}[R] + \mu^2 = \mathbb{E}[R^2] - \mu^2$.
-   So $\mathbb{E}[R^2] = \sigma^2 + \mu^2$.
-4. Substitute: $\mathbb{E}[r] \approx \mu - \tfrac12\sigma^2 - \tfrac12\mu^2$.
+1. The Taylor series of the log around zero is $\log(1 + \Ret{R}) = \Ret{R} - \tfrac12 \Ret{R}^2 + \tfrac13 \Ret{R}^3 - \dots$.
+   We keep the first two terms. The rest are small when $\Ret{R}$ is a few percent.
+2. The expectation of a sum is the sum of the expectations, so $\mathbb{E}[\Ret{R} - \tfrac12 \Ret{R}^2] = \mathbb{E}[\Ret{R}] - \tfrac12 \mathbb{E}[\Ret{R}^2]$.
+3. The variance is $\sigma^2 = \mathbb{E}[(\Ret{R} - \mu)^2] = \mathbb{E}[\Ret{R}^2] - 2\mu\,\mathbb{E}[\Ret{R}] + \mu^2 = \mathbb{E}[\Ret{R}^2] - \mu^2$.
+   So $\mathbb{E}[\Ret{R}^2] = \sigma^2 + \mu^2$.
+4. Substitute: $\mathbb{E}[\Ret{r}] \approx \mu - \tfrac12\sigma^2 - \tfrac12\mu^2$.
 5. For monthly stock returns, $\mu \approx 0.01$, so $\tfrac12\mu^2 \approx 0.00005$, while
    $\tfrac12\sigma^2 \approx 0.0014$. We drop the $\mu^2$ term, which is about 30 times smaller.
 
@@ -269,7 +271,7 @@ shortcut. For big returns or long horizons, it is badly wrong.</p>
   question="A fund's monthly simple return has mean 1% and standard deviation 6%. About what is its average monthly log return?"
   options={["1.18%", "1%", "0.82%", "0.64%"]}
   answer={2}
-  explanation="Use $\mathbb{E}[r] \approx \mu - \tfrac12\sigma^2 = 0.01 - \tfrac12(0.06)^2 = 0.01 - 0.0018 = 0.0082$. Volatility always pulls the average log return below the average simple return."
+  explanation="Use $\mathbb{E}[\Ret{r}] \approx \mu - \tfrac12\sigma^2 = 0.01 - \tfrac12(0.06)^2 = 0.01 - 0.0018 = 0.0082$. Volatility always pulls the average log return below the average simple return."
 />
 
 ## <span class="section-tag">Recap & next up</span> What you now know
