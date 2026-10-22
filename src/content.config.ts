@@ -1,12 +1,13 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { parts } from './data/curriculum';
 
 const chapters = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/chapters' }),
   schema: z.object({
     title: z.string(),
-    part: z.number().int().min(1).max(16),
+    part: z.number().int().min(1).max(parts.length),
     chapter: z.number().int().min(1),
     difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     prerequisites: z.array(z.number().int()).default([]),
