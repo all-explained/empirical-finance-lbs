@@ -7,11 +7,31 @@ Build the site, curriculum, style guide and real-data pipeline for an interactiv
 
 ## Context, scope and non-goals
 
-<what exists today, what is included, what is explicitly out of scope>
+Today the repo holds only a README. The model is `all-explained/options-explained` (local copy at
+`~/GitHub/options-explained`): Astro + MDX + KaTeX + React/Mafs widgets + Vitest, deployed to GitHub Pages.
+
+The course follows the topic list of the LBS PhD course E164 "Financial Economics II: Empirical Finance".
+The outline PDF lives at `source/course-outline-e164-spr26.pdf` in the main checkout. `source/` is
+git-ignored, so worker worktrees do not contain it: specs give absolute paths.
+
+In scope: the site skeleton, `docs/CURRICULUM.md` (a Foundations part first, then the outline's weeks),
+`docs/STYLE_GUIDE.md` with notation and colours, a reproducible pipeline for real public data, and two
+polished reference chapters (M-2, planned once DEC-001 is accepted).
+
+Non-goals: chapters beyond the two reference chapters (later goals, one per Part), problem sets,
+exam material, and any LBS course material (slides, problem sets) other than the topic list.
 
 ## Risks and open questions
 
-<risks, assumptions, and unknowns; material unknowns become discovery tasks or DEC nodes>
+- **Copyright.** The outline PDF and the papers in `source/papers/` are private inputs. They are never
+  committed. Chapters explain papers in our own words and cite them; they do not reproduce figures or tables.
+- **Data downloads.** A source may block automated download or change its file layout. TASK-004 then
+  blocks with the exact file the owner must download.
+- **Licences of data.** Each dataset's terms go in `docs/DATA.md`. Redistributing small derived JSON is
+  assumed to be fine for these public academic sources; TASK-004 flags any source where it is not.
+- **Assumptions.** Site title "Empirical Finance, Explained". English. The lecturer is not named on the site.
+- **Open question.** Paper PDFs: the owner supplies them per chapter (TASK-007). If this is too much work,
+  a worker could try open versions (SSRN, NBER, authors' pages) first.
 
 ## Plan structure
 
