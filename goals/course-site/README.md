@@ -78,6 +78,7 @@ flowchart TD
   subgraph M_3["M-3 · Part I: Foundations"]
     TASK_018["TASK-018 Library: sample moments and Sharpe ratio"]
     TASK_019["TASK-019 Library: small linear algebra (inverse, eigen, matrix power)"]
+    TASK_020["TASK-020 Library: mean–variance portfolios and beta"]
   end
   subgraph M_4["M-4 · Part II: Return predictability: the evidence"]
   end
@@ -130,6 +131,7 @@ flowchart TD
   TASK_012 --> TASK_014
   TASK_013 --> TASK_015
   TASK_014 --> TASK_015
+  TASK_019 --> TASK_020
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
