@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@types/katex": "^0.16.8",
+    "@types/node": "^26.6.5",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "playwright": "^1.63.0",
