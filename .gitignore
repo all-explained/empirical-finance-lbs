@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+screenshots/
+.DS_Store
+scripts/_*.tmp.mjs
+# Private source material (course outline). Never commit it.
+source/
