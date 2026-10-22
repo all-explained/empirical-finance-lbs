@@ -57,6 +57,7 @@ flowchart TD
     TASK_012["TASK-012 Library: predictive regressions and AR(1) horizon slopes"]
     TASK_013["TASK-013 Reference chapter 1: Returns"]
     TASK_014["TASK-014 Reference chapter 9: Time-varying expected returns"]
+    TASK_015["TASK-015 Owner reads both reference chapters and approves how they read"]
   end
   TASK_002 --> DEC_001
   TASK_001 --> TASK_003
@@ -76,6 +77,8 @@ flowchart TD
   TASK_009 --> TASK_014
   TASK_011 --> TASK_014
   TASK_012 --> TASK_014
+  TASK_013 --> TASK_015
+  TASK_014 --> TASK_015
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
