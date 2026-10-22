@@ -126,6 +126,7 @@ flowchart TD
     TASK_041["TASK-041 Plan: decompose M-15"]
   end
   subgraph M_16["M-16 · Part XIV: Learning"]
+    TASK_042["TASK-042 Plan: decompose M-16"]
   end
   subgraph M_17["M-17 · Part XV: Asset management"]
   end
@@ -178,6 +179,7 @@ flowchart TD
   TASK_038 --> TASK_039
   TASK_039 --> TASK_040
   TASK_040 --> TASK_041
+  TASK_041 --> TASK_042
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
