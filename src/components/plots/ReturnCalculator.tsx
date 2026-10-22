@@ -1,6 +1,6 @@
 import { Point, Polyline } from 'mafs';
 import { useId, useState, type CSSProperties } from 'react';
-import { growthPath, logReturn, simpleReturn } from '../../lib/finance/returns';
+import { addedPath, grossGrowth, growthPath, logReturn, repeatedSum, simpleReturn } from '../../lib/finance/returns';
 import { Slider } from '../ui/controls';
 import { RichText } from '../ui/Tex';
 import { WidgetFrame } from '../ui/WidgetFrame';
@@ -70,7 +70,7 @@ export default function ReturnCalculator({ initialP0 = '100', initialP1 = '108',
   const yieldPart = simpleReturn(P0, P0, D);
   const r = logReturn(R);
   const compounded = growthPath(Array.from({ length: k }, () => R), 'simple');
-  const added = compounded.map((_, j) => 1 + j * R); // the mistake: add simple returns
+  const added = addedPath(R, k); // the mistake: add simple returns
   const final = compounded[k];
   const viaLogs = growthPath(Array.from({ length: k }, () => r), 'log')[k];
   const [lo, hi] = extent([...compounded, ...added]);
@@ -114,13 +114,13 @@ export default function ReturnCalculator({ initialP0 = '100', initialP1 = '108',
           <dt>of which dividend yield</dt>
           <dd>{percent(yieldPart, 2)}</dd>
           <dt><RichText>{'Gross return $1 + \\Ret{R_{t+1}}$'}</RichText></dt>
-          <dd>{(1 + R).toFixed(4)}</dd>
+          <dd>{grossGrowth([R]).toFixed(4)}</dd>
           <dt><RichText>{'Log return $\\Ret{r_{t+1}}$'}</RichText></dt>
           <dd>{logPct(r)}</dd>
           <dt>{`After ${k} period${k === 1 ? '' : 's'}, $1 becomes`}</dt>
           <dd style={{ color: 'var(--c-return)' }}>{money(final)} ({percent(final - 1, 1)})</dd>
           <dt><RichText>{`Sum of log returns $${k}\\,\\Ret{r}$, then $e^{(\\cdot)}$`}</RichText></dt>
-          <dd>{r === -Infinity ? '−∞' : `${percent(k * r, 1)} → ${money(viaLogs)}`}</dd>
+          <dd>{r === -Infinity ? '−∞' : `${percent(repeatedSum(r, k), 1)} → ${money(viaLogs)}`}</dd>
           <dt><RichText>{`Adding simple returns, $1 + ${k}\\,\\Ret{R}$`}</RichText></dt>
           <dd>{signedDollars(added[k])} (wrong)</dd>
         </dl>

@@ -63,6 +63,26 @@ export function growthPath(returns: readonly number[], mode: 'simple' | 'log'): 
   return path;
 }
 
+/**
+ * Sum of k equal per-period returns, k × r. For a log return this is the exact
+ * k-period log return; for a monthly mean with k = 12, the simple annual figure.
+ */
+export function repeatedSum(perPeriod: number, k: number): number {
+  if (perPeriod !== -Infinity) requireFinite(perPeriod);
+  if (!Number.isInteger(k) || k < 0) throw new RangeError('Periods must be a nonnegative integer');
+  return k === 0 ? 0 : k * perPeriod;
+}
+
+/**
+ * Wealth from adding, not compounding, the same simple return k times:
+ * 1 + j × R for j = 0..k (k + 1 values). It is the wrong answer that
+ * compounding corrects.
+ */
+export function addedPath(simple: number, k: number): number[] {
+  requireSimple(simple);
+  return Array.from({ length: k + 1 }, (_, j) => 1 + repeatedSum(simple, j));
+}
+
 /** Second-order approximation E[log(1 + R)] ≈ E[R] - Var(R) / 2. */
 export function meanLogApprox(meanSimple: number, variance: number): number {
   [meanSimple, variance].forEach(requireFinite);

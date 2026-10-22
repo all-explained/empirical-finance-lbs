@@ -7,6 +7,7 @@ import {
   growthPath,
   logReturn,
   meanLogApprox,
+  repeatedSum,
   sampleVariance,
 } from '../../lib/finance/returns';
 import { Segmented, Slider } from '../ui/controls';
@@ -26,7 +27,7 @@ const monthName = (iso: string) =>
   new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 const yearOf = (iso: string) => Number(iso.slice(0, 4)) + (Number(iso.slice(5, 7)) - 1) / 12;
 const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
-const perMonth = (v: number) => `${pct(v)} (${(v * 1200).toFixed(1)}% a year)`;
+const perMonth = (v: number) => `${pct(v)} (${(repeatedSum(v, 12) * 100).toFixed(1)}% a year)`;
 const dollars = (v: number) => money(v, v >= 100 ? 0 : 2);
 const compactDollars = (v: number) =>
   v >= 1e6 ? `$${v / 1e6}M` : v >= 1e3 ? `$${v / 1e3}k` : v >= 1 ? `$${v}` : `$${v.toFixed(2)}`;
@@ -96,6 +97,7 @@ export default function CompoundingPath({ initialStart = FIRST_YEAR }: { initial
       xTicks={niceTicks(xStart, xEnd, 5)}
       yTicks={yTicks}
       formatX={(t) => String(Math.round(t))}
+      xLabel="calendar year"
       formatY={(v) => compactDollars(scale === 'log' ? 10 ** v : v)}
       yLabel={scale === 'log' ? 'value of $1 (log scale)' : 'value of $1'}
       marginLeft={54}

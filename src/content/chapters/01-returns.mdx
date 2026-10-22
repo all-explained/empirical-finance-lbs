@@ -50,8 +50,9 @@ Each swing is like the +50% and −50% pair, only smaller. The ups and downs can
 they do not cancel in the *final value*. So the average simple return overstates how fast your money
 really grows.
 
-The widget below shows the real data. The solid blue line, labelled "market", is \$1 in the stock market. The solid orange line,
-labelled "T-bills", is \$1 in T-bills. The dashed line grows \$1 at the *average* monthly return, every month.
+The widget below shows the real data. The solid blue line, labelled "market", is \$1 in the stock market.
+The solid orange line, labelled "T-bills", is \$1 in T-bills. The dashed line grows \$1 at the *average*
+monthly return, every month.
 
 <CompoundingPath client:visible />
 
@@ -61,13 +62,14 @@ dashed line now ends exactly on the real final value. Then move the start year t
 that the same thing happens in every sample.</p>
 
 Two more things to notice. First, switch to the linear scale. On a linear scale, the stock line looks flat for
-50 years and then shoots up. That is misleading: a 1% move in 1930 is a few cents, and a 1% move in 2020 is
-hundreds of dollars. On a **log scale**, each step up the axis multiplies the value by 10. So equal vertical
-distances mean equal *percentage* changes, and a steady growth rate looks like a straight line. For growth
-over long periods, the log scale is almost always the honest picture.
+50 years and then shoots up. That is misleading. In 1930 the dollar was worth between \$1.23 and \$2.01, so a
+1% move was one or two cents. In 2020 it was worth between \$6,091 and \$9,470, so a 1% move was \$61 to
+\$95. On a **log scale**, each step up the axis multiplies the value by 10. So equal vertical distances mean
+equal *percentage* changes, and a steady growth rate looks like a straight line. For growth over long
+periods, the log scale is almost always the honest picture.
 
-Second, the T-bill line is smooth and the stock line is rough. From August 1929 to June 1932, the stock line fell by about 84%. The
-reward for living with that roughness is the big gap at the right edge.
+Second, the T-bill line is smooth and the stock line is rough. From August 1929 to June 1932, the stock line
+fell by about 84%. The reward for living with that roughness is the big gap at the right edge.
 
 <Callout type="key">Returns multiply over time. Ups and downs that cancel in the average still cost you
 money in the final value. So the average simple return is higher than the growth rate you actually get.</Callout>
@@ -111,16 +113,23 @@ month's gross return.
 ### The log return
 
 Products are awkward. A long product of numbers close to one is hard to think about, and the statistics
-you will learn in Chapter 2 work best with sums. The **log return** turns the product into a sum:
+you will learn in Chapter 2 work best with sums. The log return turns the product into a sum, with a tool
+called the logarithm.
+
+A **logarithm** answers one question: to what power must I raise a fixed base to get this number? With base
+10, $\log_{10} 1000 = 3$, because $10^3 = 1000$. The log scale in the widget uses base 10. In this course,
+$\log$ always means the **natural logarithm**, whose base is the number $e \approx 2.718$. The number $e$ is
+what \$1 becomes in one period at a 100% rate, if the interest is added in tiny pieces all through the
+period, so each piece earns interest too. It is the base for growth that compounds all the time, which is
+why it fits returns. The **log return** is
 
 $$
 \Ret{r_{t+1}} = \log(1 + \Ret{R_{t+1}}).
 $$
 
-Here $\log$ is always the natural logarithm. In the example, $\Ret{r_{t+1}} = \log 1.10 = 0.0953$, a log
-return of 9.53%. For small returns the two are close: a simple return of 1% is a log return of 0.995%.
-For big returns they differ a lot: a simple return of $-100\%$, a total loss, is a log return of minus
-infinity.
+In the example, $\Ret{r_{t+1}} = \log 1.10 = 0.0953$, because $e^{0.0953} = 1.10$: a log return of 9.53%.
+For small returns the two are close: a simple return of 1% is a log return of 0.995%. For big returns they
+differ a lot: a simple return of $-100\%$, a total loss, is a log return of minus infinity.
 
 The log of a product is the sum of the logs, $\log(ab) = \log a + \log b$. Take logs of the product above:
 
@@ -129,9 +138,10 @@ $$
 $$
 
 So **log returns add over time**. To get the log return over a year, add the 12 monthly log returns. To get
-back to dollars, undo the log with the exponential: $1 + \Ret{R_{t \to t+k}} = e^{\Ret{r_{t \to t+k}}}$. The
-"+50%, then −50%" example becomes easy. The log returns are $\log 1.5 = 0.405$ and $\log 0.5 = -0.693$. They
-add to $-0.288$, and $e^{-0.288} = 0.75$. You keep 75 cents of each dollar.
+back to dollars, undo the log with the exponential, $e$ to that power:
+$1 + \Ret{R_{t \to t+k}} = e^{\Ret{r_{t \to t+k}}}$. The "+50%, then −50%" example becomes easy. The log
+returns are $\log 1.5 = 0.405$ and $\log 0.5 = -0.693$. They add to $-0.288$, and $e^{-0.288} = 0.75$. You
+keep 75 cents of each dollar.
 
 ### Across assets, simple returns add
 
@@ -172,12 +182,14 @@ standard errors above zero.
 ### Why the average log return is lower
 
 Now the missing \$84,000. Compounding the average *log* return gets the final value exactly right, because log
-returns add: $T$ months of $\bar r$ sum to the true total $\sum_t r_t$. Compounding the average *simple* return
-does not. How far apart are the two averages?
+returns add: $T$ months of $\Ret{\bar r}$ sum to the true total $\sum_t \Ret{r_t}$. Compounding the average
+*simple* return does not. How far apart are the two averages?
 
 Write $\mu = \mathbb{E}[\Ret{R}]$ for the mean of the simple return and $\sigma^2 = \operatorname{Var}(\Ret{R})$ for
-its variance, the average squared distance from the mean. For a return near zero, the log is close to a
-parabola:
+its variance, the average squared distance from the mean. The square root of the variance, $\sigma$, is the
+**standard deviation**. It is a typical size of the distance from the mean, in the same units as the return:
+if monthly returns are often 5% above or below their mean, $\sigma$ is about 5%. In finance, the standard
+deviation of returns is called **volatility**. For a return near zero, the log is close to a parabola:
 
 $$
 \log(1 + R) \approx R - \tfrac12 R^2.
@@ -206,13 +218,14 @@ $$
 So the average log return is below the average simple return by about half the variance. This is a
 simplification, and we say so: it drops the cubic and higher terms, and it is only good when returns are
 small. Check it on the data. From July 1926 to August 2026, the market's average simple monthly return is
-$\bar R = 0.97\%$ and its standard deviation is $\hat\sigma = 5.29\%$. The formula gives
-$0.97\% - \tfrac12(5.29\%)^2 = 0.97\% - 0.14\% = 0.83\%$. The actual average log return is $\bar r = 0.82\%$.
-The widget's readout shows the same three numbers for any start year.
+$\Ret{\bar R} = 0.97\%$ and its standard deviation is $\hat\sigma = 5.29\%$. (A bar marks an average over
+time, and a hat marks a value estimated from the data.) The formula gives
+$0.97\% - \tfrac12(5.29\%)^2 = 0.97\% - 0.14\% = 0.83\%$. The actual average log return is
+$\Ret{\bar r} = 0.82\%$. The widget's readout shows the same three numbers for any start year.
 
 This gap of 0.14% a month looks small. But over 1,202 months it adds up. The exact gap between the two final
-values is a total log return of 1.66, and $e^{1.66}$ is about 5.3. That is the "more than five times" from the Hook. The missing \$84,000 was never there:
-it was the cost of volatility, hidden by the average.
+values is a total log return of 1.66, and $e^{1.66}$ is about 5.3. That is the "more than five times" from the
+Hook. The missing \$84,000 was never there: it was the cost of volatility, hidden by the average.
 
 <Callout type="warning">Do not grow money at the average simple return to predict long-run wealth. Volatility
 makes the true growth rate lower, by about $\tfrac12\sigma^2$ per period.</Callout>
