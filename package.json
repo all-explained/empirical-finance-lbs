@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "test": "vitest run",
     "screenshots": "node scripts/screenshots.mjs",
+    "clickthrough": "node scripts/clickthrough.mjs",
     "data": ".venv/bin/python3 scripts/data/fetch.py"
   },
   "dependencies": {
