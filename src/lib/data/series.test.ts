@@ -28,6 +28,9 @@ const references: Record<SeriesId, readonly (readonly [string, string, number])[
   'gsw-zero-coupon': [['1985-11-29', 'SVENY01', 7.7914], ['2000-01-31', 'SVENY10', 6.6866], ['2020-01-31', 'SVENY30', 2.165]],
   // fred-consumption-quarterly.csv lines 294/B, 314/C, 294/D.
   'fred-consumption-quarterly': [['2020-01-01', 'PCNDGC96', 3020.002], ['2025-01-01', 'PCESVC96', 10755.176], ['2020-01-01', 'B230RC0Q173SBEA', 331545]],
+  // fred-cay-quarterly.csv is a FRED ZIP (transcribed 2026-10-23): quarterly.csv lines 21/B and 319/F,
+  // quarterly,_end_of_period.csv line 179/B.
+  'fred-cay-quarterly': [['1951-10-01', 'PCND', 95.454], ['2026-04-01', 'COE', 16349.724], ['1990-01-01', 'TNWBSHNO', 22015993]],
 };
 
 for (const id of Object.keys(seriesColumns) as SeriesId[]) {
