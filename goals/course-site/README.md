@@ -103,6 +103,7 @@ flowchart TD
     TASK_031["TASK-031 Plan: decompose M-5"]
     TASK_053["TASK-053 Library: out-of-sample forecasts, Clark–West and certainty-equivalent gains"]
     TASK_054["TASK-054 Data: quarterly consumption, wealth and labour income for cay"]
+    TASK_055["TASK-055 Library: cointegration, dynamic OLS and cay"]
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
     TASK_032["TASK-032 Plan: decompose M-6"]
@@ -204,6 +205,7 @@ flowchart TD
   TASK_049 --> TASK_052
   TASK_050 --> TASK_052
   TASK_051 --> TASK_052
+  TASK_054 --> TASK_055
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
