@@ -104,6 +104,7 @@ flowchart TD
     TASK_053["TASK-053 Library: out-of-sample forecasts, Clark–West and certainty-equivalent gains"]
     TASK_054["TASK-054 Data: quarterly consumption, wealth and labour income for cay"]
     TASK_055["TASK-055 Library: cointegration, dynamic OLS and cay"]
+    TASK_056["TASK-056 Library: option strips, SVIX and the Martin lower bound"]
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
     TASK_032["TASK-032 Plan: decompose M-6"]
