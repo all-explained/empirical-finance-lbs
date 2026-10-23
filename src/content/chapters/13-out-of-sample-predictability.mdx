@@ -1,0 +1,304 @@
+---
+title: "Out-of-sample predictability"
+part: 3
+chapter: 13
+difficulty: 2
+prerequisites: [9, 12]
+summary: "Forecasts built only from past data rarely beat the historical mean return, and this chapter shows how to measure, test and read that result."
+---
+
+import OOSRace from '../../components/plots/OOSRace';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Would the regression have helped you in 1965?
+
+[Chapter 9](/empirical-finance-lbs/chapters/09-time-varying-expected-returns/) ran one regression on a century of
+data. The log dividend–price ratio at the end of each year forecast the log excess return of the next year, with a
+slope of 0.042 and an $R^2$ of 1.2%. The fit used every year from 1926 to 2025 at once.
+
+Now put yourself at the end of 1964. You have the data up to that date and nothing after it. You run the same
+regression on those years, and you use it to forecast the return of 1965. One year later you add a year of data,
+run the regression again and forecast 1966. You keep doing this until 2025. Your rival does something much
+simpler. Each year, the rival forecasts the average return of all the years so far.
+
+So here is the question. Over those 61 years, whose forecasts were closer to the returns that happened? The
+answer is the rival's. On goyal-welch-annual, the real-time regression on the dividend–price ratio made squared
+errors 3.1% larger than the plain average. Goyal & Welch (2008, p. 1455) found the same for most of the
+predictors in the literature. On our data, none of the 12 predictors in this chapter beats the average from 1965
+on. This chapter shows how to measure that, how to test it, and what it does and does not prove.
+
+## <span class="section-tag">Intuition</span> A race against the average
+
+Think of a weather forecaster who uses a model, and a rival who always forecasts the average temperature for the
+date. Each day, both make an error. Square each error, so that big misses count more, and keep a running score:
+the rival's squared error minus the model's squared error, added up day by day. When the model wins a day, the
+score goes up. When the rival wins, it goes down. Where the score ends tells you who won the whole race. Its
+shape tells you *when* each one won.
+
+Goyal & Welch (2008, p. 1465) draw exactly this line for each predictor. The widget below does the same on our
+data. Each line is one predictor, run in real time from the first forecast year. The thick line is the
+highlighted predictor, the dividend–price ratio to start with.
+
+<OOSRace client:visible />
+
+<p class="try-this"><strong>Try this:</strong> follow the thick dp line. It climbs from 1965 to 0.094 by 1975,
+the years of the oil shock, and it is still at 0.096 in 1994. Then it falls fast. By 1998 it is below zero, and in
+2025 it ends at −0.052. The predictor won its race early and lost it in the late 1990s.</p>
+
+Why did it lose? In the late 1990s, prices were high compared with dividends. A high price–dividend ratio means a
+low dividend–price ratio, so the regression forecast low returns. For 1996 it forecast a log excess return of
+−2.7%, while the average of all past years was 6.0%. Stock returns in those years were high, so each year the
+regression lost by a large margin. A few bad years were enough to undo thirty years of small gains.
+
+<Callout type="key">An out-of-sample test asks a practical question: would a forecast built only from past data
+have beaten the simple average? It is a different question from "does the predictor forecast returns?", and it can
+have a different answer.</Callout>
+
+## <span class="section-tag">Formalisation</span> Real-time forecasts and how to score them
+
+### Expanding windows
+
+Write $\Ret{r^e_{t+1}}$ for the log excess return earned during period $t+1$, and $\Signal{x_t}$ for a predictor
+known at the end of period $t$, as in Chapter 9. At each date $t$, estimate the predictive regression with only the
+pairs that are known at $t$:
+
+$$
+\Ret{r^e_{s+1}} = a + b\,\Signal{x_s} + \Err{\varepsilon_{s+1}}, \qquad s = 0, 1, \dots, t-1.
+$$
+
+Call the OLS estimates $\hat a_t$ and $\hat b_t$. The subscript $t$ says that they use data up to $t$ only. The
+forecast of the next return is the fitted value at today's predictor:
+
+$$
+\hat r^e_{t+1} = \hat a_t + \hat b_t\,\Signal{x_t}.
+$$
+
+The benchmark is the historical mean of the same returns, $\bar r^e_t = \tfrac1t \sum_{s=1}^{t} \Ret{r^e_s}$. Here
+the bar marks a sample mean, as usual, and the subscript $t$ says where the sample ends. Both forecasts use the
+same information. The window grows by one period each date, so this is an **expanding window**. We start the
+first forecast 20 years after a predictor's data begin, as Goyal & Welch (2008, p. 1464) do, and we score only
+the forecasts from the first forecast year on.
+
+### The out-of-sample R²
+
+Let the forecasts run over $T_{OS}$ dates. The **out-of-sample $R^2$** compares the two sums of squared errors:
+
+$$
+R^2_{OS} = 1 - \frac{\sum_t \left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2}{\sum_t \left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2}.
+$$
+
+The sums run over the same $T_{OS}$ dates. If the model's squared errors are smaller, $R^2_{OS} > 0$. If they are
+larger, $R^2_{OS} < 0$. This is the statistic that Goyal & Welch (2008, p. 1461) use, written with mean squared
+errors. Unlike the in-sample $R^2$ of Chapter 9, it can be negative. In sample, OLS picks the line that makes the
+squared errors as small as possible, and the line with slope zero is one of the lines it could have picked. Out of
+sample, the line is fixed before the return arrives, so nothing stops it from being worse than the mean.
+
+### The running score
+
+The line in the widget is the running sum of the difference in squared errors, up to date $\tau$:
+
+$$
+\mathit{CSED}_\tau = \sum_{t \le \tau} \left[\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 - \left(\Ret{r^e_{t+1}} -
+\hat r^e_{t+1}\right)^2\right].
+$$
+
+At the last date, the first part is the mean's sum of squared errors, $\mathit{SSE}_{\bar r}$, and the second part
+is the model's, $\mathit{SSE}_{\hat r}$. Factor out the first:
+
+$$
+\mathit{CSED}_{\text{last}} = \mathit{SSE}_{\bar r} - \mathit{SSE}_{\hat r} = \mathit{SSE}_{\bar r}\left(1 -
+\frac{\mathit{SSE}_{\hat r}}{\mathit{SSE}_{\bar r}}\right) = \mathit{SSE}_{\bar r}\, R^2_{OS}.
+$$
+
+So the line ends above zero exactly when $R^2_{OS} > 0$. For dp from 1965, the mean's squared errors add up to
+1.68, and $-0.052 / 1.68$ gives the $R^2_{OS}$ of −3.1% from the hook.
+
+### Why a true predictor can still lose
+
+Write the model's error as the mean's error minus the gap between the two forecasts:
+$\Ret{r^e_{t+1}} - \hat r^e_{t+1} = (\Ret{r^e_{t+1}} - \bar r^e_t) - (\hat r^e_{t+1} - \bar r^e_t)$. Square it:
+
+$$
+\left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2 = \left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 -
+2\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)\left(\hat r^e_{t+1} - \bar r^e_t\right) + \left(\hat r^e_{t+1} -
+\bar r^e_t\right)^2.
+$$
+
+Move the first term on the right to the left and change signs. The gain of one date is
+
+$$
+\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 - \left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2 =
+2\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)\left(\hat r^e_{t+1} - \bar r^e_t\right) - \left(\hat r^e_{t+1} -
+\bar r^e_t\right)^2.
+$$
+
+The first term is the reward. It is positive on average when the model moves away from the mean in the same
+direction as the return. The second term is a penalty, and it is never negative. Every move away from the mean
+costs its square, whether it was right or not.
+
+Now suppose the true slope is zero. Then the reward is zero on average, but the estimated slope $\hat b_t$ is not
+exactly zero. The forecast moves around because of estimation noise, and the penalty is still paid. So under
+the null of no predictability, the expected gain is *negative*, and $R^2_{OS}$ is below zero on average. A small
+true slope has the same problem: its reward is small, and the noise in $\hat b_t$ can cost more than the reward.
+[Chapter 12](/empirical-finance-lbs/chapters/12-stambaugh-bias/) adds a second reason. With a persistent
+predictor like dp, $\hat b_t$ is biased upward in short samples, so the early forecasts move too far.
+
+### The Clark–West test
+
+This is why "is $R^2_{OS}$ above zero?" is the wrong test when the model nests the mean (the mean is the model
+with $b = 0$). Even a correct null of $b = 0$ pushes $R^2_{OS}$ below zero. The **Clark–West** statistic removes the
+penalty term. Add $(\hat r^e_{t+1} - \bar r^e_t)^2$ back to the gain of each date:
+
+$$
+\mathit{cw}_t = \left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 - \left[\left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2 -
+\left(\hat r^e_{t+1} - \bar r^e_t\right)^2\right] = 2\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)\left(\hat r^e_{t+1} -
+\bar r^e_t\right).
+$$
+
+The second equality is the gain of the last section with its penalty added back. What is left is the reward
+alone. Under the null its mean is close to zero. Under the alternative, it is positive. The test is a $t$-statistic on
+the average of $\mathit{cw}_t$:
+
+$$
+\mathit{CW} = \frac{\overline{\mathit{cw}}}{\sqrt{s^2_{\mathit{cw}} / T_{OS}}}, \qquad s^2_{\mathit{cw}} =
+\frac{1}{T_{OS} - 1}\sum_t \left(\mathit{cw}_t - \overline{\mathit{cw}}\right)^2.
+$$
+
+The test is one-sided, because only a model that forecasts better is interesting. Reject the mean in favour of the
+model at the 5% level when $\mathit{CW} > 1.645$. The p-value uses the normal distribution, which is an
+approximation. The same $t$-statistic treats the $\mathit{cw}_t$ as uncorrelated, which is also an approximation.
+
+The two tools answer different questions. $R^2_{OS}$ asks whether the *estimated* model forecast better than the
+mean. Clark–West asks whether the *true* slope is different from zero, using real-time data. For dp from 1965,
+$R^2_{OS}$ is −3.1% and the Clark–West statistic is 0.72, with a p-value of 0.23: no evidence either way. Start in
+1947 instead and look at the dividend yield (dy). Its $R^2_{OS}$ is −17.1%, a heavy loss, yet its Clark–West
+statistic is 1.31 (p = 0.095). The forecasts moved in the right direction, but the noise in the estimates cost
+more than the direction earned.
+
+### Sign and slope restrictions
+
+Two simple rules reduce the penalty term. They are a method of forecasting, and they use knowledge that the data
+alone do not give: the sign that the economic story expects.
+
+1. **Slope restriction.** If $\hat b_t$ has the wrong sign, use the mean $\bar r^e_t$ instead of the regression. We
+   expect a positive slope for the valuation ratios (dp, dy, ep, de, bm), the term spread, the default spread
+   and stock variance, and a negative slope for net equity issues, the T-bill rate, the long-term yield and
+   inflation. These signs are our choice from the economic story, not estimates.
+2. **Floor at zero.** An investor who expects a negative equity premium would not hold stocks. So replace a
+   negative forecast by zero. Goyal & Welch (2008, p. 1483) discuss this truncation, which Campbell and Thompson
+   suggested, and they note that it turns a linear forecast into a nonlinear one.
+
+Both rules apply after the regression and before the forecast is scored. For dp from 1965, the regression
+forecast a negative premium in 14 of the 61 years. With both rules on, $R^2_{OS}$ rises from −3.1% to −1.0%.
+That is better, but it is still a loss. Across the 12 predictors, three end above zero with both rules on: the
+T-bill rate, the long-term yield and stock variance.
+
+### The certainty-equivalent gain
+
+$R^2_{OS}$ is a statistical score. An investor cares about utility. Take an investor with mean–variance utility and
+risk aversion $\gamma$, who puts a weight $w_t$ on stocks and the rest in the risk-free asset. The investor
+chooses $w_t$ to maximise $w_t\,\hat r^e_{t+1} - \tfrac{\gamma}{2} w_t^2 \hat\sigma^2_t$, where $\hat\sigma^2_t$ is
+the sample variance of the returns up to $t$. Set the derivative with respect to $w_t$ to zero:
+
+$$
+\hat r^e_{t+1} - \gamma\, w_t\, \hat\sigma^2_t = 0 \quad\Longrightarrow\quad w_t = \frac{\hat r^e_{t+1}}{\gamma\,
+\hat\sigma^2_t}.
+$$
+
+We clip $w_t$ to the range from 0 to 1.5: no short sales, and at most 50% borrowed. We set $\gamma = 3$. Goyal &
+Welch (2008, p. 1484) use the same risk aversion and the same 150% cap. The portfolio earns $w_t\,\Ret{r^e_{t+1}}$
+in excess of the risk-free rate. Over the forecast dates, its realised utility is
+
+$$
+\bar u = \operatorname{mean}\!\left(w_t\,\Ret{r^e_{t+1}}\right) - \frac{\gamma}{2}\operatorname{Var}\!\left(w_t\,
+\Ret{r^e_{t+1}}\right).
+$$
+
+Compute $\bar u$ twice: once with weights from the model's forecasts, and once with weights from the mean's. The
+**certainty-equivalent gain** is the difference, multiplied by 12 for monthly data so that it reads as a rate per
+year. It is the fee, as a share of wealth each year, that the investor would pay to use the model instead of the
+mean. For dp from 1965, it is −0.50% a year. A simplification is in play: we multiply weights by *log* excess
+returns, which is close to, but not the same as, the simple excess return the investor earns.
+
+## <span class="section-tag">Playground</span> Run the race yourself
+
+The widget is the same as the one above. Use it to change who races, when the race starts, and which rules apply.
+Monthly data take a few seconds to compute, because the widget runs about a thousand regressions per predictor.
+
+<OOSRace client:visible initialPredictor="lty" />
+
+<p class="try-this"><strong>Try this:</strong> the long-term yield is highlighted. Switch to monthly data, keep the
+first forecast year at 1965, and turn on both rules ("expected slope sign" and "floor at zero"). Over 732
+monthly forecasts, $R^2_{OS}$ is 0.41%, the Clark–West statistic is 1.82 (p = 0.035), and the certainty-equivalent
+gain is 0.20% a year. That is a small win, and it needs both rules.</p>
+
+<p class="try-this"><strong>Try this too:</strong> pick the dividend yield, go back to annual data with no rules,
+and move the first forecast year to 1947. Compare the $R^2_{OS}$ with the Clark–West statistic. Then move the start
+year slowly to 2000 and watch how many lines end above zero.</p>
+
+### What the playground can and cannot show
+
+A negative $R^2_{OS}$ does not prove that returns cannot be forecast. The test has **low power**: even when a
+predictor truly forecasts returns, it often fails. Goyal & Welch (2008, p. 1463) note a result by Inoue and Kilian
+that out-of-sample tests are less powerful than in-sample tests. Cochrane (2008, p. 25) simulates a world in
+which the dividend–price ratio truly forecasts returns, and finds that the forecasts beat the mean out of sample
+in only about 20% of his samples. He concludes that the out-of-sample $R^2$ is a diagnostic, not a test
+(p. 26).
+
+Goyal & Welch (2008, p. 1464) answer that low power should make a predictor look bad early, when its windows are
+short, and better later. They find the opposite: good early, bad late. The dp line above has that shape.
+That pattern points to a relation that changed over time, not only to noise.
+
+Both readings can be true. The predictor may carry real information about expected returns, as Chapter 9
+suggests. It may still be a poor guide for an investor, who must estimate the slope from a short and changing
+history. And remember what the widget shows: point estimates on one history, a choice of start year that you
+can move, and one investor with $\gamma = 3$. If you try many start years and many predictors, some will win by
+luck. Report them all, as the widget does.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="Over the forecast dates, the historical mean's squared errors add up to 2.0 and the model's add up to 2.1. What is $R^2_{OS}$?"
+  options={["5%", "−5%", "−0.1", "0%"]}
+  answer={1}
+  explanation="$R^2_{OS} = 1 - 2.1/2.0 = -0.05$. The model's squared errors are 5% larger than the mean's, so the running score ends at $2.0 - 2.1 = -0.1$, below zero."
+/>
+
+<Quiz
+  client:visible
+  question="A predictor has a negative $R^2_{OS}$ but a Clark–West statistic of 2.1. What is the best reading?"
+  options={["The predictor carries no information about returns", "The predictor's forecasts point in the right direction, but the noise in the estimated slope costs more than the direction earns", "The Clark–West test is wrong, because the two numbers disagree", "The predictor forecasts better than the mean, so an investor should use it"]}
+  answer={1}
+  explanation="Clark–West removes the penalty $(\hat r^e_{t+1} - \bar r^e_t)^2$, which estimation noise adds even under the null. A statistic above 1.645 rejects a zero slope at 5%. The negative $R^2_{OS}$ says the estimated model still forecast worse than the mean."
+/>
+
+<Quiz
+  client:visible
+  question="With the slope restriction on, what forecast is used when the estimated slope has the wrong sign?"
+  options={["Zero", "The historical mean of the returns to date", "The forecast with the sign of the slope flipped", "The last return"]}
+  answer={1}
+  explanation="The restriction falls back to the benchmark, the mean of the returns known at the date of the forecast. The floor at zero is a separate rule: it replaces a negative forecast by zero."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- A real-time forecast uses only the data known at the date of the forecast: an expanding-window regression
+  against the historical mean of the same returns.
+- $R^2_{OS} = 1 - \sum(r^e_{t+1} - \hat r^e_{t+1})^2 / \sum(r^e_{t+1} - \bar r^e_t)^2$ can be negative, and the
+  running squared-error gain ends above zero exactly when it is positive.
+- On goyal-welch-annual from 1965, none of the 12 predictors beats the mean. The dp line wins until the mid-1990s
+  and then loses it all.
+- Estimation noise pushes $R^2_{OS}$ below zero even under the null, so test with Clark–West. Sign and slope
+  restrictions and the certainty-equivalent gain turn the forecast into an investor's question.
+- A poor $R^2_{OS}$ is weak evidence against predictability, because the test has low power.
+
+**Next up:** Chapter 14 builds a predictor from consumption, wealth and labour income, and meets the look-ahead
+problem from a new side.
+
+### Further reading
+
+- Goyal & Welch (2008)
+- Cochrane (2008)
+- Campbell (2018), Ch. 5
