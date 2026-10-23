@@ -1,0 +1,227 @@
+format: goal-proposal/v1
+task: TASK-032
+add:
+  - ref: lib-time-series-tests
+    title: 'Library: the F distribution, time-series factor regressions and GRS'
+    milestone: M-6
+    why: >-
+      SC-7 and M-6. Chapter 16 needs the factor panel of the 25 size–B/M portfolios, asset-by-asset time-series
+      regressions with alpha standard errors, the GRS statistic with its F p-value, and the Sharpe-ratio reading of
+      GRS in `src/lib`, with tests. Chapters 17 and 18 reuse the panel and the first pass through the two-pass library.
+    scope: |-
+      Add `src/lib/math/distributions.ts`, `src/lib/finance/timeSeriesTests.ts` and their `.test.ts` files. Read first: the entry of chapter 16 in `docs/CURRICULUM.md`, the notation table in `docs/STYLE_GUIDE.md` §3 (subsection "Factor models and tests"), the French notes in `docs/DATA.md` (returns and factors are percent per month; divide by 100), `src/components/plots/capmSample.ts` (how chapter 7 lines up `ff3-monthly` and `ff25-size-bm-monthly`), `src/lib/stats/ols.ts`, `src/lib/finance/portfolio.ts` and `src/lib/math/linalg.ts`. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/GibbonsRossShanken1987.pdf` (Gibbons, Ross & Shanken, Econometrica 1989) with `pdftotext -layout` for the statistic and its finite-sample F distribution, and cite its page in a doc comment.
+
+      Functions in `src/lib/math/distributions.ts`:
+      - `logGamma(x)` and `regularizedBeta(x, a, b)` (the regularized incomplete beta $I_x(a, b)$, by a continued fraction).
+      - `fCdf(x, d1, d2)` and `fSurvival(x, d1, d2)`, the F distribution's CDF and upper tail.
+
+      Functions in `src/lib/finance/timeSeriesTests.ts`:
+      - `factorPanel(ff3, ff25, { start, end?, model })` with `model` `'capm'` (Mkt-RF) or `'ff3'` (Mkt-RF, SMB, HML): returns `{ dates, names, excess, factors, factorNames }` as decimal monthly values, `excess` a T × 25 matrix of $R^e_{i,t} = R_{i,t} - R^f_t$, `factors` a T × K matrix. Fail with a `RangeError` when the two series' dates do not line up, as `capmSample` does.
+      - `timeSeriesRegressions(excess, factors)`: for each asset the OLS fit of $R^e_{i,t} = \alpha_i + \beta_i' f_t + \varepsilon_{i,t}$, returning `{ alpha, alphaSE, alphaT, beta, residuals, residualCovariance, factorMean, factorCovariance }`. State in a doc comment which divisor each covariance uses (GRS uses the maximum-likelihood divisor $T$).
+      - `grs(excess, factors)` returns `{ statistic, pValue, df1, df2, sharpeAll2, sharpeFactors2 }` with $GRS = \tfrac{T-N-K}{N}\big(1 + \bar f'\hat\Sigma_f^{-1}\bar f\big)^{-1}\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha$, `df1` $= N$, `df2` $= T-N-K$, and the two squared maximum Sharpe ratios, so that $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha = SR^2_{\text{all}} - SR^2_f$ can be shown. Use the notation of `docs/STYLE_GUIDE.md` §3 in comments ($\Sigma_f$, $\Sigma_\varepsilon$), not the curriculum's $\Omega$, $\Sigma$.
+      - `sharpeFrontiers(excess, factors, sdGrid)`: the mean–standard deviation frontier of the factors alone and of factors plus test assets on a common grid, for chapter 16's `GRSGeometry`.
+
+      Tests against reference values, each stated in the test: `logGamma` at 0.5, 1, 5 and 10.5; `fCdf` at tabulated quantiles (for example $F_{0.95}(2, 10) = 4.1028$, $F_{0.99}(5, 20) = 4.1027$, and one case with $d_2 \ge 500$), with `fCdf + fSurvival = 1`; `timeSeriesRegressions` on a small hand-computed panel; the in-sample identity $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha = SR^2_{\text{all}} - SR^2_f$ to 1e-10 on a seeded panel; `grs` equal to zero when every alpha is zero; with $N = 1$, GRS equals the squared alpha $t$-statistic up to the stated divisor scaling; and one test per model (`capm`, `ff3`) on the committed data that pins the sample dates (from 1963-07) and the GRS statistic and p-value. Reuse `ols`, `sampleMeans`, `sampleCovariance`, `maxSharpeSquared`, `frontier`, `inverse` and `solve`; do not copy them. Seed any simulation with `src/lib/math/rng.ts`. Out of scope: chapters, widgets, edits to docs or to code outside the files named.
+    acceptance:
+      - Every exported function has a test against a reference value, and `npm test` passes.
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`git status --short` shows only the four files named and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-two-pass
+    title: 'Library: two-pass regressions, Fama–MacBeth and the Shanken correction'
+    milestone: M-6
+    after: [lib-time-series-tests]
+    why: >-
+      SC-7 and M-6. Chapters 17 and 18 need the cross-sectional regression of mean returns on betas (OLS and GLS),
+      monthly Fama–MacBeth slopes with their standard errors, the cross-sectional R², the Shanken correction and a
+      seeded errors-in-variables simulation in `src/lib`, with tests.
+    scope: |-
+      Add `src/lib/finance/crossSection.ts` and `src/lib/finance/crossSection.test.ts`. Read first: the entries of chapters 17 and 18 in `docs/CURRICULUM.md`, the notation table in `docs/STYLE_GUIDE.md` §3, and `src/lib/finance/timeSeriesTests.ts` (from the library task this task depends on): take the first-pass betas, residual covariance and factor moments from `timeSeriesRegressions` and the data from `factorPanel`; do not refit them. No reading in `source/papers/` gives these formulas: Cochrane (2005), Ch. 12, is a book the owner has not supplied, and Fama & MacBeth (1973) and Shanken (1992) are not in `source/papers/`. Derive each formula in a doc comment from the model, and attribute nothing to those works beyond the names of the methods.
+
+      Functions:
+      - `crossSectionalRegression(beta, meanExcess, { intercept, weighting, residualCovariance? })` with `weighting` `'ols'` or `'gls'` (weights $\Sigma_\varepsilon^{-1}$): returns `{ lambda, lambda0?, alpha, fitted, r2 }`, with $\hat\lambda = (\hat\beta'\hat\beta)^{-1}\hat\beta'\bar R^e$ for OLS. Define the cross-sectional $R^2$ in a doc comment (with and without intercept) and use that one definition everywhere.
+      - `famaMacBeth(excess, beta, { intercept })`: the slopes $\hat\lambda_t$ of each month's cross-sectional OLS regression, their mean, $\mathrm{se}(\hat\lambda) = \sigma(\hat\lambda_t)/\sqrt{T}$, the $t$-statistics, the running mean of $\hat\lambda_t$ for a frame-by-frame figure, and the monthly fitted values.
+      - `shankenCorrection(beta, residualCovariance, factorCovariance, lambda, T, { weighting })`: the naive and the corrected covariance of $\hat\lambda$, $\mathrm{Var}(\hat\lambda) = \tfrac1T\big[(\beta'\beta)^{-1}\beta'\Sigma_\varepsilon\beta(\beta'\beta)^{-1}(1 + c) + \Sigma_f\big]$ with $c = \lambda'\Sigma_f^{-1}\lambda$, the GLS version, and $c$ itself. Write the formula with §3 notation ($\Sigma_\varepsilon$, $\Sigma_f$) and say in a doc comment that $c$ is a squared Sharpe ratio.
+      - `simulateTwoPass(seed, { N, T, beta, lambda, factorSharpe, residualSd, replications })`: a seeded one-factor world; for each replication the estimated betas, $\hat\lambda$, and the naive and Shanken standard errors; returns the draws of the first replication (for a scatter of $\hat\beta_i$ around $\beta_i$) and the coverage of the naive and corrected 95% intervals over all replications.
+
+      Tests against reference values, each stated in the test: `crossSectionalRegression` on a hand-computed three-asset case, OLS and GLS; with constant betas, the Fama–MacBeth mean slope equals the cross-sectional regression on mean returns, and the Fama–MacBeth standard error equals $\sqrt{\tfrac1T(\beta'\beta)^{-1}\beta'\hat\Sigma\beta(\beta'\beta)^{-1}}$ with the divisor-$T$ return covariance (exact identities, to 1e-10); `shankenCorrection` with $\lambda = 0$ gives $c = 0$ and adds only $\Sigma_f/T$; GLS with a traded factor included as a test asset gives $\hat\lambda$ equal to the factor's sample mean; `simulateTwoPass` gives the same output for the same seed, and with many replications and a high factor Sharpe ratio the corrected coverage is closer to 95% than the naive one (state the numbers); and one test on the committed data (FF3 on the 25 portfolios from 1963-07) that pins $\hat\lambda$, the Fama–MacBeth $t$-statistics, the cross-sectional $R^2$ and the naive and corrected standard errors. Reuse `ols`, `inverse`, `solve`, `transpose`, `matMul` and the RNG helpers; do not copy them. Out of scope: chapters, widgets, edits to docs or to code outside the files named.
+    acceptance:
+      - Every exported function has a test against a reference value, and `npm test` passes.
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`git status --short` shows only `src/lib/finance/crossSection.ts`, its test and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: chapter-16
+    title: 'Chapter 16: Time-series tests and the GRS statistic'
+    milestone: M-6
+    after: [lib-time-series-tests]
+    why: >-
+      SC-7 and M-6. Part IV moves from the market's time series to the cross-section of expected returns. This chapter
+      opens it and follows the pattern set by chapters 1 and 9 and the Part I to Part III chapters.
+    scope: |-
+      Write chapter 16 of `docs/CURRICULUM.md`, "Time-series tests and the GRS statistic", as `src/content/chapters/16-time-series-tests-and-grs.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md`, `docs/DATA.md`, the finished chapters `src/content/chapters/01-returns.mdx`, `src/content/chapters/07-mean-variance-and-the-capm.mdx`, `src/content/chapters/09-time-varying-expected-returns.mdx` and `src/content/chapters/13-out-of-sample-predictability.mdx` (the models to copy), and the library code named below: `src/lib/finance/timeSeriesTests.ts` and `src/lib/math/distributions.ts` (from the library task this task depends on), `src/lib/finance/portfolio.ts`.
+
+      Readings. Open this PDF with `pdftotext -layout` and name the page for any number or fact you take from it: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/GibbonsRossShanken1987.pdf`. It was published in Econometrica in 1989 (see `docs/READINGS.md`); cite it as "Gibbons, Ross & Shanken (1989)" and report the curriculum's "1987" as a mismatch. Cochrane (2005), Ch. 12, is a book the owner has not supplied: it is not in `source/papers/`, so take no fact from it and list it under further reading only. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper.
+
+      Chapter:
+      - Frontmatter: `part: 4`, `chapter: 16`, `difficulty: 2`, `prerequisites: [3, 7]`, a one-sentence `summary`. Both prerequisites exist; link them. Every sentence about another chapter must be true of the merged site; chapters 17 and 18 may not be merged yet, so name them only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped in a derivation, including why GRS is the Sharpe ratio gained by adding the test assets. Teach the limits honestly: what a rejection does and does not say (a model can be rejected for tiny alphas when $T$ is large, and pass when the test lacks power), and why the test needs $T > N + K$.
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter16-numbers.test.ts` that recomputes each one, as `tests/chapter13-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above and the typed loaders in `src/lib/data/series.ts`:
+      - `AlphaBars`: the annualised alpha of each of the 25 portfolios with its 95% confidence bar from `timeSeriesRegressions`, arranged so size and book-to-market groups can be read, with a `Segmented` control for CAPM or FF3 and a `Select` for the sample start; the readout gives GRS, its p-value and $T$, $N$, $K$ from `grs`.
+      - `GRSGeometry`: the two frontiers of `sharpeFrontiers` (factors only, factors plus test assets), their tangency lines and the Sharpe-ratio gap GRS measures, with the same model control; the readout gives $SR_f$, $SR_{\text{all}}$ and the identity $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha = SR^2_{\text{all}} - SR^2_f$ with numbers.
+      Both follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout, `prefers-reduced-motion`. Put the data hook the widgets and the numbers test share in one helper, `src/components/plots/factorTestSample.ts`, as `presentValueSample.ts` does; build it on `factorPanel`, not on a copy of `capmSample.ts`.
+
+      Out of scope: other chapters (link back to chapters 3 and 7, do not edit them), edits to `docs/CURRICULUM.md` or `docs/STYLE_GUIDE.md` (report mismatches in the outcome), changes to shared code. Where the curriculum's Key math and the notation table of `docs/STYLE_GUIDE.md` §3 disagree, follow the style guide and report the mismatch: the curriculum writes $\hat\Omega$ for the factor covariance and $\hat\Sigma$ for the residual covariance, where §3 has $\Sigma_f$ and $\Sigma_\varepsilon$. List symbols the table lacks (such as $GRS$, $SR_{\text{all}}$, $SR_f$) as candidates. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts` (alphas are `\Err`, model-implied values `\Model`); a new symbol or colour goes into the `docs/STYLE_GUIDE.md` tables only if the spec says so, otherwise report it.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 16-time-series-tests` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 16-time-series-tests` passes and reports every widget of the chapter.'
+      - The six `section-tag` headings are in template order.
+      - No hex colour in the chapter or its widgets.
+      - The widgets use real data from the chapter's curriculum entry (`ff25-size-bm-monthly`, `ff3-monthly`).
+      - The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.
+      - The prose is 1,500–3,000 words (give the command).
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 16-time-series-tests
+      npm run clickthrough -- 16-time-series-tests
+      grep -n 'section-tag' src/content/chapters/16-time-series-tests-and-grs.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/16-time-series-tests-and-grs.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-17
+    title: 'Chapter 17: Cross-sectional regressions and Fama–MacBeth'
+    milestone: M-6
+    after: [lib-two-pass]
+    why: >-
+      SC-7 and M-6. Part IV turns from testing alphas to pricing betas: the two-pass cross-sectional regression and
+      Fama–MacBeth, the workhorse of empirical asset pricing. This chapter follows the pattern of the earlier chapters.
+    scope: |-
+      Write chapter 17 of `docs/CURRICULUM.md`, "Cross-sectional regressions and Fama–MacBeth", as `src/content/chapters/17-cross-sectional-regressions-and-fama-macbeth.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md`, `docs/DATA.md`, the finished chapters `src/content/chapters/01-returns.mdx`, `src/content/chapters/07-mean-variance-and-the-capm.mdx`, `src/content/chapters/09-time-varying-expected-returns.mdx` and `src/content/chapters/13-out-of-sample-predictability.mdx` (the models to copy), and the library code named below: `src/lib/finance/crossSection.ts` (from the library task this task depends on) and `src/lib/finance/timeSeriesTests.ts`.
+
+      Readings. Open these PDFs with `pdftotext -layout` and name the page for any number or fact you take from them: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/Cochrane2011.pdf` (Cochrane (2011), NBER working-paper version) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/FamaFrench1992.pdf` (Fama & French (1992)). Cochrane (2005), Ch. 12, is a book the owner has not supplied: it is not in `source/papers/`, so take no fact from it and list it under further reading only. Fama & MacBeth (1973) is not in `source/papers/` either: teach the method and attribute nothing to that paper unless an opened reading says it, with its page. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper.
+
+      Chapter:
+      - Frontmatter: `part: 4`, `chapter: 17`, `difficulty: 2`, `prerequisites: [16]`, a one-sentence `summary`. Link chapter 16 if it is merged when you finish; otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped in a derivation: the first and second pass, OLS against GLS weighting, the monthly Fama–MacBeth slopes and their standard error, and why Fama–MacBeth equals the two-pass estimate when betas are constant. Teach the limits honestly: what a high cross-sectional $R^2$ does and does not show, and that the standard errors here ignore that betas are estimated (the bridge to chapter 18).
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter17-numbers.test.ts` that recomputes each one, as `tests/chapter13-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above and the typed loaders in `src/lib/data/series.ts`:
+      - `FamaMacBethMovie`: month by month, the cross-section of the 25 portfolios' excess returns against their betas with that month's fitted line from `famaMacBeth`, beside the running mean of $\hat\lambda_t$ with its standard-error band; play, pause and step with the shared `Button`, a `Slider` for the month, a `Segmented` control for CAPM or FF3 (for FF3, show the market slope and say so). Animate with `useTweened`; under `prefers-reduced-motion` the movie does not autoplay and steps jump.
+      - `SMLPlot` reuse: the curriculum asks for fitted against actual mean returns. You may add one optional prop to `src/components/plots/SMLPlot.tsx` that switches it to fitted ($\hat\beta_i'\hat\lambda$ from `crossSectionalRegression`) against actual mean returns, with the default unchanged; then re-run `npm run screenshots -- 07-mean-variance` and report the change. If a separate widget is cleaner, explain why in the outcome.
+      Both follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout, `prefers-reduced-motion`. Use the data hook in `src/components/plots/factorTestSample.ts` if chapter 16 has merged it; otherwise create that file with a hook built on `factorPanel`, and say so in the outcome so the two chapters keep one helper.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` or `docs/STYLE_GUIDE.md` (report mismatches in the outcome), changes to shared code other than the one optional `SMLPlot` prop. Where the curriculum's Key math and the notation table of `docs/STYLE_GUIDE.md` §3 disagree, follow the style guide and report the mismatch (for example $\Sigma$ for the residual covariance, which §3 writes $\Sigma_\varepsilon$); list symbols the table lacks (such as $\lambda_0$, $\hat\lambda_t$, the cross-sectional $R^2$) as candidates. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`; a new symbol or colour goes into the `docs/STYLE_GUIDE.md` tables only if the spec says so, otherwise report it.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 17-cross-sectional` passes in both themes at desktop and phone size, and you inspected the images; if `SMLPlot` changed, `npm run screenshots -- 07-mean-variance` passes too.'
+      - '`npm run clickthrough -- 17-cross-sectional` passes and reports every widget of the chapter.'
+      - The six `section-tag` headings are in template order.
+      - No hex colour in the chapter or its widgets.
+      - The widgets use real data from the chapter's curriculum entry (`ff25-size-bm-monthly`, `ff3-monthly`).
+      - The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.
+      - The prose is 1,500–3,000 words (give the command).
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 17-cross-sectional
+      npm run clickthrough -- 17-cross-sectional
+      grep -n 'section-tag' src/content/chapters/17-cross-sectional-regressions-and-fama-macbeth.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/17-cross-sectional-regressions-and-fama-macbeth.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-18
+    title: 'Chapter 18: Errors in variables and the Shanken correction'
+    milestone: M-6
+    after: [lib-two-pass]
+    why: >-
+      SC-7 and M-6. Part IV closes by asking how much the estimated betas of the first pass shrink the honest
+      uncertainty of the second. This chapter follows the pattern of the earlier chapters.
+    scope: |-
+      Write chapter 18 of `docs/CURRICULUM.md`, "Errors in variables and the Shanken correction", as `src/content/chapters/18-errors-in-variables-and-shanken.mdx`, with its widget. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md`, `docs/DATA.md`, the finished chapters `src/content/chapters/01-returns.mdx`, `src/content/chapters/09-time-varying-expected-returns.mdx`, `src/content/chapters/12-stambaugh-bias.mdx` (a seeded-simulation chapter) and `src/content/chapters/13-out-of-sample-predictability.mdx` (the models to copy), and the library code named below: `src/lib/finance/crossSection.ts` (from the library task this task depends on) and `src/lib/finance/timeSeriesTests.ts`.
+
+      Readings. The curriculum's only reading, Cochrane (2005), Ch. 12, is a book the owner has not supplied: it is not in `source/papers/`, so take no fact from it and list it under further reading only. Shanken (1992) is not in `source/papers/` either. Teach the correction as a method, derived step by step from the two-pass model, and attribute nothing to Shanken (1992) beyond the name of the correction. Cite readings in the short form. Explain ideas in your own words; never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper. Any claim about which factors have a large $c$ (the curriculum mentions consumption factors) is made with our own numbers or stated as a property of the formula, not as a published result.
+
+      Chapter:
+      - Frontmatter: `part: 4`, `chapter: 18`, `difficulty: 2`, `prerequisites: [17]`, a one-sentence `summary`. Link chapter 17 if it is merged when you finish; otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped in the derivation of the corrected variance, and show why $c = \lambda'\Sigma_f^{-1}\lambda$ is a squared Sharpe ratio. Show with our numbers when the correction matters: on FF3 monthly data $c$ is small, so the correction is small; a factor with a high Sharpe ratio makes it large. Teach the limits honestly: the correction assumes i.i.d. returns and conditional homoskedasticity, and it fixes standard errors, not the attenuation of $\hat\lambda$.
+      - Every number in the prose is read from library output on the committed data or from the seeded simulation, never typed from memory. Add `tests/chapter18-numbers.test.ts` that recomputes each one, as `tests/chapter13-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widget (in `src/components/plots/`), computing only through the libraries above and the typed loaders in `src/lib/data/series.ts`: `ShankenCorrection` (from `simulateTwoPass`: the seeded first-pass betas scattered around the true betas, and the naive and corrected 95% intervals for $\lambda$ next to the truth, with a `Slider` for the factor's Sharpe ratio and one for $T$, a new-seed `Button`, and a readout of $c$, both standard errors and the coverage of both intervals over the replications; a second readout gives the naive and corrected standard errors of the FF3 market premium on the 25 portfolios from `shankenCorrection`). Seed every draw with `src/lib/math/rng.ts` and keep the default seed fixed so the prose numbers match. It follows style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout, `prefers-reduced-motion`. Use the data hook in `src/components/plots/factorTestSample.ts` if it is merged; otherwise create that file with a hook built on `factorPanel`, and say so in the outcome so the Part keeps one helper.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` or `docs/STYLE_GUIDE.md` (report mismatches in the outcome), changes to shared code. Where the curriculum's Key math and the notation table of `docs/STYLE_GUIDE.md` §3 disagree, follow the style guide and report the mismatch (the curriculum's $\Sigma$ in the Shanken formula is the residual covariance, §3 $\Sigma_\varepsilon$); list symbols the table lacks (such as $c$) as candidates. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`; a new symbol or colour goes into the `docs/STYLE_GUIDE.md` tables only if the spec says so, otherwise report it.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 18-errors-in-variables` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 18-errors-in-variables` passes and reports every widget of the chapter.'
+      - The six `section-tag` headings are in template order.
+      - No hex colour in the chapter or its widget.
+      - The widget uses the chapter's curriculum data (`ff25-size-bm-monthly`, `ff3-monthly`, simulated with a fixed seed).
+      - The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.
+      - The prose is 1,500–3,000 words (give the command).
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 18-errors-in-variables
+      npm run clickthrough -- 18-errors-in-variables
+      grep -n 'section-tag' src/content/chapters/18-errors-in-variables-and-shanken.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/18-errors-in-variables-and-shanken.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: part-4-signoff
+    title: Orchestrator reads Part IV and signs it off
+    milestone: M-6
+    kind: gate
+    after: [chapter-16, chapter-17, chapter-18]
+    why: >-
+      SC-7 and M-6. The orchestrator judges how Part IV reads before the next Parts copy its pattern. No owner
+      approval is needed (owner decision, 2026-10-23).
+    scope: |-
+      A read-through of chapters 16–18 (Cross-sectional tests) on merged `main`, delivered as a report in this task's outcome. The worker changes no chapter, widget, library or doc; the only file in the PR is this task's outcome file under `goals/course-site/tasks/`.
+
+      1. Run the Verify commands and paste their tails in the outcome.
+      2. Read each chapter in the browser (`npm run dev`, then `http://localhost:4321/empirical-finance-lbs/`) in both themes at desktop and 360px width, and use every widget control.
+      3. Judge four things and write one short section on each: does the voice work for a reader who starts from zero (`docs/STYLE_GUIDE.md` §1); does each widget teach what its caption says; do the three chapters share one data helper (`src/components/plots/factorTestSample.ts`) and one notation (report any duplicate loading code or any symbol used two ways); does Part IV link the CAPM of chapter 7 to the factor models of Part V, with every sentence about another chapter true of the merged site.
+      4. End with `## Sign-off`: either "Part IV reads well" or a numbered list of changes, each naming the chapter, the file and the fix.
+
+      The orchestrator reads the report and the chapters. It signs off by merging this PR. Each listed change becomes a new M-6 task routed to claude opus high, and the orchestrator merges this PR only after those changes are merged.
+    acceptance:
+      - '`npm test` and `npm run build` pass on merged `main`; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots` and `npm run clickthrough` pass for `16-time-series-tests`, `17-cross-sectional` and `18-errors-in-variables`.'
+      - The outcome holds the four judgements and a `## Sign-off` section with "Part IV reads well" or a numbered list of changes.
+      - '`git diff --name-only origin/main` lists only this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 16-time-series-tests
+      npm run screenshots -- 17-cross-sectional
+      npm run screenshots -- 18-errors-in-variables
+      npm run clickthrough -- 16-time-series-tests
+      npm run clickthrough -- 17-cross-sectional
+      npm run clickthrough -- 18-errors-in-variables
+      git diff --name-only origin/main
+link:
+  - {id: TASK-033, after: [chapter-16]}
