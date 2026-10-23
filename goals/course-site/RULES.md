@@ -1,3 +1,4 @@
 - Never commit anything under source/ (the LBS outline and paper PDFs) and never copy their text verbatim; explain in our own words and cite.
 - Route mechanical, non-creative tasks (downloads, data pipelines, scaffolding, syncing files) to codex gpt-6.1-sol high, and creative tasks (curriculum, style, chapters, widgets, planning) to claude opus high. Set the route on every new task.
 - CRSP data (/Users/jesusvillotamiranda/Desktop/CRSP_full_fetch.csv.gz): the owner confirmed that small aggregate series (portfolio or market level) may be committed to the public repo. Never commit security-level rows, and never copy the raw file into a worktree.
+- Do not wait for owner approval. Part read-through tasks are signed off by the orchestrator (goal done) after build, screenshots and click-through pass. Plan tasks must not create 'owner reads and approves' gates; the owner can still send changes at any time (owner, 2026-10-23).
