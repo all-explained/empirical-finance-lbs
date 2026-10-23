@@ -1,5 +1,7 @@
 # TASK-054 outcome: Data: quarterly consumption, wealth and labour income for cay
 
+PR: https://github.com/all-explained/empirical-finance-lbs/pull/41
+
 ## Acceptance
 
 - [x] `npm run data` writes `src/data/series/fred-cay-quarterly.json`.
