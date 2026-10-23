@@ -1,0 +1,375 @@
+---
+title: "Expected returns from option prices"
+part: 3
+chapter: 15
+difficulty: 3
+prerequisites: [8, 13]
+summary: "Index option prices on a single day give a lower bound on the expected market return, with no regression, as long as one condition on the SDF holds."
+---
+
+import OptionStripBound from '../../components/plots/OptionStripBound';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapters 8 and 13">
+[Chapter 8](/empirical-finance-lbs/chapters/08-euler-equation-and-sdf/) gives the pricing equation
+$P_t = \mathbb{E}_t[\SDF{M_{t+1}}X_{t+1}]$, its return form $\mathbb{E}_t[\SDF{M_{t+1}}(1 + \Ret{R_{t+1}})] = 1$, and
+$1 + \Rf{R^f_t} = 1/\mathbb{E}_t[\SDF{M_{t+1}}]$. This chapter uses all three. From Chapter 13 it needs only one
+idea, so here is the short version.
+
+- **In sample and out of sample.** A regression fitted on the whole history uses data that an investor at the
+  time did not have. A fair test of a forecast uses only the data up to the date of the forecast. A predictor
+  that looks strong in the full sample can do much worse in that real-time test.
+</Callout>
+
+## <span class="section-tag">Hook</span> What return can you expect today?
+
+Chapter 9 measured expected returns with a regression on a century of data. The callout above gives the catch:
+a regression fitted on the past can fail in real time. So here is a question you may have. Is
+there a way to read the expected return of the stock market off today's prices, with no regression at all?
+
+Martin (2017) says yes, with a condition. He builds a lower bound on the expected market return from the prices
+of options on the S&P 500 index. He uses daily option prices from January 1996 to January 2012 (p. 382). His
+monthly bound averaged only 1.86% a year in 2004–2006. In November 2008, at the height of the financial crisis,
+it peaked at 55.0% a year (p. 385). The same method, applied to the same kind of prices, gave answers that differ
+by a factor of almost thirty.
+
+This site has no real option data yet. So every option price in this chapter is **simulated**, from a seeded
+model, and the numbers from Martin (2017) are quoted with their page.
+
+## <span class="section-tag">Intuition</span> Insurance prices measure fear
+
+An **option** is a contract on the index. A **put** with strike $K$ pays $K - P_{t+1}$ if the index ends below
+$K$, and nothing otherwise. A **call** pays $P_{t+1} - K$ if the index ends above $K$. In this chapter $K$ is a
+strike price, not a number of factors. A put is insurance against a fall. A call is a bet on a rise.
+
+An option that would pay nothing if the index stayed where it is today is **out of the money**. These options pay
+only if the index moves far. So their prices measure how far the market thinks the index can move. When people
+fear large moves, they pay more for that insurance, and all these prices rise together.
+
+Add up the prices of all the out-of-the-money options: puts at strikes below today's forward price, calls at
+strikes above it. That sum is the shaded area in the bottom panel below. The top panel shows the **smile**: the
+volatility that makes each option price match the Black–Scholes formula. It is higher at low strikes, because
+crash insurance is expensive. The widget turns the area into a number: a floor under the expected return.
+
+<OptionStripBound client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens with an at-the-money volatility of 20%. The
+readout says the expected excess return is at least 4.21% a year. Move the slider to 40%. The area swells, and
+the bound rises to 16.47%: twice the volatility gives almost four times the bound.</p>
+
+The bound grows with the square of volatility, because the area measures a variance. That is why it spikes when
+volatility spikes.
+
+<Callout type="key">Out-of-the-money options are insurance on large moves. Their total price measures the
+market's variance, valued at risk-neutral odds. Under one condition, that variance is a floor under the expected
+excess return.</Callout>
+
+## <span class="section-tag">Formalisation</span> From $P = \mathbb{E}[\SDF{M}X]$ to the option strip
+
+Take one period to be the life of the options, from $t$ to $t+1$. In the widget it is one year. $\Ret{R_{t+1}}$
+is the return of the index over that period, and $\Rf{R^f_t}$ is the risk-free rate over the same period. Both
+are net rates, as in the rest of this course.
+
+### Step 1: risk-neutral probabilities
+
+With a finite list of states $s$, Chapter 8's pricing equation reads
+$P_t = \sum_s \Prob{\pi(s)}\,\SDF{M(s)}\,X(s)$. Define new weights
+
+$$
+\Prob{\pi^*(s)} = \Prob{\pi(s)}\,\SDF{M(s)}\,(1 + \Rf{R^f_t}).
+$$
+
+Each weight is positive, because $\SDF{M}$ and $\Prob{\pi}$ are. They add up to one, because
+$\sum_s \Prob{\pi(s)}\SDF{M(s)} = \mathbb{E}_t[\SDF{M}] = 1/(1 + \Rf{R^f_t})$. So they are probabilities: the
+**risk-neutral probabilities**, and $\mathbb{E}^*_t$ is an expectation with them. Put them into the pricing
+equation:
+
+$$
+P_t = \frac{1}{1 + \Rf{R^f_t}} \sum_s \Prob{\pi^*(s)}\,X(s) = \frac{\mathbb{E}^*_t[X_{t+1}]}{1 + \Rf{R^f_t}}.
+$$
+
+A price is the risk-neutral expected payoff, discounted at the risk-free rate. The same identity, written the other
+way round, translates between the two measures: $\mathbb{E}^*_t[X] = (1 + \Rf{R^f_t})\,\mathbb{E}_t[\SDF{M}X]$.
+Risk-neutral odds are real odds tilted towards the states where $\SDF{M}$ is high. In Chapter 8's two-state
+example, the bad state has a real probability of 0.5 and a risk-neutral probability of 0.579.
+
+### Step 2: the risk-neutral mean and variance of the return
+
+Use $X = 1 + \Ret{R_{t+1}}$. Since $\mathbb{E}_t[\SDF{M}(1 + \Ret{R})] = 1$, the risk-neutral mean is
+$\mathbb{E}^*_t[1 + \Ret{R_{t+1}}] = 1 + \Rf{R^f_t}$. Under these odds, every asset earns the risk-free rate.
+Use $X = (1 + \Ret{R_{t+1}})^2$ for the second moment. The **risk-neutral variance** is then
+
+$$
+\begin{aligned}
+\operatorname{Var}^*_t(\Ret{R_{t+1}}) &= \mathbb{E}^*_t[(1 + \Ret{R_{t+1}})^2] - (1 + \Rf{R^f_t})^2 \\
+&= (1 + \Rf{R^f_t})\,\mathbb{E}_t[\SDF{M}(1 + \Ret{R_{t+1}})^2] \\
+&\quad - (1 + \Rf{R^f_t})^2.
+\end{aligned}
+$$
+
+Adding 1 to a return does not change its variance, so we write $\operatorname{Var}^*_t(\Ret{R})$.
+
+### Step 3: an identity for the risk premium
+
+Start from the expected excess return and add and subtract $\mathbb{E}_t[\SDF{M}(1 + \Ret{R})^2]$. We drop the
+dates inside the expectations:
+
+$$
+\begin{aligned}
+\mathbb{E}_t[\Ret{R}] - \Rf{R^f_t}
+&= \Big\{\mathbb{E}_t[\SDF{M}(1 + \Ret{R})^2] - (1 + \Rf{R^f_t})\Big\} \\
+&\quad - \Big\{\mathbb{E}_t[\SDF{M}(1 + \Ret{R})^2] - \mathbb{E}_t[1 + \Ret{R}]\Big\}.
+\end{aligned}
+$$
+
+Divide the variance of Step 2 by $1 + \Rf{R^f_t}$. You get exactly the first brace. In the second brace, use
+$\mathbb{E}_t[\SDF{M}(1 + \Ret{R})] = 1$ to write $\mathbb{E}_t[1 + \Ret{R}]$ as
+$\mathbb{E}_t[\SDF{M}(1 + \Ret{R})]\,\mathbb{E}_t[1 + \Ret{R}]$. Then the brace is a covariance,
+$\mathbb{E}[XY] - \mathbb{E}[X]\mathbb{E}[Y]$ with $X = \SDF{M}(1 + \Ret{R})$ and $Y = 1 + \Ret{R}$:
+
+$$
+\begin{aligned}
+\mathbb{E}_t[\Ret{R_{t+1}}] - \Rf{R^f_t}
+&= \frac{\operatorname{Var}^*_t(\Ret{R_{t+1}})}{1 + \Rf{R^f_t}} \\
+&\quad - \operatorname{Cov}_t\!\big(\SDF{M_{t+1}}(1 + \Ret{R_{t+1}}),\ \Ret{R_{t+1}}\big).
+\end{aligned}
+$$
+
+This holds for any asset. The first term can be read from prices, as Step 5 shows. The second term cannot.
+
+### Step 4: the condition, and what it rules out
+
+Martin (2017, p. 371) calls the following the **negative correlation condition**:
+
+$$
+\operatorname{Cov}_t\!\big(\SDF{M_{t+1}}(1 + \Ret{R_{t+1}}),\ \Ret{R_{t+1}}\big) \le 0.
+$$
+
+If it holds, the second term of Step 3 is at least zero, and dropping it gives the **lower bound**
+
+$$
+\mathbb{E}_t[\Ret{R_{t+1}}] - \Rf{R^f_t} \;\ge\; \frac{\operatorname{Var}^*_t(\Ret{R_{t+1}})}{1 + \Rf{R^f_t}}.
+$$
+
+The condition is an assumption about the world, not a theorem. It rules out three kinds of case.
+
+- **Hedge assets.** Take Chapter 8's insurance, which pays most in the bad state. Its true premium is −3.8%, but
+  the bound would claim at least 5.4%. Martin (2017, p. 373) names gold and, in recent years, Treasury bonds as
+  assets of this kind.
+- **A risk-neutral world.** If $\SDF{M}$ is a constant, the covariance is $\SDF{M}\operatorname{Var}(\Ret{R})$,
+  which is positive (p. 373). The bound needs an SDF that is volatile and falls when the market rises.
+- **A risky asset with a low Sharpe ratio.** Chapter 8's stock fails too. Its premium is 4.1%, but the bound would
+  say 6.3%. Its SDF is too calm for its volatility.
+
+Why trust the condition for the market? Martin (2017, p. 374) shows that, when $\SDF{M}$ and the return are
+lognormal, it is the same as "the Sharpe ratio is larger than the volatility". He puts the market's Sharpe ratio
+near 50% and its volatility near 16%. He also notes that he knows no model that fits the data in which the
+condition fails for the market (p. 373).
+
+### Step 5: the variance is an area of option prices
+
+Assume the index pays no dividends, so $1 + \Ret{R_{t+1}} = P_{t+1}/P_t$. This is a simplification: the real index
+pays dividends. Martin (2017, p. 379) allows dividends that are known in advance, and a known dividend does not
+change the variance of the return. Then
+$\operatorname{Var}^*_t(\Ret{R}) = \mathbb{E}^*_t[P_{t+1}^2]/P_t^2 - (1 + \Rf{R^f_t})^2$. We need
+$\mathbb{E}^*_t[P_{t+1}^2]$.
+
+Here is the trick. For any $x \ge 0$, the payoff $\max(0, x - K)$ equals $x - K$ for $K$ below $x$ and zero above.
+So
+
+$$
+\begin{aligned}
+2\int_0^\infty \max(0, x - K)\,dK &= 2\int_0^x (x - K)\,dK \\
+&= 2\Big(x^2 - \tfrac12 x^2\Big) = x^2.
+\end{aligned}
+$$
+
+A square is a portfolio of calls, one at every strike. Set $x = P_{t+1}$, take $\mathbb{E}^*_t$ of both sides, and
+divide by $1 + \Rf{R^f_t}$. By Step 1, $\mathbb{E}^*_t[\max(0, P_{t+1} - K)]/(1 + \Rf{R^f_t})$ is the price of the
+call, $\mathrm{call}_t(K)$:
+
+$$
+\frac{\mathbb{E}^*_t[P_{t+1}^2]}{1 + \Rf{R^f_t}} = 2\int_0^\infty \mathrm{call}_t(K)\,dK.
+$$
+
+Calls with low strikes are deep in the money and trade little. **Put–call parity** swaps them for puts. A call
+minus a put with the same strike pays $P_{t+1} - K$ in every state. So its price is $P_t - K/(1 + \Rf{R^f_t})$.
+Write $F_t = P_t(1 + \Rf{R^f_t})$ for the **forward price** of the index. Then
+
+$$
+\mathrm{call}_t(K) = \mathrm{put}_t(K) + \frac{F_t - K}{1 + \Rf{R^f_t}}.
+$$
+
+Split the integral at $F_t$ and use parity below it. The extra term integrates to
+$\int_0^{F_t}(F_t - K)\,dK = F_t^2/2$:
+
+$$
+\begin{aligned}
+\frac{\mathbb{E}^*_t[P_{t+1}^2]}{1 + \Rf{R^f_t}}
+&= 2\Big[\int_0^{F_t}\mathrm{put}_t(K)\,dK + \int_{F_t}^\infty \mathrm{call}_t(K)\,dK\Big] \\
+&\quad + \frac{F_t^2}{1 + \Rf{R^f_t}}.
+\end{aligned}
+$$
+
+Now divide by $P_t^2$ and subtract $1 + \Rf{R^f_t}$. Since $F_t/P_t = 1 + \Rf{R^f_t}$, the last term divided by
+$P_t^2$ is exactly $1 + \Rf{R^f_t}$, and it cancels:
+
+$$
+\begin{aligned}
+&\frac{\operatorname{Var}^*_t(\Ret{R_{t+1}})}{1 + \Rf{R^f_t}} \\
+&\quad = \frac{2}{P_t^2}\,\Prob{\Big[\int_0^{F_t}\mathrm{put}_t(K)\,dK + \int_{F_t}^\infty \mathrm{call}_t(K)\,dK\Big]}.
+\end{aligned}
+$$
+
+The bracket is the shaded area in the widget. With this, the bound of Step 4 reads straight off one day's
+option prices. Martin (2017, p. 382) defines an index from the same area, the **SVIX**, scaled to a year:
+
+$$
+\begin{aligned}
+\mathrm{SVIX}^2_t &= \frac{1}{\tau}\operatorname{Var}^*_t\!\left(\frac{1 + \Ret{R_{t+1}}}{1 + \Rf{R^f_t}}\right) \\
+&= \frac{2}{\tau\,(1 + \Rf{R^f_t})\,P_t^2} \\
+&\quad \times \Prob{\Big[\int_0^{F_t}\mathrm{put}_t(K)\,dK + \int_{F_t}^\infty \mathrm{call}_t(K)\,dK\Big]},
+\end{aligned}
+$$
+
+where $\tau$ is the life of the options in years. The bound, per year, is $(1 + \Rf{R^f_t})\,\mathrm{SVIX}^2_t$. In the
+widget, $\tau = 1$, $\mathrm{SVIX}^2 = 0.0409$ and $\Rf{R^f} = 3\%$, so the bound is $1.03 \times 0.0409$, or 4.21%.
+
+### Step 6: variance or entropy?
+
+The famous fear index is the **VIX**, not the SVIX. It uses the same options but weights each price by $1/K^2$:
+
+$$
+\begin{aligned}
+\mathrm{VIX}^2_t &= \frac{2(1 + \Rf{R^f_t})}{\tau} \\
+&\quad \times \Big[\int_0^{F_t}\frac{\mathrm{put}_t(K)}{K^2}\,dK + \int_{F_t}^\infty \frac{\mathrm{call}_t(K)}{K^2}\,dK\Big].
+\end{aligned}
+$$
+
+Low strikes get the largest weights, so the VIX leans on crash insurance. What does it measure? The **entropy**
+of a positive random variable $X$ is $L(X) = \log\mathbb{E}[X] - \mathbb{E}[\log X]$. The log is concave, so by
+Jensen's inequality $L(X) \ge 0$, with zero only when $X$ is a constant. Like a variance, it measures spread.
+Write $L_t$ with real probabilities and $L^*_t$ with risk-neutral ones. Martin (2017, p. 401) shows that
+$\mathrm{VIX}^2_t = \tfrac{2}{\tau}L^*_t\big((1 + \Ret{R_{t+1}})/(1 + \Rf{R^f_t})\big)$.
+
+<details>
+<summary>Every step of the VIX–entropy link</summary>
+
+1. For a smooth $f$, Taylor's theorem with an integral remainder, expanded at $F$, gives
+   $f(x) = f(F) + f'(F)(x - F) + \int_0^F f''(K)\max(0, K - x)\,dK + \int_F^\infty f''(K)\max(0, x - K)\,dK$.
+   Check it: for $x$ above $F$ only the last integral is nonzero, and it is $\int_F^x f''(K)(x - K)\,dK$, the
+   usual remainder.
+2. Take $f = \log$, so $f'(F) = 1/F$ and $f''(K) = -1/K^2$. Put $x = P_{t+1}$ and $F = F_t$.
+3. Take $\mathbb{E}^*_t$. The linear term drops out, because $\mathbb{E}^*_t[P_{t+1}] = P_t(1 + \Rf{R^f_t}) = F_t$.
+   By Step 1, $\mathbb{E}^*_t[\max(0, K - P_{t+1})] = (1 + \Rf{R^f_t})\,\mathrm{put}_t(K)$, and the same for calls.
+   So $\mathbb{E}^*_t[\log P_{t+1}] = \log F_t - (1 + \Rf{R^f_t})\big[\int_0^{F_t}\mathrm{put}_t(K)/K^2\,dK + \int_{F_t}^\infty\mathrm{call}_t(K)/K^2\,dK\big]$.
+4. Let $X = (1 + \Ret{R_{t+1}})/(1 + \Rf{R^f_t}) = P_{t+1}/F_t$. Then $\mathbb{E}^*_t[X] = 1$, so $\log\mathbb{E}^*_t[X] = 0$
+   and $L^*_t(X) = -\mathbb{E}^*_t[\log X] = \log F_t - \mathbb{E}^*_t[\log P_{t+1}]$.
+5. By step 3 this is $(1 + \Rf{R^f_t})$ times the weighted bracket. Multiply by $2/\tau$: that is $\mathrm{VIX}^2_t$.
+
+</details>
+
+So SVIX measures risk-neutral variance and VIX measures risk-neutral entropy. If the return is lognormal, the two
+are almost the same: $\mathrm{VIX}^2 = \sigma^2$ and $\mathrm{SVIX}^2 = (e^{\sigma^2\tau} - 1)/\tau$, a little more
+(Martin 2017, p. 402). For a lognormal $X$, $\log\mathbb{E}[X] = \mathbb{E}[\log X] + \tfrac12\operatorname{Var}(\log X)$,
+so $L(X)$ is half the variance of $\log X$. When $\SDF{M}$ and the return are jointly lognormal, $\log X$ has the
+same variance under both sets of odds (Martin 2017, p. 374), so $L_t$ and $L^*_t$ agree too. With a skew, they
+part. The entropy weights the left tail more, so a fat left tail raises VIX above SVIX. In the widget's default smile, the VIX is 21.8% and
+the SVIX is 20.2%. Martin (2017, p. 402) finds the VIX above the SVIX on every day of his sample: the market is
+not lognormal, even over one month.
+
+Which one gives the bound? The variance. Step 3 is an identity in variance, and the condition of Step 4 closes
+it. The entropy gives a different identity. With real odds,
+$\log\mathbb{E}_t[X] = \mathbb{E}_t[\log X] + L_t(X)$. With risk-neutral odds, $0 = \mathbb{E}^*_t[\log X] + L^*_t(X)$.
+So VIX pins down the risk-neutral mean of the log return. It does not, by itself, bound the real expected return.
+If you put the VIX in place of the SVIX, you get $1.03 \times 0.0477$, or 4.91%: a larger number with no
+theorem behind it.
+
+<Callout type="key">$\mathbb{E}_t[\Ret{R}] - \Rf{R^f_t} \ge \operatorname{Var}^*_t(\Ret{R})/(1 + \Rf{R^f_t})$, and
+the right side is $2/P_t^2$ times the area under the out-of-the-money option prices. It needs the negative
+correlation condition. The VIX measures entropy and loads on the left tail; the bound uses the SVIX.</Callout>
+
+## <span class="section-tag">Playground</span> Calm markets and crises
+
+This copy of the widget opens at 45% volatility, a crisis level. As before, all its option prices are simulated.
+
+<OptionStripBound client:visible initialLevel={45} />
+
+<p class="try-this"><strong>Try this:</strong> at 45%, the bound is 20.87% a year. Martin's one-year bound peaked
+at 21.5% in his sample (Table I, p. 384). Now drag the slider down to 10%: the bound falls to 1.08%. Then set it
+back to 20% and press "New draw" a few times. Over the first ten seeds the bound stays between 4.21% and 4.84%,
+but the VIX moves from 21.6% to 27.4%. The skew moves the VIX much more than the bound.</p>
+
+<p class="try-this"><strong>Try this too:</strong> at 20%, switch the smile to "flat (lognormal)". The VIX drops
+to 20.0% and the SVIX is 20.2%, just above it, as the lognormal formula $\sqrt{e^{0.04} - 1}$, or 20.2%,
+predicts. The bound barely moves: it is 4.21% both ways.</p>
+
+### What a lower bound can and cannot tell you
+
+A lower bound is a floor, not a forecast. It says the expected excess return is *at least* this much. The true
+premium may be far higher. Martin (2017, p. 382) finds that his monthly bound averaged 5.00% a year, close to
+common estimates of the equity premium. He then tests whether the bound holds with equality, with predictive
+regressions, and does not reject it (p. 367). A failure to reject is not proof.
+
+The bound rests on the negative correlation condition. Option prices cannot test it, because the covariance
+uses real-world odds. If you doubt the condition, you must doubt the bound.
+
+Real strikes stop somewhere. The widget drops every option outside the strikes 30 to 300. Dropped options can
+only shrink the area, so a truncated strip still gives a valid floor, just a lower one (Martin 2017, p. 381).
+
+Above all, the widget's numbers are not estimates. They come from a toy smile that we chose, so they carry no
+standard error and no sample period. They show how the machine works. Martin's numbers, with their pages, are
+the evidence. Unlike the regressions of Chapter 9, his bound needs no long sample, because it reads the
+forward-looking information in one day's prices. It pays for that with an assumption about the SDF.
+
+<Callout type="warning">The bound is only as good as the negative correlation condition. It fails for hedge
+assets, and it says nothing about how far above the floor the true premium lies.</Callout>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="At-the-money volatility doubles from 20% to 40%, and the shape of the smile stays the same. Roughly what happens to the lower bound?"
+  options={["It stays the same", "It roughly doubles", "It roughly quadruples", "It falls"]}
+  answer={2}
+  explanation="The bound is a risk-neutral variance, and a variance grows with the square of volatility. In the widget it rises from 4.21% to 16.47%, about 3.9 times as much."
+/>
+
+<Quiz
+  client:visible
+  question="For which asset should you not use the bound $\mathbb{E}_t[\Ret{R}] - \Rf{R^f_t} \ge \operatorname{Var}^*_t(\Ret{R})/(1 + \Rf{R^f_t})$?"
+  options={["A broad stock index", "Gold, whose return tends to be high in bad times", "A portfolio of large stocks", "Any asset with options traded on it"]}
+  answer={1}
+  explanation="A hedge asset pays well when $\SDF{M}$ is high, so $\operatorname{Cov}_t(\SDF{M}(1 + \Ret{R}), \Ret{R})$ is positive and the negative correlation condition fails. Then the variance term overstates the premium."
+/>
+
+<Quiz
+  client:visible
+  question="On the same day, the VIX is well above the SVIX. What does that tell you?"
+  options={["The bound is wrong", "Risk-neutral odds put a fat left tail on the return, so it is not lognormal", "The expected return is negative", "The risk-free rate is high"]}
+  answer={1}
+  explanation="Under lognormality the SVIX is slightly above the VIX. The VIX measures entropy, which weights crash insurance more, so a VIX above the SVIX signals a fat left tail. The bound still uses the SVIX."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- Risk-neutral odds are real odds tilted by $\SDF{M}$: $\Prob{\pi^*(s)} = \Prob{\pi(s)}\SDF{M(s)}(1 + \Rf{R^f_t})$.
+  Every price is a risk-neutral expected payoff, discounted at the risk-free rate.
+- An identity: $\mathbb{E}_t[\Ret{R}] - \Rf{R^f_t} = \operatorname{Var}^*_t(\Ret{R})/(1 + \Rf{R^f_t}) -
+  \operatorname{Cov}_t(\SDF{M}(1 + \Ret{R}), \Ret{R})$. The negative correlation condition turns it into a lower
+  bound. It fails for hedge assets.
+- The risk-neutral variance is $2/P_t^2$ times the area under out-of-the-money put and call prices. The SVIX
+  scales it to a year, and the annual bound is $(1 + \Rf{R^f_t})\mathrm{SVIX}^2_t$.
+- The VIX weights the same options by $1/K^2$ and measures risk-neutral entropy. It leans on the left tail and
+  gives no bound by itself.
+- The bound grows with the square of volatility, so it spikes in crises: Martin's monthly bound went from an
+  average of 1.86% in 2004–2006 to 55.0% in November 2008 (p. 385).
+
+**Next up:** Chapter 16 opens Part IV and turns from the market as a whole to the cross-section: it tests a factor
+model one asset at a time, and then all assets together.
+
+### Further reading
+
+- Martin (2017)
+- Campbell (2018), Ch. 5
