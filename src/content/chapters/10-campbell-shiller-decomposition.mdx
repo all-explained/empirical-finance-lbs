@@ -1,0 +1,299 @@
+---
+title: "The Campbell–Shiller decomposition"
+part: 2
+chapter: 10
+difficulty: 2
+prerequisites: [5, 9]
+summary: "A log-linear return identity shows that a high price–dividend ratio must forecast low returns, high dividend growth or an explosive bubble, and the data measure each share."
+---
+
+import LogLinearCheck from '../../components/plots/LogLinearCheck';
+import VarianceShares from '../../components/plots/VarianceShares';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Prices at 87 times dividends
+
+At the end of 2025, the S&P composite index cost 86.7 times the dividends its companies paid that year. Since
+1872 its typical level is 26.4 (the average of the log ratio, turned back into a ratio). Only once was it higher: 88.0, at the end of 1999. Its
+lowest value was 9.9, at the end of 1917.
+
+So here is the question you probably have. If you pay 87 dollars today for each dollar of dividends, what has to
+happen next? There are only three ways out. The dividends can grow fast, so the price was fair after all. The
+returns can be low, because you paid a lot for what you get. Or the price can keep rising faster than the
+dividends forever, which is a bubble.
+
+There is no fourth way. This chapter proves that with a short piece of algebra due to Campbell and Shiller
+(1988). Then it asks the data which of the three ways history took. The answer depends on which century you look
+at, and the chapter is honest about that.
+
+## <span class="section-tag">Intuition</span> A return is a yield plus a change in the ratio
+
+Think of a flat that you rent out. Your return in one year has two parts: the rent, and the change in the price
+of the flat. The price of the flat is the rent times a price–rent ratio. So the price can change for two reasons:
+the rent grows, or the ratio changes.
+
+A stock works the same way, with dividends as the rent. The return in a year is the dividend yield plus the growth
+in the price. The growth in the price is the growth in dividends plus the change in the price–dividend ratio.
+That is pure accounting. It holds every year, with no model of investors behind it.
+
+The problem is that this accounting is not linear in the ratio. Campbell and Shiller found a straight-line version
+that is almost exact. Here is the test of "almost". The solid line is the exact log return of the S&P composite,
+year by year since 1873, computed from prices and dividends. The dashed line is the straight-line rule that the
+next section derives. It uses only the price–dividend ratio at the start and the end of the year and the growth of
+dividends.
+
+<LogLinearCheck client:visible />
+
+<p class="try-this"><strong>Try this:</strong> look for the dashed line in the "returns" view. It hides under the
+solid one in nearly every year. Then switch to "error" and read the gap: on average 0.39% a year, and never more
+than 2.4%, in 1917.</p>
+
+Now the logic of the hook becomes clear. Run the rule forward, year after year. Today's ratio then equals the sum
+of all the future dividend growth, minus all the future returns, plus the ratio far in the future. If today's ratio
+is high, at least one of those three terms must be large. The identity cannot tell you which one. Only data can.
+
+<Callout type="key">A high price–dividend ratio must be followed by high dividend growth, low returns, or an even
+higher ratio later. This is accounting, not a theory. The open question is how much each of the three carries.</Callout>
+
+## <span class="section-tag">Formalisation</span> Linearise, iterate, decompose
+
+### The exact identity
+
+Write $P_t$ for the price at the end of year $t$ and $D_{t+1}$ for the dividends paid during year $t+1$. The
+gross return is $1 + \Ret{R_{t+1}} = (P_{t+1} + D_{t+1})/P_t$. Multiply and divide by $D_{t+1}$ and by $D_t$:
+
+$$
+1 + \Ret{R_{t+1}} = \left(\frac{P_{t+1}}{D_{t+1}} + 1\right)\frac{D_{t+1}}{D_t}\,\frac{D_t}{P_t}.
+$$
+
+Take logs. Use lower-case letters for logs, so $\Signal{pd_t} = p_t - d_t$ is the log price–dividend ratio,
+$\Delta d_{t+1} = d_{t+1} - d_t$ is log dividend growth and $\Ret{r_{t+1}} = \log(1 + \Ret{R_{t+1}})$. Since
+$P_{t+1}/D_{t+1} = e^{\Signal{pd_{t+1}}}$,
+
+$$
+\Ret{r_{t+1}} = \log\!\left(1 + e^{\Signal{pd_{t+1}}}\right) + \Delta d_{t+1} - \Signal{pd_t}.
+$$
+
+This holds exactly. It is the solid line in the widget. Note that $\Ret{r}$ here is the total return, not the
+excess return of [Chapter 9](/empirical-finance-lbs/chapters/09-time-varying-expected-returns/), because the identity is about prices and dividends only.
+
+### The straight-line approximation
+
+Only the first term is not linear. Call it $f(x) = \log(1 + e^x)$. Its slope is
+
+$$
+f'(x) = \frac{e^x}{1 + e^x}.
+$$
+
+Replace $f$ by its tangent line at the sample mean $\overline{pd}$. That is a first-order Taylor expansion:
+
+$$
+f(\Signal{pd_{t+1}}) \approx f(\overline{pd}) + f'(\overline{pd})\,(\Signal{pd_{t+1}} - \overline{pd}).
+$$
+
+Give the slope and the constant their own names:
+
+$$
+\rho = \frac{e^{\overline{pd}}}{1 + e^{\overline{pd}}}, \qquad \kappa = \log\!\left(1 + e^{\overline{pd}}\right) -
+\rho\,\overline{pd}.
+$$
+
+Then $f(\Signal{pd_{t+1}}) \approx \kappa + \rho\,\Signal{pd_{t+1}}$, and the return identity becomes
+
+$$
+\Ret{r_{t+1}} \approx \kappa + \rho\,\Signal{pd_{t+1}} + \Delta d_{t+1} - \Signal{pd_t}.
+$$
+
+On our data the mean log ratio $\overline{pd}$ is the log of 26.4, so $\rho = 26.4/27.4 = 0.964$ and $\kappa = 0.157$. The number $\rho$ is a
+little below 1. It works like a discount factor, as you will see in a moment.
+
+The function $f$ curves upward, and a tangent line lies below a curve that bends up. So the approximation is never
+above the exact return, and the error is never negative. It grows when $\Signal{pd_{t+1}}$ is far from the mean.
+Campbell and Shiller (1988, p. 5) also linearise around a sample mean, and they too find the error small.
+
+<p class="try-this"><strong>Try this:</strong> in the widget above, choose "error" and move the slider. It moves
+the point of the tangent away from the mean. At $-1.0$, the tangent sits at a ratio of 9.7, and the largest error
+grows to 11.9%, in 1999. At $+1.0$, the tangent sits at 71.8, and the largest error is 5.6%. The rule is only good
+near the ratios it was built for.</p>
+
+### Solve forward
+
+Rearrange the approximation to put today's ratio on the left:
+
+$$
+\Signal{pd_t} \approx \kappa + \Delta d_{t+1} - \Ret{r_{t+1}} + \rho\,\Signal{pd_{t+1}}.
+$$
+
+The same equation holds one year later, for $\Signal{pd_{t+1}}$. Substitute it in:
+
+$$
+\Signal{pd_t} \approx \kappa(1 + \rho) + (\Delta d_{t+1} - \Ret{r_{t+1}}) + \rho\,(\Delta d_{t+2} - \Ret{r_{t+2}})
++ \rho^2\,\Signal{pd_{t+2}}.
+$$
+
+Each substitution adds one more year, discounted by one more power of $\rho$. After $k$ steps, and with the
+geometric sum $1 + \rho + \dots + \rho^{k-1} = (1 - \rho^k)/(1 - \rho)$,
+
+$$
+\Signal{pd_t} \approx \kappa\,\frac{1 - \rho^k}{1 - \rho} + \sum_{j=1}^{k} \rho^{j-1}\left(\Delta d_{t+j} -
+\Ret{r_{t+j}}\right) + \rho^k\,\Signal{pd_{t+k}}.
+$$
+
+The last term is the **bubble term**. If the ratio does not explode faster than $1/\rho$ per year, then
+$\rho^k\,\Signal{pd_{t+k}}$ goes to zero as $k$ grows, and
+
+$$
+\Signal{pd_t} = \frac{\kappa}{1 - \rho} + \sum_{j \ge 1} \rho^{j-1}\left(\Delta d_{t+j} - \Ret{r_{t+j}}\right).
+$$
+
+This holds for the realised future, so it also holds for its expectation given what you know at $t$. A high
+$\Signal{pd_t}$ today must come with high expected dividend growth, low expected returns, or both.
+
+### From the identity to variance shares
+
+The predictability literature uses $\Signal{dp_t} = -\Signal{pd_t}$, the log dividend–price ratio of Chapter 9.
+Multiply the $k$-step equation by $-1$:
+
+$$
+\Signal{dp_t} \approx \text{constant} + \sum_{j=1}^{k} \rho^{j-1}\Ret{r_{t+j}} - \sum_{j=1}^{k}
+\rho^{j-1}\Delta d_{t+j} + \rho^k\,\Signal{dp_{t+k}}.
+$$
+
+Take the covariance of both sides with $\Signal{dp_t}$. The left side gives $\operatorname{Var}(\Signal{dp_t})$,
+and the constant gives zero. Divide by $\operatorname{Var}(\Signal{dp_t})$:
+
+$$
+1 \approx \underbrace{\frac{\operatorname{Cov}\!\left(\Signal{dp_t}, \sum_j \rho^{j-1}\Ret{r_{t+j}}\right)}
+{\operatorname{Var}(\Signal{dp_t})}}_{b_r^{(k)}} - \underbrace{\frac{\operatorname{Cov}\!\left(\Signal{dp_t},
+\sum_j \rho^{j-1}\Delta d_{t+j}\right)}{\operatorname{Var}(\Signal{dp_t})}}_{b_d^{(k)}} + \rho^k
+\underbrace{\frac{\operatorname{Cov}(\Signal{dp_t}, \Signal{dp_{t+k}})}{\operatorname{Var}(\Signal{dp_t})}}_{b_{dp}^{(k)}}.
+$$
+
+Each ratio is the slope of a regression on $\Signal{dp_t}$, with an intercept. So the three slopes must add up
+to 1. Read them as shares: $b_r^{(k)}$ is the share of the variance of $\Signal{dp}$ that future returns carry,
+$-b_d^{(k)}$ the share of dividend growth, and $\rho^k b_{dp}^{(k)}$ the share of the bubble term.
+
+### The long-run version with an AR(1)
+
+You can also get the shares from one-year regressions. Regress $\Ret{r_{t+1}}$, $\Delta d_{t+1}$ and
+$\Signal{dp_{t+1}}$ on $\Signal{dp_t}$, and call the three slopes $b_r$, $b_d$ and $\phi$. The last one is the
+persistence of an AR(1), as in [Chapter 5](/empirical-finance-lbs/chapters/05-persistence-ar1-and-var/). Write
+the one-year identity in $\Signal{dp}$ form, $\Ret{r_{t+1}} \approx \kappa - \rho\,\Signal{dp_{t+1}} + \Delta
+d_{t+1} + \Signal{dp_t}$, and regress both sides on $\Signal{dp_t}$:
+
+$$
+b_r \approx -\rho\phi + b_d + 1, \qquad \text{so} \qquad 1 \approx b_r - b_d + \rho\phi.
+$$
+
+Now suppose $\Signal{dp}$ is an AR(1), so that $\mathbb{E}_t[\Signal{dp_{t+j-1}}] = \text{constant} +
+\phi^{j-1}\Signal{dp_t}$. The forecast of the return in year $t+j$ is $b_r$ times that, so its slope on
+$\Signal{dp_t}$ is $b_r\phi^{j-1}$. Sum over all years with weights $\rho^{j-1}$:
+
+$$
+b_r^{\text{lr}} = b_r\sum_{j \ge 1} (\rho\phi)^{j-1} = \frac{b_r}{1 - \rho\phi}, \qquad b_d^{\text{lr}} =
+\frac{b_d}{1 - \rho\phi}.
+$$
+
+The bubble term has slope $\rho^k\phi^k$, which goes to zero. Divide the one-year identity $b_r - b_d \approx 1 -
+\rho\phi$ by $1 - \rho\phi$, and you get the long-run identity
+
+$$
+1 \approx b_r^{\text{lr}} - b_d^{\text{lr}}.
+$$
+
+In words: over the long run, every bit of variation in $\Signal{dp}$ is either a forecast of returns or a forecast
+of dividend growth.
+
+### What the data say
+
+On goyal-welch-annual, with $\Signal{dp}$ at the end of 1872 to 2024 and the following year's return, the one-year
+slopes are $b_r = 0.024$, $b_d = -0.088$ and $\phi = 0.92$. The identity $b_r - b_d + \rho\phi$ comes to 1 up to
+a gap of 0.003, which is the linearisation error. The long-run slopes are $b_r^{\text{lr}} = 0.21$ and
+$b_d^{\text{lr}} = -0.76$. Over the full sample, most of the variation in the ratio forecast dividend growth: low
+prices came before falling dividends.
+
+Now start with $\Signal{dp}$ at the end of 1946. On the same data, the long-run slopes become
+$b_r^{\text{lr}} = 1.11$ and $b_d^{\text{lr}} = 0.10$. After the war, the ratio forecast returns almost one for
+one, and dividend growth hardly at all. Cochrane (2011, p. 1050) reports the same post-war pattern on CRSP data
+for 1947–2009. He reads it to mean that the variation in the ratio comes from expected returns, not from
+expected dividends or bubbles.
+
+<Callout type="warning">These are point estimates. The library reports no standard errors for them, and the
+long-run slopes divide by $1 - \rho\phi$, a small and imprecise number. The full sample and the post-war sample
+give opposite answers. Neither is a precise measurement.</Callout>
+
+## <span class="section-tag">Playground</span> Split the variance yourself
+
+The widget runs the decomposition directly, with no AR(1) assumption. For each horizon $k$, it computes the three
+covariances of the last derivation on the same dates. The bar to the right of zero stacks the positive shares. A
+negative share stacks to the left. The dashed line marks 100%, the whole variance of $\Signal{dp}$.
+
+<VarianceShares client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start at 1 year. The future ratio carries 89%, because one year is
+too short for anything else: the ratio mostly forecasts itself. Now move the slider to 15 years. Returns carry
+25%, dividend growth 41% and the bubble term 31%.</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch the sample to "from 1946" and keep 15 years. Returns now
+carry 74%, dividend growth 6% and the bubble term 19%. Then go to 20 years in both samples, and watch the sum in
+the readout. It falls a little short of 100%, at 97% in the full sample, because of the linearisation error.</p>
+
+### What the playground can and cannot show
+
+Even at 20 years the bubble term does not vanish. In the full sample it still carries 27%. That is not proof of a
+bubble. It means the ratio is so persistent that 20 years is not yet the long run: $\rho^{20}$ is still 0.48. The
+AR(1) version above extends the sum to infinity, but only by assuming that the AR(1) is right.
+
+The long sums also share most of their years. A 20-year sum that starts in 1950 and one that starts in 1951 have
+19 years in common. As in Chapter 9, the data contain only a handful of separate 20-year windows. So the shares
+move a lot when the sample changes, as the two samples show.
+
+Finally, the identity cannot say *why* expected returns or dividends change. It only says that one of them must,
+whenever the ratio moves. Explaining why is the job of the asset pricing models later in the course.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="The average price–dividend ratio in a sample is 24. What is the linearisation constant $\rho$?"
+  options={["0.24", "0.96", "1.04", "0.50"]}
+  answer={1}
+  explanation="$\rho = e^{\overline{pd}}/(1 + e^{\overline{pd}})$, and $e^{\overline{pd}}$ is the ratio itself. So $\rho = 24/25 = 0.96$."
+/>
+
+<Quiz
+  client:visible
+  question="There is no bubble term in the long run, and the long-run return slope is $b_r^{\text{lr}} = 0.9$. What must the long-run dividend slope be?"
+  options={["0.9", "0.1", "−0.1", "1.9"]}
+  answer={2}
+  explanation="The long-run identity is $1 \approx b_r^{\text{lr}} - b_d^{\text{lr}}$. So $b_d^{\text{lr}} = 0.9 - 1 = -0.1$: a high dividend–price ratio forecasts slightly lower dividend growth."
+/>
+
+<Quiz
+  client:visible
+  question="Why is the approximate log return never above the exact one when the expansion is at the sample mean?"
+  options={["Because $\\rho$ is less than 1", "Because $\\log(1 + e^x)$ curves upward, so its tangent line lies below it", "Because dividends always grow", "Because the sample mean is the best guess"]}
+  answer={1}
+  explanation="The approximation replaces the convex function $\log(1 + e^x)$ by its tangent line. A tangent lies below a convex curve at every point, so the error, exact minus approximate, is never negative."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- The log return is exactly $\log(1 + e^{pd_{t+1}}) + \Delta d_{t+1} - pd_t$. Its tangent line at the mean,
+  $\kappa + \rho\,pd_{t+1} + \Delta d_{t+1} - pd_t$, misses by 0.39% a year on average since 1873.
+- Solved forward, the identity says that today's ratio equals discounted future dividend growth minus discounted
+  future returns, plus a bubble term that must vanish if the ratio does not explode.
+- So the variance of $dp$ splits into a return share, a dividend-growth share and a bubble share that add up to
+  1, and in the long run $1 \approx b_r^{\text{lr}} - b_d^{\text{lr}}$.
+- On goyal-welch-annual since 1872, dividend growth carries the larger share. After the war, returns carry most
+  of it. These are point estimates from few independent decades.
+
+**Next up:** Chapter 11 applies the same identity to returns themselves, and splits each surprise in the return
+into news about cash flows and news about discount rates.
+
+### Further reading
+
+- Campbell and Shiller (1988)
+- Cochrane (2011)
+- Campbell (2018), Ch. 5
