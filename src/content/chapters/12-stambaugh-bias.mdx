@@ -1,0 +1,296 @@
+---
+title: "Stambaugh bias"
+part: 2
+chapter: 12
+difficulty: 2
+prerequisites: [5, 9]
+summary: "A persistent predictor whose shocks move with returns makes the predictive slope too large and its t-statistic too optimistic in small samples, and simulation corrects both."
+---
+
+import StambaughBias from '../../components/plots/StambaughBias';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> A slope from a world with nothing to find
+
+In [Chapter 9](/empirical-finance-lbs/chapters/09-time-varying-expected-returns/), the log dividend–price ratio
+at the end of each year forecast the next year's log excess return. On the goyal-welch-annual data, with
+dividend–price ratios from 1926 to 2024 and returns from 1927 to 2025, the slope is 0.042. That uses 99 pairs of
+years. The classical $t$-statistic is 1.07.
+
+Now imagine a world where returns cannot be forecast at all. The true slope is exactly zero. Give that world the
+same kind of predictor as ours: just as slow, with shocks of the same size and the same link to returns. Draw 99
+years of data from it, and run the same regression. Do this a thousand times.
+
+You would expect the slopes to scatter around zero. They do not. Their average is 0.033, and more than a third
+of them are larger than the 0.042 we found in the data. So here is the question you should have: **how much of
+the slope we measure is real, and how much is produced by the regression itself?** This chapter shows where the
+extra slope comes from, how big it is, and how to test honestly when it is there.
+
+## <span class="section-tag">Intuition</span> Two estimates that make the same mistake
+
+Start with the two facts that cause the problem.
+
+**Fact one: the dividend–price ratio moves slowly.** In
+[Chapter 5](/empirical-finance-lbs/chapters/05-persistence-ar1-and-var/) you met the AR(1), a series that
+remembers its last value: $\Signal{x_{t+1}} = \mu_x + \phi\,\Signal{x_t} + v_{t+1}$. On our data the persistence
+of the dividend–price ratio is $\phi = 0.92$ a year. A high ratio today means a high ratio for many years.
+
+In a short sample, the ordinary least squares (OLS) estimate $\hat\phi$ of a persistent series tends to come out
+**too low**. Here is the reason. OLS measures deviations from the sample mean, not from the true mean. A slow
+series spends long stretches on one side of its true mean, so the sample mean is pulled towards the path that
+happened. Measured from that mean, the deviations look shorter-lived than they are. So the series looks less
+persistent than it is.
+
+**Fact two: the return and the ratio are hit by the same news.** When good news lifts stock prices, the return
+this year is high. The same price rise makes the dividend–price ratio fall, because the price is in its
+denominator. So the shock to the return, $u_{t+1}$, and the shock to the ratio, $v_{t+1}$, move in opposite
+directions. Their correlation, $\operatorname{corr}(u, v)$, is negative. On our data it is $-0.86$.
+
+Now put the two facts together. In a sample where the ratio's shocks happen to make $\hat\phi$ come out too
+low, the return's shocks are tied to those same shocks. The regression of the return on the ratio sees that
+pattern as a link between today's ratio and next year's return. So in exactly those samples, the slope $\hat b$
+comes out too high. One mistake drags the other with it. On average, $\hat\phi$ is too low, and so $\hat b$ is too
+high. This is the **Stambaugh bias**.
+
+The widget below shows it. It draws 1,000 seeded samples from a world where the true slope is zero. The top chart
+is the histogram of the 1,000 slopes $\hat b$. The bottom chart is the histogram of their $t$-statistics. The
+shock sizes are those of the data, so $\hat b$ is in the same units as the slope of Chapter 9.
+
+<StambaughBias client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens with $\phi = 0.95$, $T = 100$ years and
+$\operatorname{corr}(u, v) = 0$. The slopes centre on zero: their average is 0.001, and 5.7% of the
+$t$-statistics are above 1.645, close to the 5% a one-sided test promises. Now drag the correlation to $-0.90$.
+Watch both histograms slide to the right. The average slope rises to 0.036, and 18.1% of the $t$-statistics are
+now above 1.645.</p>
+
+Nothing about the true slope changed. It is still zero. Only the link between the two shocks changed, and that
+was enough to move the whole distribution of the estimate.
+
+<Callout type="key">With a persistent predictor whose shocks move against the return's shocks, OLS finds
+predictability where there is none. The slope is biased up, and the $t$-statistic rejects "no predictability" too
+often.</Callout>
+
+## <span class="section-tag">Formalisation</span> Where the bias comes from, and how big it is
+
+### The predictive system
+
+Write the model as two equations. The return equation is the predictive regression of Chapter 9 at a one-period
+horizon. The predictor equation is an AR(1):
+
+$$
+\begin{aligned}
+\Ret{r^e_{t+1}} &= a + b\,\Signal{x_t} + \Err{u_{t+1}}, \\
+\Signal{x_{t+1}} &= \mu_x + \phi\,\Signal{x_t} + \Err{v_{t+1}}.
+\end{aligned}
+$$
+
+Here $\Ret{r^e_{t+1}}$ is the log excess return and $\Signal{x_t}$ is the predictor, for us the log dividend–price
+ratio $\Signal{dp_t}$. The shocks $\Err{u}$ and $\Err{v}$ cannot be forecast from anything known at $t$, and they
+are independent over time. But shocks in the same period can be correlated. Write their covariance and the
+variance of the predictor's shock as
+
+$$
+\begin{aligned}
+\sigma_{uv} &= \operatorname{Cov}(\Err{u_{t+1}}, \Err{v_{t+1}}), \\
+\sigma_v^2 &= \operatorname{Var}(\Err{v_{t+1}}).
+\end{aligned}
+$$
+
+The sample has $T$ periods: pairs $(\Signal{x_t}, \Ret{r^e_{t+1}})$ for $t = 0, \dots, T - 1$. Both equations use the
+same regressor $\Signal{x_t}$, so both have the same sample mean $\bar x = \tfrac1T \sum_t \Signal{x_t}$.
+
+### Step 1: write each estimation error as a ratio
+
+The OLS slope is $\hat b = \sum_t (\Signal{x_t} - \bar x)\,\Ret{r^e_{t+1}} \big/ \sum_t (\Signal{x_t} - \bar x)^2$.
+Substitute the return equation for $\Ret{r^e_{t+1}}$. The constant $a$ drops out, because the deviations
+$\Signal{x_t} - \bar x$ add up to zero. The term $b\,\Signal{x_t}$ gives back $b$, because
+$\sum_t (\Signal{x_t} - \bar x)\Signal{x_t} = \sum_t (\Signal{x_t} - \bar x)^2$. What is left is the error:
+
+$$
+\hat b - b = \frac{\sum_t (\Signal{x_t} - \bar x)\,\Err{u_{t+1}}}{\sum_t (\Signal{x_t} - \bar x)^2}.
+$$
+
+The AR(1) is also a regression on $\Signal{x_t}$, with $\Signal{x_{t+1}}$ on the left. The same steps give
+
+$$
+\hat\phi - \phi = \frac{\sum_t (\Signal{x_t} - \bar x)\,\Err{v_{t+1}}}{\sum_t (\Signal{x_t} - \bar x)^2}.
+$$
+
+The two errors have the same denominator. They differ only in which shock is in the numerator.
+
+### Step 2: split the return shock
+
+Regress the return shock on the predictor's shock in the population. The slope of that regression is
+$c = \sigma_{uv}/\sigma_v^2$, so
+
+$$
+\Err{u_{t+1}} = c\,\Err{v_{t+1}} + e_{t+1}, \qquad c = \frac{\sigma_{uv}}{\sigma_v^2}.
+$$
+
+The rest, $e_{t+1}$, is uncorrelated with $\Err{v_{t+1}}$ by construction. With normal shocks, uncorrelated means
+independent, so $e$ is independent of every $\Err{v}$ at every date.
+
+### Step 3: substitute
+
+Write $S = \sum_t (\Signal{x_t} - \bar x)^2$ for the common denominator. Put the split into the numerator of
+$\hat b - b$, and use Step 1 for the part with $\Err{v}$:
+
+$$
+\begin{aligned}
+\hat b - b &= c\,\frac{\sum_t (\Signal{x_t} - \bar x)\,\Err{v_{t+1}}}{S} \\
+&\quad + \frac{\sum_t (\Signal{x_t} - \bar x)\,e_{t+1}}{S} \\
+&= c\,(\hat\phi - \phi) + \frac{\sum_t (\Signal{x_t} - \bar x)\,e_{t+1}}{S}.
+\end{aligned}
+$$
+
+### Step 4: take expectations
+
+The path of the predictor is built from its starting value and the shocks $\Err{v}$ only. So $e$ is independent
+of every $\Signal{x_t}$. Fix the path of $\Signal{x}$. Then the last fraction is a weighted sum of the $e$'s, and
+each $e$ has mean zero. So the last term has mean zero for every path, and therefore on average too. That leaves
+
+$$
+\mathbb{E}[\hat b - b] = \frac{\sigma_{uv}}{\sigma_v^2}\;\mathbb{E}[\hat\phi - \phi].
+$$
+
+This is exact under the model. It says that the slope inherits the bias of $\hat\phi$, scaled by $c$. If the shocks
+are uncorrelated, $c = 0$ and there is no bias, however persistent the predictor is.
+
+### Step 5: the bias of $\hat\phi$
+
+For an AR(1) with an estimated mean, a classic approximation for the bias of $\hat\phi$ is
+
+$$
+\mathbb{E}[\hat\phi - \phi] \approx -\frac{1 + 3\phi}{T}.
+$$
+
+We state this one without proof: its derivation is a long expansion of a ratio of random sums. You can check it
+in the widget instead. The readout shows the formula next to the average of $\hat\phi - \phi$ over the simulated
+samples. Put the two results together:
+
+$$
+\mathbb{E}[\hat b - b] \approx -\frac{\sigma_{uv}}{\sigma_v^2}\cdot\frac{1 + 3\phi}{T}.
+$$
+
+Read it term by term. The bias shrinks like $1/T$, so it is a small-sample problem. It grows with $\phi$. And its
+sign is the opposite of the sign of $\sigma_{uv}$: a negative covariance, as for the dividend–price ratio, means an
+**upward** bias.
+
+### On our data
+
+On goyal-welch-annual, the estimates are $\hat\phi = 0.92$, $\operatorname{corr}(u, v) = -0.86$ and
+$c = \sigma_{uv}/\sigma_v^2 = -0.78$, with $T = 99$. The approximation gives $\mathbb{E}[\hat\phi - \phi] \approx
+-0.038$. Multiply by $c$: the slope's bias is about 0.030. That is about 70% of the estimated slope of 0.042.
+
+The simplest correction subtracts the bias: $0.042 - 0.030 = 0.013$ (the difference of the unrounded numbers).
+Be careful with this number. It plugs in $\hat\phi$, which is itself biased down. The true $\phi$ is probably a bit
+higher, the true bias a bit larger, and so this correction does too little. It is also a first-order approximation.
+
+### The $t$-statistic is biased too
+
+The bias moves the whole distribution of $\hat b$ to the right, so it moves the $t$-statistic too. A one-sided
+test of $b = 0$ against $b > 0$ usually rejects when $t > 1.645$. That cut-off promises a 5% chance of a false
+alarm only when $t$ has a standard normal distribution. Here it does not.
+
+The fix is to **simulate the test**. Build the world where $b = 0$ with the estimated $\phi$, $\sigma_v$, $\sigma_u$ and
+$\operatorname{corr}(u, v)$. Draw many samples of length $T$, and compute $t$ in each. The 95th percentile of
+those $t$'s is the cut-off that really gives a 5% chance of a false alarm. The share of simulated $t$'s above the
+data's $t$ is the simulated $p$-value.
+
+In the world calibrated to our data, 15.9% of the samples have $t > 1.645$. The test that promises 5% has a true
+**size**, its rate of false alarms, more than three times as large. The simulated 5% cut-off is 2.17. Our
+$t$-statistic of 1.07 is below both cut-offs. In 31.6% of the samples, $t$ is larger than 1.07. So the
+one-year regression, taken alone, gives no evidence against "returns cannot be forecast".
+
+<Callout type="warning">The simulated test is only as good as the world you simulate. It uses estimates of
+$\phi$ and $\operatorname{corr}(u, v)$, normal shocks and a constant slope. A higher true $\phi$ makes the bias
+and the size problem worse, as the Playground shows.</Callout>
+
+## <span class="section-tag">Playground</span> Put the data into the null world
+
+The same widget, now set to the estimates on the data. The dashed lines mark the data's slope and $t$-statistic.
+
+<StambaughBias client:visible initialPreset />
+
+<p class="try-this"><strong>Try this:</strong> read the marks first. In this world, 36.1% of the slopes and 31.6%
+of the $t$-statistics are above the data's. The theory puts the bias at 0.030, and the simulated slopes average
+0.033. The readout also shows the bias of $\hat\phi$: the formula gives $-0.038$, and the simulation gives
+$-0.041$.</p>
+
+<p class="try-this"><strong>Try this too:</strong> raise $\phi$ to 0.990. Now 25.9% of the $t$-statistics pass
+1.645, and the simulated 5% cut-off is 2.56. Press the preset button again, then move $T$ to 500 years. The bias
+falls to 0.006, but 9.8% of the $t$-statistics still pass 1.645. Last, set the correlation to $+0.86$ and watch the
+bias change sign.</p>
+
+The second prompt shows two things. First, the answer depends on $\phi$, and $\phi$ is the parameter we know least
+well when it is near 1. Second, the size problem fades more slowly than the bias of $\hat b$. Even 500 years do not
+make the textbook cut-off safe.
+
+### How to read the evidence
+
+What can the data show, then? With the slope of the one-year regression alone, not much. The estimate is small,
+most of it could be bias, and its $t$-statistic is far from the simulated cut-off. You cannot reject "no
+predictability" with this test on these 99 years.
+
+What the data cannot show is that returns are *not* predictable. A test that fails to reject is not proof of the
+null. The same bias also affects the long-horizon regressions of Chapter 9, which use the same persistent
+predictor.
+
+Cochrane (2008, p. 2) explains the source of the problem the same way: a change in prices moves both the return
+and the dividend yield, so their shocks are negatively correlated, the slope is biased up and the $t$-statistic
+leans towards rejection. In his simulation of a world with no return predictability, the return slope is as large
+as his estimate about 22% of the time (p. 11), and the bias is about half of his estimated slope (p. 23). His
+sample and his null world differ from ours, so his numbers differ too. His point is that the return regression
+alone is weak evidence. He then finds much stronger evidence in a second regression, of dividend growth on the
+ratio. Chapter 11 builds that test.
+
+<Callout type="key">Never compare the $t$-statistic of a regression on a persistent predictor with 1.645 or 1.96.
+Simulate the world where the slope is zero, and compare with its cut-off.</Callout>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A predictor is very persistent, with $\phi = 0.99$, but its shocks are uncorrelated with the return shocks. What is the Stambaugh bias of the slope $\hat b$?"
+  options={["Zero", "Positive", "Negative", "It depends on the sign of $b$"]}
+  answer={0}
+  explanation="The bias is $(\sigma_{uv}/\sigma_v^2)\,\mathbb{E}[\hat\phi - \phi]$. With $\sigma_{uv} = 0$, the first factor is zero, so the bias of $\hat\phi$ does not pass to $\hat b$."
+/>
+
+<Quiz
+  client:visible
+  question="Suppose $\sigma_{uv}/\sigma_v^2 = -0.8$, $\phi = 0.9$ and $T = 100$. Using $\mathbb{E}[\hat\phi - \phi] \approx -(1 + 3\phi)/T$, what is the approximate bias of $\hat b$?"
+  options={["$-0.030$", "$+0.030$", "$+0.037$", "$+0.008$"]}
+  answer={1}
+  explanation="$\mathbb{E}[\hat\phi - \phi] \approx -(1 + 2.7)/100 = -0.037$. Multiply by $-0.8$: the bias is $+0.0296$, about $+0.030$. The negative covariance turns a downward bias in $\hat\phi$ into an upward bias in $\hat b$."
+/>
+
+<Quiz
+  client:visible
+  question="A paper regresses returns on the dividend–price ratio over 80 years and reports a one-sided $t$-statistic of 1.9. What should you check first?"
+  options={["Whether $t$ is above 1.645", "Whether $t$ is above the 5% cut-off simulated in a world with $b = 0$ and the data's $\\phi$ and $\\operatorname{corr}(u, v)$", "Whether the $R^2$ is above 50%", "Whether the slope is positive"]}
+  answer={1}
+  explanation="With a persistent predictor and negatively correlated shocks, $t$ is shifted to the right even when $b = 0$. On our data the simulated 5% cut-off is 2.17, not 1.645, so 1.9 would not reject."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- In the system $\Ret{r^e_{t+1}} = a + b\,\Signal{x_t} + \Err{u_{t+1}}$, $\Signal{x_{t+1}} = \mu_x + \phi\,\Signal{x_t} +
+  \Err{v_{t+1}}$, OLS gives $\mathbb{E}[\hat b - b] = (\sigma_{uv}/\sigma_v^2)\,\mathbb{E}[\hat\phi - \phi]$.
+- $\hat\phi$ is biased down, by about $(1 + 3\phi)/T$. With $\sigma_{uv} < 0$, as for the dividend–price ratio, $\hat b$
+  is biased up.
+- On goyal-welch-annual (99 years), the bias is about 0.030, against an estimated slope of 0.042.
+- The $t$-statistic is biased too. A world calibrated to our data rejects at 1.645 in 15.9% of samples, and its 5%
+  cut-off is 2.17. Use a simulated cut-off, and say which $\phi$ the simulation assumes.
+- A test that fails to reject is not proof that returns cannot be forecast.
+
+**Next up:** Chapter 13 asks a different question about the same forecasts: would an investor who estimated them
+in real time, year by year, have done better than the historical average?
+
+### Further reading
+
+- Cochrane (2008)
+- Stambaugh (1999)
+- Campbell (2018), Ch. 5
