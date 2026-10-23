@@ -1,0 +1,315 @@
+---
+title: "Cash-flow and discount-rate news"
+part: 2
+chapter: 11
+difficulty: 2
+prerequisites: [10]
+summary: "Each surprise in stock returns is news about future dividends or news about future returns, and the dividends that did not move tell us that returns must."
+---
+
+import NewsDecomposition from '../../components/plots/NewsDecomposition';
+import DogThatDidNotBark from '../../components/plots/DogThatDidNotBark';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapter 10">
+[Chapter 10](/empirical-finance-lbs/chapters/10-campbell-shiller-decomposition/) derives the first two of the
+three tools this chapter uses. Here is the short version.
+
+- **The return identity.** Write $pd_t = p_t - d_t$ for the log price–dividend ratio and $\Delta d_{t+1}$ for log
+  dividend growth. Then the log return is, to a very good approximation,
+  $\Ret{r_{t+1}} \approx \kappa + \rho\,pd_{t+1} + \Delta d_{t+1} - pd_t$. The constant $\rho$ is just below 1. It
+  is $\rho = e^{\overline{pd}}/(1 + e^{\overline{pd}})$, where $\overline{pd}$ is the average of $pd_t$. This is
+  accounting, not a model of investors.
+- **Solved forward,** the identity says
+  $pd_t = \tfrac{\kappa}{1-\rho} + \sum_{j \ge 1} \rho^{j-1}(\Delta d_{t+j} - \Ret{r_{t+j}})$. A high price compared
+  with dividends must come before high dividend growth or low returns. (A third way out, a price that grows
+  without limit, is ruled out here.)
+- **A VAR(1)** from [Chapter 5](/empirical-finance-lbs/chapters/05-persistence-ar1-and-var/) stacks several series
+  in a vector $z_t$: $z_{t+1} = c + A z_t + \Err{\varepsilon_{t+1}}$. Its forecasts are
+  $\mathbb{E}_t[z_{t+k}] - \mu = A^k (z_t - \mu)$, where $\mu$ is the long-run mean.
+</Callout>
+
+## <span class="section-tag">Hook</span> What did the market learn in 2008?
+
+In 2008, stocks in the S&P index lost 36.6%, dividends included. Investors clearly learned something bad
+that year. But what, exactly?
+
+Two different kinds of bad news can push a price down. The first is news that companies will pay smaller dividends
+in the future. The second is news that investors now want a higher return before they will hold stocks. Both make
+today's price fall. So here is the question you probably have: when the stock market moves, which kind of news is
+it reacting to?
+
+The answer matters. If prices move mostly on dividend news, the market is a forecast of the economy. If they move
+mostly on return news, the swings of the market are mostly about how much reward investors ask for. This chapter
+splits each year's surprise into the two kinds of news. Then it uses the same accounting to build a sharper test
+of a question from [Chapter 9](/empirical-finance-lbs/chapters/09-time-varying-expected-returns/): are returns
+really predictable?
+
+## <span class="section-tag">Intuition</span> Two reasons a price can change
+
+Think of a flat that you rent out. Its price can fall for two reasons. Tenants may pay less rent in the coming
+years. Or buyers may now want a higher yield on their money, so they pay less for the same rent. The first is
+**cash-flow news**: news about what the asset will pay. The second is **discount-rate news**: news about the return
+that buyers expect to earn.
+
+The second kind is less obvious, so look at it closely. Suppose buyers suddenly expect a higher return from now on.
+The rent does not change. The only way the same rent can give a higher return is a lower price to start from. So
+higher expected returns in the future are bad news today. Discount-rate news enters a return with a minus sign.
+
+The next widget does this split for every year since 1927. Each bar is one year's **unexpected return**: the part
+of the return that a forecast at the start of the year did not expect. The solid part is cash-flow news. The light
+part is minus discount-rate news, so that the two parts add up to the surprise. The dot marks the total.
+
+<NewsDecomposition client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens on 2008. The surprise was −0.523 in log points.
+About half was cash-flow news (−0.271) and half was news of higher future returns (−0.251). Now move the year
+slider through 1996 to 1999. The light bars are tall and the solid bars are short.</p>
+
+In the four years from 1996 to 1999, the surprises add up to 0.62. Lower expected returns account for 0.55 of
+that. Cash-flow news accounts for only 0.07. In this model, the late-1990s boom was mostly investors accepting a
+lower future return, not news of higher dividends.
+
+Over the whole sample, the readout splits the variance of the surprises. Cash-flow news has 39.2% and
+discount-rate news has 39.8%. The last 21.0% comes from the two kinds of news moving together. Good dividend news
+tends to arrive with lower expected returns, so the two push the price the same way.
+
+<Callout type="key">An unexpected return is news about future dividends minus news about future returns. Higher
+expected returns from now on mean a lower price today.</Callout>
+
+## <span class="section-tag">Formalisation</span> From the identity to news, and a test
+
+### Step 1: the news identity
+
+Start from the return identity of
+[Chapter 10](/empirical-finance-lbs/chapters/10-campbell-shiller-decomposition/), written with the price–dividend ratio $pd_t$:
+
+$$
+\Ret{r_{t+1}} = \kappa + \Delta d_{t+1} + \rho\,pd_{t+1} - pd_t.
+$$
+
+Now replace $pd_{t+1}$ with its forward solution. Multiply that solution by $\rho$ and shift the index, so that
+$\rho\,pd_{t+1} = \tfrac{\rho\kappa}{1-\rho} + \sum_{j \ge 1} \rho^{j}(\Delta d_{t+1+j} - \Ret{r_{t+1+j}})$. Put it
+into the identity and collect the dividend terms:
+
+$$
+\begin{aligned}
+\Ret{r_{t+1}} = \frac{\kappa}{1-\rho} &+ \sum_{j \ge 0} \rho^{j}\,\Delta d_{t+1+j} \\
+&- \sum_{j \ge 1} \rho^{j}\,\Ret{r_{t+1+j}} - pd_t.
+\end{aligned}
+$$
+
+The constant comes from $\kappa + \tfrac{\rho\kappa}{1-\rho} = \tfrac{\kappa}{1-\rho}$. This equation holds in every
+year. So it also holds for forecasts. Take the forecast made at the end of year $t+1$, $\mathbb{E}_{t+1}$, and
+subtract the forecast made one year earlier, $\mathbb{E}_t$. That difference is the **news** that arrived during
+year $t+1$. Three things happen:
+
+- The constant and $pd_t$ are known at $t$. Both forecasts agree on them, so they drop out.
+- $\Ret{r_{t+1}}$ is known at $t+1$, so $\mathbb{E}_{t+1}\Ret{r_{t+1}} = \Ret{r_{t+1}}$. The left side becomes the
+  surprise $\Ret{r_{t+1}} - \mathbb{E}_t\Ret{r_{t+1}}$.
+- On the right, each sum becomes the change in its forecast.
+
+The result is the **news identity**:
+
+$$
+\Ret{r_{t+1}} - \mathbb{E}_t\Ret{r_{t+1}} = N_{CF,t+1} - N_{DR,t+1},
+$$
+
+$$
+\begin{aligned}
+N_{CF,t+1} &= (\mathbb{E}_{t+1} - \mathbb{E}_t)\sum_{j \ge 0} \rho^j\,\Delta d_{t+1+j}, \\
+N_{DR,t+1} &= (\mathbb{E}_{t+1} - \mathbb{E}_t)\sum_{j \ge 1} \rho^j\,\Ret{r_{t+1+j}}.
+\end{aligned}
+$$
+
+$N_{CF}$ is cash-flow news and $N_{DR}$ is discount-rate news. (With a subscript, $N$ is news. Alone, $N$ is still
+the number of assets.) Campbell and Shiller (1988, p. 4) built the linear identity behind this split. It says the
+log dividend–price ratio is a constant plus the discounted sum of expected future returns minus dividend growth.
+
+### Step 2: measuring the news with a VAR
+
+The news identity needs forecasts of all future returns. A VAR(1) gives them. Stack the log return and the log
+dividend–price ratio in $z_t = (\Ret{r_t}, \Signal{dp_t})'$ and fit $z_{t+1} = c + A z_t + \Err{\varepsilon_{t+1}}$.
+The long-run mean is $\mu = (I - A)^{-1}c$, so $z_{t+1} - \mu = A(z_t - \mu) + \Err{\varepsilon_{t+1}}$.
+
+How does the forecast of $z_{t+1+j}$ change between $t$ and $t+1$? At $t+1$ it is $\mu + A^{j}(z_{t+1} - \mu)$. At
+$t$ it is $\mu + A^{j+1}(z_t - \mu)$. Subtract:
+
+$$
+\begin{aligned}
+&(\mathbb{E}_{t+1} - \mathbb{E}_t)\,z_{t+1+j} \\
+&\quad = A^{j}\big[(z_{t+1} - \mu) - A(z_t - \mu)\big] \\
+&\quad = A^{j}\,\Err{\varepsilon_{t+1}}.
+\end{aligned}
+$$
+
+The return is the first entry of $z$. Write $e_1' = (1, 0)$ for the row that picks it. Then
+$(\mathbb{E}_{t+1} - \mathbb{E}_t)\Ret{r_{t+1+j}} = e_1' A^j \Err{\varepsilon_{t+1}}$. Put this into $N_{DR}$ and sum
+the powers of $\rho A$ like a geometric series:
+
+$$
+\begin{aligned}
+N_{DR,t+1} &= e_1' \sum_{j \ge 1} (\rho A)^j\,\Err{\varepsilon_{t+1}} \\
+&= e_1'\rho A (I - \rho A)^{-1}\,\Err{\varepsilon_{t+1}}.
+\end{aligned}
+$$
+
+The sum works because $I + \rho A + (\rho A)^2 + \dots = (I - \rho A)^{-1}$ when the powers of $\rho A$ shrink to
+zero. They do here: $\rho < 1$ and the VAR is stable. The surprise in the return is $e_1'\Err{\varepsilon_{t+1}}$.
+So the news identity gives cash-flow news as what is left:
+
+$$
+\begin{aligned}
+N_{CF,t+1} &= \Ret{r_{t+1}} - \mathbb{E}_t\Ret{r_{t+1}} + N_{DR,t+1} \\
+&= \big(e_1' + e_1'\rho A (I - \rho A)^{-1}\big)\Err{\varepsilon_{t+1}}.
+\end{aligned}
+$$
+
+On goyal-welch-annual, with returns from 1927 to 2025 and $\rho = 0.969$, the row $e_1'\rho A(I - \rho A)^{-1}$ is
+$(0.28, 0.78)$. A surprise rise in $\Signal{dp}$ is mostly a fall in the price. The VAR reads it as news of higher
+future returns, because a high $\Signal{dp}$ forecasts high returns and stays high for years.
+
+Finally, take the variance of both sides of the news identity:
+
+$$
+\begin{aligned}
+&\operatorname{Var}(\Ret{r_{t+1}} - \mathbb{E}_t\Ret{r_{t+1}}) \\
+&\quad = \operatorname{Var}(N_{CF}) + \operatorname{Var}(N_{DR}) \\
+&\qquad - 2\operatorname{Cov}(N_{CF}, N_{DR}).
+\end{aligned}
+$$
+
+Divide by the left side to get the three shares in the widget.
+
+### What the split can and cannot show
+
+Be careful with these shares. First, cash-flow news is not measured directly. It is what is left after the VAR
+forecasts returns. Anything the VAR gets wrong about expected returns lands in $N_{CF}$. Second, the VAR has only
+two variables. Another predictor would change the forecasts, and so the split. Third, the sample matters a lot.
+From 1873 to 2025 the shares are 64.5% for cash flows, 9.8% for discount rates and 25.8% for the covariance. The
+VAR coefficients are estimates, and the widget reports no standard errors for the shares. Read them as a rough
+picture, not as precise facts.
+
+### Step 3: one identity, three slopes
+
+Now regress each term of the return identity on today's $\Signal{dp_t}$. In $dp$ terms, the identity is
+$\Ret{r_{t+1}} \approx \kappa + \Delta d_{t+1} - \rho\,\Signal{dp_{t+1}} + \Signal{dp_t}$. Run three regressions, each
+with an intercept, on the same years:
+
+$$
+\begin{aligned}
+\Ret{r_{t+1}} &= a_r + b_r\,\Signal{dp_t} + \Err{\varepsilon^r_{t+1}}, \\
+\Delta d_{t+1} &= a_d + b_d\,\Signal{dp_t} + \Err{\varepsilon^d_{t+1}}, \\
+\Signal{dp_{t+1}} &= a_{dp} + \phi\,\Signal{dp_t} + \Err{\varepsilon^{dp}_{t+1}}.
+\end{aligned}
+$$
+
+An OLS slope is linear in the left-hand variable. The slope of a sum is the sum of the slopes, when the right side
+is the same. The constant $\kappa$ has slope 0, and $\Signal{dp_t}$ on itself has slope 1. So the slope of the
+right side of the identity is $b_d - \rho\phi + 1$, and
+
+$$
+b_r = 1 - \rho\phi + b_d.
+$$
+
+On our data, with returns from 1927 to 2025, $b_r = 0.046$ (standard error 0.038, $t = 1.21$),
+$b_d = -0.059$ (standard error 0.022, $t = -2.75$) and $\phi = 0.924$ (standard error 0.043). These are classical
+OLS standard errors on 99 years. The identity holds to within 0.0002, the linearisation error.
+
+### Step 4: the dog that did not bark
+
+The identity turns the question around. Suppose returns are **not** predictable, so $b_r = 0$. Then the identity
+forces $b_d = \rho\phi - 1$. With our $\rho$ and $\phi$, that is $-0.105$. A high $\Signal{dp}$ would have to
+forecast low dividend growth, and strongly. If returns are not predictable, dividend growth must be.
+
+Cochrane (2008, p. 9) builds a world where this null is true. In it, $\Signal{dp}$ is an AR(1) with persistence
+$\phi$. Dividend growth has slope $\rho\phi - 1$ on $\Signal{dp_t}$, and returns follow from the identity. The
+shocks have the covariance seen in the data. He then simulates many samples of the data's length and asks how often
+a sample looks like ours. In Sherlock Holmes's story, the clue was a dog that did not bark in the night. Here the
+clue is the dividend forecast that the null needs and the data do not show.
+
+In 2,000 seeded samples with $\phi = 0.924$, the return slope is at least our 0.046 in 34.1% of them. On its own,
+the return forecast is weak evidence. But the dividend slope is at least our $-0.059$ in only 15 of the 2,000
+samples, 0.8%. The null predicts dividend forecasts that the data do not have. Cochrane (2008, p. 11) finds the
+same pattern in CRSP data for 1927 to 2004: about one sample in five beats the return slope, and fewer than one in
+fifty beats the dividend slope.
+
+Our dividend slope is not zero. In Cochrane's data it is 0.008 (Cochrane (2008, p. 8)). On the S&P index dividends of goyal-welch-annual, a high
+$\Signal{dp}$ does forecast somewhat lower dividend growth. The dog growls a little. It just does not bark as loudly
+as the null requires.
+
+## <span class="section-tag">Playground</span> Where does the data sit in the null?
+
+Each grey dot is one simulated sample under the null of no return predictability. Its position shows the two slopes
+that OLS estimates from that sample. The big dot is the data. The dashed lines through it mark the tails: dots to
+the right have a larger return slope, dots above have a larger dividend slope. The other dashed line is
+$b_r = 1 - \rho\phi + b_d$, with the $\phi$ of the null. The identity holds in every sample, but with that
+sample's own estimate $\hat\phi$. A sample lands on the line when $\hat\phi = \phi$. Samples with a smaller $\hat\phi$ lie
+to its right, with a larger return slope.
+
+<DogThatDidNotBark client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens with $\phi$ at the data's 0.924. Almost no dots lie
+above the horizontal dashed line. Now choose $\phi = 0.99$. The null now needs only $b_d = -0.041$, and the cloud
+moves up. The share of samples with a larger dividend slope jumps to 73.6%.</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch the sample to 1872–2025 with $\phi$ from the data. There,
+$b_d = -0.088$, and 4.2% of the samples beat it. Press "Re-roll simulation" and watch the shares move a little.</p>
+
+The first prompt shows the weak point of the test. It depends on $\phi$. If $\Signal{dp}$ is very persistent, the
+null needs only a small dividend forecast, and our data look normal again. With $\phi = 0.95$, already 7.4% of the
+samples beat the dividend slope. We do not know $\phi$ well: its standard error is 0.043. Cochrane (2008, p. 4)
+answers with the long-run slope $b_r/(1 - \rho\phi)$, which combines the return slope and the persistence. On our
+data it beats the null in 14.6% of the samples at $\phi = 0.924$. That is weaker than the dividend test, so on these
+data the dividend slope carries most of the evidence.
+
+<Callout type="warning">The dog test is strong evidence only if $\Signal{dp}$ is not too close to a random walk. Report
+the $\phi$ that the null assumes next to every probability.</Callout>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="Returns are not predictable ($b_r = 0$), $\rho = 0.96$ and $\phi = 0.95$. What dividend-growth slope $b_d$ does the identity $b_r = 1 - \rho\phi + b_d$ require?"
+  options={["0", "−0.088", "+0.088", "−0.912"]}
+  answer={1}
+  explanation="Set $b_r = 0$: $b_d = \rho\phi - 1 = 0.912 - 1 = -0.088$. If returns are not predictable, a high $dp$ must forecast lower dividend growth."
+/>
+
+<Quiz
+  client:visible
+  question="Prices fall sharply, but no forecast of future dividends changes. In the news identity, what happened?"
+  options={["Positive cash-flow news", "Negative cash-flow news", "Positive discount-rate news: expected future returns rose", "Nothing: the identity requires a dividend change"]}
+  answer={2}
+  explanation="With $N_{CF} = 0$, the surprise equals $-N_{DR}$. A fall in price means $N_{DR} > 0$: investors now expect higher returns, and a lower price today delivers them."
+/>
+
+<Quiz
+  client:visible
+  question="Why does the dog test lose power when the null assumes $\phi$ close to 1?"
+  options={["The simulation becomes less accurate", "With $\phi$ near 1, $\rho\phi - 1$ is close to 0, so the null needs almost no dividend forecast and a near-zero $b_d$ is no surprise", "The return slope becomes larger", "OLS cannot estimate $\phi$ near 1"]}
+  answer={1}
+  explanation="The null sets $b_d = \rho\phi - 1$. At $\phi = 0.99$ this is about $-0.04$, so samples with a dividend slope like ours are common. In the widget, the tail share rises from 0.8% to 73.6%."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- An unexpected return splits exactly into cash-flow news minus discount-rate news. Higher expected returns from now
+  on lower today's price.
+- A VAR(1) measures the news: $N_{DR} = e_1'\rho A(I - \rho A)^{-1}\varepsilon$, and $N_{CF}$ is what is left.
+- On goyal-welch-annual returns from 1927 to 2025, the two kinds of news each have about 40% of the variance. The
+  split depends on the sample and the VAR, so read it as rough.
+- The same identity ties three slopes: $b_r = 1 - \rho\phi + b_d$. If returns were not predictable, dividend growth
+  would have to be, with $b_d = \rho\phi - 1$.
+- The missing dividend forecast is stronger evidence than the return forecast, but only if $\Signal{dp}$ is not too
+  persistent.
+
+**Next up:** Chapter 12 shows why the return slope $\hat b_r$ is biased upward in samples of this size, and how much
+of the return forecast that bias can explain.
+
+### Further reading
+
+- Cochrane (2008)
+- Campbell and Shiller (1988)
+- Campbell (2018), Ch. 5
