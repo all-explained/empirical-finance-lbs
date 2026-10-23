@@ -2,9 +2,10 @@
 id: TASK-029
 title: Owner reads Part I and approves how it reads
 milestone: M-3
-state: approved
+state: done
 depends_on: [TASK-022, TASK-023, TASK-024, TASK-025, TASK-026, TASK-027, TASK-028]
 delivery: manual
+reason: Owner approved Part I
 ---
 
 ## Why
