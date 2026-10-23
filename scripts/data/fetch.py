@@ -23,8 +23,9 @@ import subprocess
 from datetime import date
 from decimal import Decimal
 from io import StringIO
+from itertools import pairwise
 from pathlib import Path
-from zipfile import ZipFile
+from zipfile import ZipFile, is_zipfile
 
 import openpyxl
 import xlrd
@@ -182,24 +183,44 @@ def fred(
     columns: list[dict],
     frequency: str,
     refresh: bool,
+    citation: str = "Board of Governors of the Federal Reserve System (H.15) / U.S. Bureau of "
+    "Economic Analysis (NIPA), retrieved from FRED, Federal Reserve Bank of St. Louis.",
 ) -> dict:
     url = FRED + ",".join(names)
     path = download(identifier + ".csv", url, refresh)
-    records = csv.DictReader(StringIO(path.read_text()))
-    if records.fieldnames != ["observation_date", *names]:
-        raise ValueError(f"{identifier}: unexpected FRED header {records.fieldnames}")
+    # FRED sends a ZIP with one CSV per frequency or aggregation (e.g. Z.1 end of period).
+    if is_zipfile(path):
+        with ZipFile(path) as archive:
+            texts = [
+                archive.read(name).decode()
+                for name in sorted(archive.namelist())
+                if name.endswith(".csv")
+            ]
+    else:
+        texts = [path.read_text()]
+    header, merged = [], {}
+    for text in texts:
+        records = csv.DictReader(StringIO(text))
+        if not records.fieldnames or records.fieldnames[0] != "observation_date":
+            raise ValueError(
+                f"{identifier}: unexpected FRED header {records.fieldnames}"
+            )
+        header += records.fieldnames[1:]
+        for record in records:
+            merged.setdefault(record["observation_date"], {}).update(record)
+    if sorted(header) != sorted(names):
+        raise ValueError(f"{identifier}: unexpected FRED header {header}")
     rows = []
-    for record in records:
-        values = [numeric(record[name]) for name in names]
+    for stamp, record in sorted(merged.items()):
+        values = [numeric(record.get(name)) for name in names]
         if complete(values):
-            rows.append([record["observation_date"], *values])
+            rows.append([stamp, *values])
     return series(
         identifier,
         title,
         "FRED, Federal Reserve Bank of St. Louis",
         url,
-        "Board of Governors of the Federal Reserve System (H.15) / U.S. Bureau of "
-        "Economic Analysis (NIPA), retrieved from FRED, Federal Reserve Bank of St. Louis.",
+        citation,
         frequency,
         columns,
         rows,
@@ -448,6 +469,67 @@ def build_all(refresh: bool) -> list[dict]:
             refresh,
         )
     )
+    # Lettau–Ludvigson cay inputs; see docs/DATA.md for the two quarterly ID swaps.
+    nipa = "billions of USD/year"
+    cay = fred(
+        "fred-cay-quarterly",
+        "Consumption, household net worth and labour income parts for cay",
+        [
+            "PCND",
+            "PCESV",
+            "DNDGRG3Q086SBEA",
+            "DSERRG3Q086SBEA",
+            "TNWBSHNO",
+            "COE",
+            "A577RC1Q027SBEA",
+            "A061RC1Q027SBEA",
+            "PCECTPI",
+            "B230RC0Q173SBEA",
+        ],
+        [
+            column("PCND", nipa, "Nominal nondurable goods consumption; SAAR"),
+            column("PCESV", nipa, "Nominal services consumption; SAAR"),
+            column(
+                "DNDGRG3Q086SBEA",
+                "index 2017=100",
+                "Nondurable goods PCE chain-type price index; SA",
+            ),
+            column(
+                "DSERRG3Q086SBEA",
+                "index 2017=100",
+                "Services PCE chain-type price index; SA",
+            ),
+            column(
+                "TNWBSHNO",
+                "millions of USD",
+                "Household and nonprofit net worth, end of quarter; NSA",
+            ),
+            column("COE", nipa, "Compensation of employees; SAAR"),
+            column("A577RC1Q027SBEA", nipa, "Personal current transfer receipts; SAAR"),
+            column(
+                "A061RC1Q027SBEA",
+                nipa,
+                "Contributions for government social insurance, domestic; SAAR",
+            ),
+            column("PCECTPI", "index 2017=100", "PCE chain-type price index; SA"),
+            column(
+                "B230RC0Q173SBEA",
+                "thousands of persons",
+                "Total population including Armed Forces overseas",
+            ),
+        ],
+        "quarterly",
+        refresh,
+        "U.S. Bureau of Economic Analysis (NIPA) / Board of Governors of the Federal "
+        "Reserve System (Financial Accounts Z.1), retrieved from FRED, Federal Reserve "
+        "Bank of St. Louis. Lettau and Ludvigson (2001), Journal of Finance 56, 815–849.",
+    )
+    # Z.1 net worth is year-end only before 1951-Q4; keep the gap-free quarterly run.
+    cay["rows"] = [row for row in cay["rows"] if row[0] >= "1951-10-01"]
+    quarters = [int(row[0][:4]) * 4 + int(row[0][5:7]) // 3 for row in cay["rows"]]
+    if any(later - earlier != 1 for earlier, later in pairwise(quarters)):
+        raise ValueError("fred-cay-quarterly: gap in quarterly observations")
+    datasets.append(cay)
     return datasets
 
 

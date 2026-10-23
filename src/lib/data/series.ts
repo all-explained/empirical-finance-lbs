@@ -28,6 +28,10 @@ export const seriesColumns = {
     'SVENY25', 'SVENY26', 'SVENY27', 'SVENY28', 'SVENY29', 'SVENY30',
   ],
   'fred-consumption-quarterly': ['PCNDGC96', 'PCESVC96', 'B230RC0Q173SBEA'],
+  'fred-cay-quarterly': [
+    'PCND', 'PCESV', 'DNDGRG3Q086SBEA', 'DSERRG3Q086SBEA', 'TNWBSHNO',
+    'COE', 'A577RC1Q027SBEA', 'A061RC1Q027SBEA', 'PCECTPI', 'B230RC0Q173SBEA',
+  ],
 } as const;
 
 export type SeriesId = keyof typeof seriesColumns;

@@ -1,6 +1,6 @@
 # Public data
 
-These ten datasets are small teaching extracts of public source files. They keep source units.
+These eleven datasets are small teaching extracts of public source files. They keep source units.
 Public access does not imply an open licence. The site's code and content licences do not cover third-party data.
 
 1. Install Node dependencies: `npm ci`.
@@ -10,7 +10,7 @@ Public access does not imply an open licence. The site's code and content licenc
 5. Check the results: `npm test && npm run build`.
 
 The script also needs `curl`, included with macOS. It runs from the repository root.
-Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all ten outputs.
+Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all eleven outputs.
 A fresh checkout downloads all sources without API keys. A failed download exits with an error.
 Remove its raw cache file, or use `--refresh`, to try a source again.
 The script validates all datasets and their sizes before replacing any JSON file.
@@ -18,7 +18,7 @@ Python dependencies, including indirect dependencies, are pinned in `scripts/dat
 
 ## Sources, terms and citations
 
-Coverage below describes the checked-in extract retrieved on 2026-10-22.
+Coverage below describes the checked-in extract retrieved on 2026-10-22 (`fred-cay-quarterly`: 2026-10-23).
 Dates identify observation periods, not publication dates. Historical values can change after a source revision.
 The source links provide the files or their download pages. Terms links give the available source notices.
 
@@ -34,6 +34,7 @@ The source links provide the files or their download pages. Terms links give the
 | `fred-treasury-monthly` | [FRED public CSV](https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS1,GS2,GS3,GS5,GS7,GS10,GS20,GS30,TB3MS) | Board data are public domain unless indicated; cite the source. [Board terms](https://www.federalreserve.gov/disclaimer.htm), [FRED terms](https://fred.stlouisfed.org/legal/). | Board of Governors, H.15 Selected Interest Rates; retrieved from FRED, Federal Reserve Bank of St. Louis. | 1977-02–2026-09, complete months only |
 | `gsw-zero-coupon` | [Federal Reserve GSW CSV](https://www.federalreserve.gov/data/yield-curve-tables/feds200628.csv) | [Board terms](https://www.federalreserve.gov/disclaimer.htm): public domain unless indicated; cite the Board. Staff research product, subject to revision. | Gürkaynak, Sack and Wright (2007), FEDS 2006-28. | 1985-11-29–2026-09-30, end of completed month |
 | `fred-consumption-quarterly` | [FRED public CSV](https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCNDGC96,PCESVC96,B230RC0Q173SBEA) | U.S. government BEA data; cite BEA and FRED. [BEA policy](https://www.bea.gov/about/policies-and-information), [FRED terms](https://fred.stlouisfed.org/legal/). | U.S. Bureau of Economic Analysis, NIPA; retrieved from FRED, Federal Reserve Bank of St. Louis. | 2007-Q1–2026-Q2 |
+| `fred-cay-quarterly` | [FRED public CSV](https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCND,PCESV,DNDGRG3Q086SBEA,DSERRG3Q086SBEA,TNWBSHNO,COE,A577RC1Q027SBEA,A061RC1Q027SBEA,PCECTPI,B230RC0Q173SBEA) | BEA data and Board Financial Accounts data; public domain unless indicated; cite BEA, the Board and FRED. [BEA policy](https://www.bea.gov/about/policies-and-information), [Board terms](https://www.federalreserve.gov/disclaimer.htm), [FRED terms](https://fred.stlouisfed.org/legal/). | U.S. Bureau of Economic Analysis, NIPA; Board of Governors, Financial Accounts of the United States (Z.1); retrieved from FRED, Federal Reserve Bank of St. Louis. Lettau and Ludvigson (2001). | 1951-Q4–2026-Q2 |
 
 The French, Shiller and Goyal sources have no explicit redistribution licence located during this task.
 These limited teaching extracts follow the goal's assumption that small derived public academic datasets may be included.
@@ -46,6 +47,7 @@ Full paper citations:
 - Carhart, M. M. (1997). “On persistence in mutual fund performance.” *Journal of Finance* 52, 57–82.
 - Shiller, R. J. (2015). *Irrational Exuberance*. Third edition. Princeton University Press.
 - Welch, I., and A. Goyal (2008). “A comprehensive look at the empirical performance of equity premium prediction.” *Review of Financial Studies* 21, 1455–1508.
+- Lettau, M., and S. Ludvigson (2001). “Consumption, aggregate wealth, and expected stock returns.” *Journal of Finance* 56, 815–849.
 - Gürkaynak, R. S., B. Sack, and J. H. Wright (2007). “The U.S. Treasury yield curve: 1961 to the present.” *Journal of Monetary Economics* 54, 2291–2304.
 
 ## File contract and transformations
@@ -86,6 +88,32 @@ No gaps are filled, no returns are calculated, and no source units are converted
   Real consumption is billions of chained 2017 dollars at a seasonally adjusted annual rate (SAAR).
   Population is thousands of persons, including Armed Forces overseas. These are levels, not per-person values.
   Chained-dollar components are not generally additive. Do not add them as an exact total real consumption series.
+- cay inputs: ten quarterly FRED series for the Lettau–Ludvigson (2001) consumption–wealth–income residual.
+  Keep quarters with all ten fields, from 1951-Q4. Before then Z.1 net worth has year-end values only,
+  so those isolated fourth quarters are dropped and the script fails on any gap in the quarterly run.
+  No deflating, per-person scaling, logs or `cay` estimation happens here; the library does that.
+  - Consumption: nominal nondurable goods (`PCND`) and services (`PCESV`), billions of USD at SAAR, with their
+    chain-type price indexes (`DNDGRG3Q086SBEA`, `DSERRG3Q086SBEA`, 2017=100). Lettau–Ludvigson use real
+    nondurables and services in 1992 chained dollars and remove shoes and clothing; these totals keep them.
+  - Asset wealth: household and nonprofit net worth (`TNWBSHNO`), Z.1, **millions** of USD, end of quarter,
+    not seasonally adjusted. It stands in for the Board's household net worth series used in the paper.
+  - Labour income parts, billions of USD at SAAR: compensation of employees (`COE`, wages and salaries plus
+    supplements, which covers the paper's "other labour income"), personal current transfer receipts
+    (`A577RC1Q027SBEA`) and contributions for government social insurance, domestic (`A061RC1Q027SBEA`,
+    employee and employer parts). The paper's labour income is wages and salaries plus transfers plus other
+    labour income, minus social insurance contributions, minus a labour share of personal taxes.
+    **Labour taxes are not removed here**, so labour income built from these columns is pre-tax.
+  - Deflator and scale: PCE chain-type price index (`PCECTPI`, 2017=100) and total population
+    (`B230RC0Q173SBEA`, thousands, including Armed Forces overseas). The paper deflates wealth and income by
+    the PCE deflator with 1992=100 and uses per-person values.
+  - Two ID swaps, both checked against the FRED CSV header and titles on 2026-10-23.
+    `W209RC1Q027SBEA` (compensation of employees received) is discontinued and ends in 2015-Q2. FRED has no
+    current quarterly series for that NIPA Table 2.1 line, so `COE` (Table 1.12 line 2, compensation paid)
+    stands in. In this vintage its quarters equal the three-month means of the monthly received series
+    `W209RC1` within 0.001%. `PCTR` is monthly, so `A577RC1Q027SBEA`, the quarterly series for the same
+    Table 2.1 line, replaces it.
+  - FRED sends these series as a ZIP with one CSV per aggregation type (`quarterly.csv` and
+    `quarterly,_end_of_period.csv`). The script joins the CSVs by observation date.
 
 ## Typed loaders and validation
 
