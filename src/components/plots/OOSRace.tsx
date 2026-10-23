@@ -114,12 +114,16 @@ export default function OOSRace({ initialPredictor = 'dp' }: { initialPredictor?
             <dl className="readout-grid">
               <dt><RichText>{'$R^2_{OS}$'}</RichText></dt>
               <dd className={view.chosen.r2 > 0 ? 'good' : view.chosen.r2 < 0 ? 'bad' : undefined}>{percent(view.chosen.r2, 2)}</dd>
-              <dt>Clark–West statistic (one-sided p)</dt>
-              <dd>{signed(cw!.statistic, 2)} (p = {cw!.pValue.toFixed(3)})</dd>
+              <dt>Clark–West statistic</dt>
+              <dd>{signed(cw!.statistic, 2)}</dd>
+              <dt>Its one-sided p-value</dt>
+              <dd>{cw!.pValue.toFixed(3)}</dd>
               <dt>Certainty-equivalent gain, per year</dt>
               <dd className={view.chosen.ceGain > 0 ? 'good' : view.chosen.ceGain < 0 ? 'bad' : undefined}>{percent(view.chosen.ceGain, 2)}</dd>
               <dt>Forecasts</dt>
-              <dd>{view.chosen.x.length}, {view.chosen.first.slice(0, frequency === 'annual' ? 4 : 7)} to {view.chosen.last.slice(0, frequency === 'annual' ? 4 : 7)}</dd>
+              <dd>{view.chosen.x.length}</dd>
+              <dt>Years forecast</dt>
+              <dd>{view.chosen.first.slice(0, 4)}–{view.chosen.last.slice(0, 4)}</dd>
               <dt>Predictors ending above zero</dt>
               <dd>{view.ahead} of 12</dd>
             </dl>

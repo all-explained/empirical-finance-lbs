@@ -120,17 +120,21 @@ Write the model's error as the mean's error minus the gap between the two foreca
 $\Ret{r^e_{t+1}} - \hat r^e_{t+1} = (\Ret{r^e_{t+1}} - \bar r^e_t) - (\hat r^e_{t+1} - \bar r^e_t)$. Square it:
 
 $$
-\left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2 = \left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 -
-2\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)\left(\hat r^e_{t+1} - \bar r^e_t\right) + \left(\hat r^e_{t+1} -
-\bar r^e_t\right)^2.
+\begin{aligned}
+\left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2 = {} & \left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 \\
+& - 2\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)\left(\hat r^e_{t+1} - \bar r^e_t\right) \\
+& + \left(\hat r^e_{t+1} - \bar r^e_t\right)^2.
+\end{aligned}
 $$
 
 Move the first term on the right to the left and change signs. The gain of one date is
 
 $$
-\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 - \left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2 =
-2\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)\left(\hat r^e_{t+1} - \bar r^e_t\right) - \left(\hat r^e_{t+1} -
+\begin{aligned}
+& \left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 - \left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2 \\
+& \quad = 2\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)\left(\hat r^e_{t+1} - \bar r^e_t\right) - \left(\hat r^e_{t+1} -
 \bar r^e_t\right)^2.
+\end{aligned}
 $$
 
 The first term is the reward. It is positive on average when the model moves away from the mean in the same
@@ -151,9 +155,11 @@ with $b = 0$). Even a correct null of $b = 0$ pushes $R^2_{OS}$ below zero. The 
 penalty term. Add $(\hat r^e_{t+1} - \bar r^e_t)^2$ back to the gain of each date:
 
 $$
-\mathit{cw}_t = \left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 - \left[\left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2 -
-\left(\hat r^e_{t+1} - \bar r^e_t\right)^2\right] = 2\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)\left(\hat r^e_{t+1} -
-\bar r^e_t\right).
+\begin{aligned}
+\mathit{cw}_t &= \left(\Ret{r^e_{t+1}} - \bar r^e_t\right)^2 - \left[\left(\Ret{r^e_{t+1}} - \hat r^e_{t+1}\right)^2 -
+\left(\hat r^e_{t+1} - \bar r^e_t\right)^2\right] \\
+&= 2\left(\Ret{r^e_{t+1}} - \bar r^e_t\right)\left(\hat r^e_{t+1} - \bar r^e_t\right).
+\end{aligned}
 $$
 
 The second equality is the gain of the last section with its penalty added back. What is left is the reward

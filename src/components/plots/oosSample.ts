@@ -51,9 +51,7 @@ export interface Run {
   variance: number[];
 }
 
-export function predictorsFromSeries(
-  series: Series<'goyal-welch-annual'> | Series<'goyal-welch-monthly'>,
-): GoyalWelchPredictors {
+export function predictorsFromSeries(series: Series<'goyal-welch-annual' | 'goyal-welch-monthly'>): GoyalWelchPredictors {
   return series.frequency === 'annual'
     ? goyalWelchPredictors(series as Series<'goyal-welch-annual'>, 'annual')
     : goyalWelchPredictors(series as Series<'goyal-welch-monthly'>, 'monthly');
@@ -104,7 +102,7 @@ export interface Race {
 export function race(run: Run, firstYear: number, frequency: Frequency): Race {
   const from = run.dates.findIndex((d) => Number(d.slice(0, 4)) >= firstYear);
   if (from < 0) throw new RangeError(`No forecasts from ${firstYear}`);
-  const cut = (values: number[]) => values.slice(from);
+  const cut = <T,>(values: T[]) => values.slice(from);
   const [actual, forecast, benchmark, variance] = [run.actual, run.forecast, run.benchmark, run.variance].map(cut);
   const dates = cut(run.dates);
   return {
