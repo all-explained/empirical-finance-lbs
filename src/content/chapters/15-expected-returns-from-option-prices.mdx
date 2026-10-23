@@ -35,8 +35,7 @@ it peaked at 55.0% a year (p. 385). The same method, applied to the same kind of
 by a factor of almost thirty.
 
 This site has no real option data yet. So every option price in this chapter is **simulated**, from a seeded
-model, and the numbers from Martin (2017) are quoted with their page. The chapter shows why option prices carry
-this information, which condition you must accept to use it, and what a lower bound can and cannot tell you.
+model, and the numbers from Martin (2017) are quoted with their page.
 
 ## <span class="section-tag">Intuition</span> Insurance prices measure fear
 
@@ -60,8 +59,7 @@ readout says the expected excess return is at least 4.21% a year. Move the slide
 the bound rises to 16.47%: twice the volatility gives almost four times the bound.</p>
 
 The bound grows with the square of volatility, because the area measures a variance. That is why it spikes when
-volatility spikes. A calm market and a frightened market can have the same index level and very different
-option prices.
+volatility spikes.
 
 <Callout type="key">Out-of-the-money options are insurance on large moves. Their total price measures the
 market's variance, valued at risk-neutral odds. Under one condition, that variance is a floor under the expected
@@ -83,8 +81,8 @@ $$
 $$
 
 Each weight is positive, because $\SDF{M}$ and $\Prob{\pi}$ are. They add up to one, because
-$\sum_s \Prob{\pi(s)}\SDF{M(s)} = \mathbb{E}_t[\SDF{M}] = 1/(1 + \Rf{R^f_t})$. So they are probabilities. They are
-the **risk-neutral probabilities**, and $\mathbb{E}^*_t$ is an expectation with them. Put them into the pricing
+$\sum_s \Prob{\pi(s)}\SDF{M(s)} = \mathbb{E}_t[\SDF{M}] = 1/(1 + \Rf{R^f_t})$. So they are probabilities: the
+**risk-neutral probabilities**, and $\mathbb{E}^*_t$ is an expectation with them. Put them into the pricing
 equation:
 
 $$
@@ -277,8 +275,7 @@ are almost the same: $\mathrm{VIX}^2 = \sigma^2$ and $\mathrm{SVIX}^2 = (e^{\sig
 (Martin 2017, p. 402). For a lognormal $X$, $\log\mathbb{E}[X] = \mathbb{E}[\log X] + \tfrac12\operatorname{Var}(\log X)$,
 so $L(X)$ is half the variance of $\log X$. When $\SDF{M}$ and the return are jointly lognormal, $\log X$ has the
 same variance under both sets of odds (Martin 2017, p. 374), so $L_t$ and $L^*_t$ agree too. With a skew, they
-part. The entropy weights
-the left tail more, so a fat left tail raises VIX above SVIX. In the widget's default smile, the VIX is 21.8% and
+part. The entropy weights the left tail more, so a fat left tail raises VIX above SVIX. In the widget's default smile, the VIX is 21.8% and
 the SVIX is 20.2%. Martin (2017, p. 402) finds the VIX above the SVIX on every day of his sample: the market is
 not lognormal, even over one month.
 
@@ -295,9 +292,7 @@ correlation condition. The VIX measures entropy and loads on the left tail; the 
 
 ## <span class="section-tag">Playground</span> Calm markets and crises
 
-This copy of the widget opens at 45% volatility, a crisis level. All prices are simulated. Each one is the
-Black–Scholes price of a one-year option at the volatility of a seeded smile, on an index at 100 with a
-risk-free rate of 3% a year.
+This copy of the widget opens at 45% volatility, a crisis level. As before, all its option prices are simulated.
 
 <OptionStripBound client:visible initialLevel={45} />
 
@@ -307,7 +302,7 @@ back to 20% and press "New draw" a few times. Over the first ten seeds the bound
 but the VIX moves from 21.6% to 27.4%. The skew moves the VIX much more than the bound.</p>
 
 <p class="try-this"><strong>Try this too:</strong> at 20%, switch the smile to "flat (lognormal)". The VIX drops
-to 20.00% and the SVIX is 20.21%, just above it, as the lognormal formula $\sqrt{e^{0.04} - 1}$, or 20.20%,
+to 20.0% and the SVIX is 20.2%, just above it, as the lognormal formula $\sqrt{e^{0.04} - 1}$, or 20.2%,
 predicts. The bound barely moves: it is 4.21% both ways.</p>
 
 ### What a lower bound can and cannot tell you
@@ -315,7 +310,7 @@ predicts. The bound barely moves: it is 4.21% both ways.</p>
 A lower bound is a floor, not a forecast. It says the expected excess return is *at least* this much. The true
 premium may be far higher. Martin (2017, p. 382) finds that his monthly bound averaged 5.00% a year, close to
 common estimates of the equity premium. He then tests whether the bound holds with equality, with predictive
-regressions, and does not reject it (p. 367). That is a second, stronger claim. A failure to reject is not proof.
+regressions, and does not reject it (p. 367). A failure to reject is not proof.
 
 The bound rests on the negative correlation condition. Option prices cannot test it, because the covariance
 uses real-world odds. If you doubt the condition, you must doubt the bound.

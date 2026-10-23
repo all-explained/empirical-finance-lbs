@@ -25,6 +25,10 @@ function twoState(payoff: readonly number[]) {
 }
 
 describe('chapter 15 prose numbers', () => {
+  test('hook: the ratio of the two bounds quoted from Martin (2017, p. 385)', () => {
+    expect((55.0 / 1.86).toFixed(1)).toBe('29.6'); // "a factor of almost thirty"
+  });
+
   test('the simulated market of the widget and the caption', () => {
     expect([MARKET.S, MARKET.tau, MARKET.rfAnnual, GROSS_RF]).toEqual([100, 1, 0.03, 1.03]);
     expect(FORWARD.toFixed(0)).toBe('103');
@@ -77,7 +81,8 @@ describe('chapter 15 prose numbers', () => {
 
   test('playground: the flat (lognormal) smile', () => {
     const flat = stripBound(0.2, DEFAULT_SEED, flatSmile(0.2));
-    expect([vol(flat.vix2, 2), vol(flat.svix2, 2), percent(flat.bound, 2)]).toEqual(['20.00', '20.21', '4.21']);
-    expect(percent(Math.sqrt(Math.exp(0.04) - 1), 2)).toBe('20.20');
+    expect([vol(flat.vix2, 1), vol(flat.svix2, 1), percent(flat.bound, 2)]).toEqual(['20.0', '20.2', '4.21']);
+    expect(flat.svix2).toBeGreaterThan(flat.vix2); // SVIX just above VIX, as under lognormality
+    expect(percent(Math.sqrt(Math.exp(0.04) - 1), 1)).toBe('20.2');
   });
 });
