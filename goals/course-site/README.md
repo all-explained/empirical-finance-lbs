@@ -28,6 +28,10 @@ topic list.
 
 ## Risks and open questions
 
+- **No owner approval gates.** On 2026-10-23 the owner removed the "owner reads and approves" step. A Part read-through
+  task is now done by the orchestrator: it checks that the chapters build, pass screenshots and click-through, and read
+  well, then runs `goal done`. The owner can still send changes at any time; each change becomes a new task.
+
 - **Missing readings.** Five readings are not in `source/papers/` (see `docs/READINGS.md`): the books Cochrane
   (2005), Campbell (2018), Campbell, Lo and MacKinlay (1997), Duffie (2001) and Singleton (2006). A chapter states
   no fact taken from a reading it does not have. It lists the reading under further reading in the short form.
@@ -108,7 +112,7 @@ flowchart TD
     TASK_057["TASK-057 Chapter 13: Out-of-sample predictability"]
     TASK_058["TASK-058 Chapter 14: The consumption–wealth ratio"]
     TASK_059["TASK-059 Chapter 15: Expected returns from option prices"]
-    TASK_060["TASK-060 Owner reads Part III and approves how it reads"]
+    TASK_060["TASK-060 Orchestrator reads Part III and signs it off"]
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
     TASK_032["TASK-032 Plan: decompose M-6"]

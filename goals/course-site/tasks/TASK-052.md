@@ -2,9 +2,10 @@
 id: TASK-052
 title: Owner reads Part II and approves how it reads
 milestone: M-4
-state: approved
+state: done
 depends_on: [TASK-049, TASK-050, TASK-051]
 delivery: manual
+reason: Owner approved Part II on 2026-10-23
 ---
 
 ## Why
