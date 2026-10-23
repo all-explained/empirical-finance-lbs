@@ -105,6 +105,7 @@ flowchart TD
     TASK_054["TASK-054 Data: quarterly consumption, wealth and labour income for cay"]
     TASK_055["TASK-055 Library: cointegration, dynamic OLS and cay"]
     TASK_056["TASK-056 Library: option strips, SVIX and the Martin lower bound"]
+    TASK_057["TASK-057 Chapter 13: Out-of-sample predictability"]
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
     TASK_032["TASK-032 Plan: decompose M-6"]
@@ -207,6 +208,7 @@ flowchart TD
   TASK_050 --> TASK_052
   TASK_051 --> TASK_052
   TASK_054 --> TASK_055
+  TASK_053 --> TASK_057
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
