@@ -107,6 +107,7 @@ flowchart TD
     TASK_056["TASK-056 Library: option strips, SVIX and the Martin lower bound"]
     TASK_057["TASK-057 Chapter 13: Out-of-sample predictability"]
     TASK_058["TASK-058 Chapter 14: The consumption–wealth ratio"]
+    TASK_059["TASK-059 Chapter 15: Expected returns from option prices"]
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
     TASK_032["TASK-032 Plan: decompose M-6"]
@@ -211,6 +212,7 @@ flowchart TD
   TASK_054 --> TASK_055
   TASK_053 --> TASK_057
   TASK_055 --> TASK_058
+  TASK_056 --> TASK_059
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
