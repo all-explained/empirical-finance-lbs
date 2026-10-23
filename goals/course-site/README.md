@@ -102,6 +102,7 @@ flowchart TD
   subgraph M_5["M-5 · Part III: Return predictability: out of sample and beyond"]
     TASK_031["TASK-031 Plan: decompose M-5"]
     TASK_053["TASK-053 Library: out-of-sample forecasts, Clark–West and certainty-equivalent gains"]
+    TASK_054["TASK-054 Data: quarterly consumption, wealth and labour income for cay"]
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
     TASK_032["TASK-032 Plan: decompose M-6"]
