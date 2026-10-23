@@ -8,8 +8,9 @@ import { WidgetFrame } from '../ui/WidgetFrame';
 import { useTweened } from './animation';
 import { extent, niceTicks } from './format';
 import { Label, PlotFrame } from './PlotFrame';
+import { usePresentValueData } from './presentValueSample';
 import {
-  DEFAULT_SEED, DOG_SAMPLES, PERIOD_OPTIONS, dogDraws, dogInputs, presentValueSample, usePresentValueSeries, type Period,
+  DEFAULT_SEED, DOG_SAMPLES, PERIOD_OPTIONS, dogDraws, dogInputs, presentValueSample, type Period,
 } from './newsSample';
 
 type PhiChoice = 'data' | '0.95' | '0.98' | '0.99';
@@ -26,8 +27,8 @@ export default function DogThatDidNotBark() {
   const [period, setPeriod] = useState<Period>('1926');
   const [phiChoice, setPhiChoice] = useState<PhiChoice>('data');
   const [seed, setSeed] = useState(DEFAULT_SEED);
-  const { series, failed } = usePresentValueSeries();
-  const sample = useMemo(() => series && presentValueSample(series, period), [series, period]);
+  const { data, failed } = usePresentValueData();
+  const sample = useMemo(() => data && presentValueSample(data, period), [data, period]);
   const inputs = useMemo(() => sample && dogInputs(sample), [sample]);
   const phi = inputs ? (phiChoice === 'data' ? inputs.estimates.phi : Number(phiChoice)) : 0.9;
   const draws = useMemo(() => sample && dogDraws(sample, phi, seed), [sample, phi, seed]);

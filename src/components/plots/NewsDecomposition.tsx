@@ -6,7 +6,8 @@ import { WidgetFrame } from '../ui/WidgetFrame';
 import { useTweened } from './animation';
 import { extent, niceTicks } from './format';
 import { PlotFrame } from './PlotFrame';
-import { PERIOD_OPTIONS, presentValueSample, sampleNews, usePresentValueSeries, type Period } from './newsSample';
+import { usePresentValueData } from './presentValueSample';
+import { PERIOD_OPTIONS, presentValueSample, sampleNews, type Period } from './newsSample';
 
 const HEIGHT = 340;
 const pct = (v: number, digits = 0) => `${v < 0 ? '−' : ''}${Math.abs(v * 100).toFixed(digits)}%`;
@@ -30,8 +31,8 @@ function stack(parts: number[]): [number, number][] {
 export default function NewsDecomposition() {
   const [period, setPeriod] = useState<Period>('1926');
   const [year, setYear] = useState(2008);
-  const { series, failed } = usePresentValueSeries();
-  const news = useMemo(() => series && sampleNews(presentValueSample(series, period)), [series, period]);
+  const { data, failed } = usePresentValueData();
+  const news = useMemo(() => data && sampleNews(presentValueSample(data, period)), [data, period]);
 
   const bars = news ? news.years.map((y, t) => ({
     year: y, total: news.unexpected[t], cf: news.cashFlow[t], dr: -news.discountRate[t],

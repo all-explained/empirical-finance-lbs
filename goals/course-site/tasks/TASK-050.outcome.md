@@ -3,8 +3,8 @@
 ## Acceptance
 
 - [x] `npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings. After `npm ci`, Vitest
-  runs 27 files and 301 tests, all passing, including the five tests of `tests/chapter11-numbers.test.ts`.
-  `astro check`: "Result (93 files): 0 errors, 0 warnings, 1 hint" (the hint is an unused `Matrix` import in
+  runs 28 files and 306 tests, all passing, including the five tests of `tests/chapter11-numbers.test.ts`.
+  `astro check`: "Result (97 files): 0 errors, 0 warnings, 1 hint" (the hint is an unused `Matrix` import in
   `src/lib/finance/news.ts`, library code outside this task); the static build ends with "Complete!".
 - [x] `npm run screenshots -- 11-cash-flow` passes with four ✓ lines (dark/light × desktop/phone). I inspected the
   full pages (sliced) and widget-level shots in both themes at 1280 px and 360 px:
@@ -24,15 +24,16 @@
   (7 actions at each width: the two samples, the four φ options, re-roll). A separate Playwright check pressed
   ArrowLeft twice on the year slider (2008 → 2006, readout "Unexpected return in 2006 +0.081") and pressed Enter
   on the "φ = 0.99" option (readout and `aria-label` show 73.6%).
-- [x] The six `section-tag` headings are in template order (`grep -n 'section-tag'`): line 32 Hook, 48 Intuition,
-  80 Formalisation, 240 Playground, 268 Check yourself, 294 Recap & next up.
+- [x] The six `section-tag` headings are in template order (`grep -n 'section-tag'`): line 33 Hook, 49 Intuition,
+  81 Formalisation, 242 Playground, 270 Check yourself, 296 Recap & next up.
 - [x] No hex colour in the chapter or its widgets: the Verify `git diff … | xargs grep -nE '#[0-9a-fA-F]{3,8}\b'`
-  prints "no hex colours". Colours are `var(--c-…)`, `var(--text)` and `var(--text-muted)` only.
+  prints "no hex colours" with no grep error on the committed head (before the
+  rebase on `origin/main` the diff also listed chapter 10's files, which grep could not find). Colours are `var(--c-…)`, `var(--text)` and `var(--text-muted)` only.
 - [x] Real data and seeded simulations. Both widgets load `goyal-welch-annual` through `loadSeries` and
   `goyalWelchAnnualPresentValue`. The only simulation is `simulateDogNull`, seeded with `DEFAULT_SEED = 1` and a
   re-roll button that increments the seed; the readout shows the seed.
 - [x] The voice review and the numbers table are below.
-- [x] Prose length: 2,571 words, inside 1,500–3,000. Command (the chapter 9 command: it drops the frontmatter,
+- [x] Prose length: 2,570 words, inside 1,500–3,000. Command (the chapter 9 command: it drops the frontmatter,
   imports and display maths):
   `awk 'NR>8' src/content/chapters/11-cash-flow-and-discount-rate-news.mdx | grep -v '^import ' | awk '/^\$\$/{m=!m; next} !m' | wc -w`
 - [x] `git ls-files | grep -ciE '\.pdf$|^source/'` prints 0 (exit 1, accepted under DEC-002).
@@ -45,7 +46,7 @@
 | Data before theory | "In 2008, stocks in the S&P index lost 36.6%, dividends included." |
 | One idea per section | Intuition carries one idea, "Higher expected returns from now on mean a lower price today"; Formalisation is split into four numbered steps, each with its own result. |
 | Start with a question the reader has | "When the stock market moves, which kind of news is it reacting to?" |
-| Write to "you", short sentences, explain terms | "The second is **discount-rate news**: news about the return that buyers expect to earn." Chapter 10 does not exist yet, so the opening callout recaps it in plain words; Chapters 5 and 9 are linked. |
+| Write to "you", short sentences, explain terms | "The second is **discount-rate news**: news about the return that buyers expect to earn." The opening callout recaps Chapter 10 in plain words and links it, with Chapters 5 and 9. |
 | Give the honest version | "Cash-flow news is not measured directly. It is what is left after the VAR forecasts returns." |
 | Say what the evidence can and cannot show | "These are classical OLS standard errors on 99 years." and "The dog test is strong evidence only if $dp$ is not too close to a random walk." |
 | Don't skip steps in derivations | Step 2 writes both forecasts, subtracts them to get $A^j\varepsilon_{t+1}$, then sums the geometric series and says when it converges. Step 3 says why OLS slopes add. |
@@ -90,7 +91,8 @@ What: `src/content/chapters/11-cash-flow-and-discount-rate-news.mdx`, the widget
 `tests/chapter11-numbers.test.ts`.
 
 How:
-- `newsSample.ts` slices `goyalWelchAnnualPresentValue` from the end of 1926 (default) or 1872, sets $\rho$ with
+- `newsSample.ts` reuses chapter 10's `presentValueData` and `usePresentValueData` (from
+  `presentValueSample.ts`, merged with TASK-049 while this task ran) and slices it from the end of 1926 (default) or 1872. It sets $\rho$ with
   `linearisationConstants` at the slice's mean $pd$, and calls only library functions: `newsDecomposition` on
   the VAR(1) in $(r, dp)$, `presentValueSlopes` for the data's slopes, `fitVAR1` for the null's shock
   covariance, `simulateDogNull` and `dogTailShares`.
@@ -101,7 +103,8 @@ How:
   step.
 - Colours: cash-flow news uses `--c-factor`, minus discount-rate news uses `--c-return` (it is news about future
   returns), null draws use `--c-prob`, the data's estimate `--c-data`, the identity line `--c-model`. Bars also
-  differ by opacity and the readout names them in words.
+  differ by opacity and the readout names them in words. Chapter 10's `VarianceShares` also borrows `--c-factor`
+  for dividend growth, so the two chapters agree.
 - Readings: I opened both PDFs with `pdftotext -layout`. Page numbers are the printed numbers of the NBER working
   papers in `source/papers/` (Cochrane (2008) = NBER WP 12026; Campbell and Shiller (1988) = NBER WP 2100).
   Campbell (2018), Ch. 5 is listed under further reading only.
@@ -116,8 +119,9 @@ Deviations and mismatches:
 - `docs/STYLE_GUIDE.md` §3 lists $N_{CF}$ and $N_{DR}$ with no colour macro, and §4 has no token for news or
   dividends. The formulas leave $N$ uncoloured; the widget uses `--c-factor` for cash-flow news, which is not a
   factor. No mismatch between the curriculum's Key math and the notation table.
-- The curriculum's Prereqs for chapter 11 is chapter 10, which is not written yet (TASK-049). The opening callout
-  recaps it in plain words and links nothing that does not exist.
+- Chapter 10 (TASK-049) merged while this task ran. I rebased on `origin/main`, linked Chapter 10 from the opening
+  callout and Step 1, and reused its loader. Chapter 10's $\rho = 0.964$ is for 1872–2025; this chapter's
+  $\rho = 0.969$ is for the 1926 sample, and the prose says which sample each number uses.
 
 Verified revision: the PR head. Local Verify: `npm ci`, `npm test`, `npm run build`,
 `npm run screenshots -- 11-cash-flow`, `npm run clickthrough -- 11-cash-flow`, the `section-tag` grep, the hex

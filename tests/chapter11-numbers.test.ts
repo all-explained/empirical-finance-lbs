@@ -12,8 +12,9 @@ import { ols } from '../src/lib/stats/ols';
 import {
   DEFAULT_SEED, DOG_SAMPLES, dogDraws, dogInputs, presentValueSample, sampleNews,
 } from '../src/components/plots/newsSample';
+import { presentValueData } from '../src/components/plots/presentValueSample';
 
-const series = gw as unknown as Series<'goyal-welch-annual'>;
+const series = presentValueData(gw as unknown as Series<'goyal-welch-annual'>);
 const post = presentValueSample(series, '1926');
 const full = presentValueSample(series, '1872');
 const fixed = (v: number, digits: number) => v.toFixed(digits);

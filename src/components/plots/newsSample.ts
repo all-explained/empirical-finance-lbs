@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import { loadSeries, type Series } from '../../lib/data/series';
 import { arithmeticMean } from '../../lib/finance/returns';
 import { newsDecomposition, simulateDogNull } from '../../lib/finance/news';
-import { goyalWelchAnnualPresentValue, linearisationConstants, presentValueSlopes } from '../../lib/finance/presentValue';
+import { linearisationConstants, presentValueSlopes } from '../../lib/finance/presentValue';
 import { fitVAR1 } from '../../lib/stats/var';
+import type { PresentValueData } from './presentValueSample';
 
 /** First year of dp in the sample; returns start one year later. */
 export type Period = '1926' | '1872';
@@ -25,14 +24,12 @@ export interface PresentValueSample {
   rho: number;
 }
 
-/** goyal-welch-annual from the end of `start` to 2025, through the present-value loader. */
-export function presentValueSample(series: Series<'goyal-welch-annual'>, start: Period): PresentValueSample {
-  const all = goyalWelchAnnualPresentValue(series);
-  const years = all.dates.map((d) => Number(d.slice(0, 4)));
-  const i0 = years.indexOf(Number(start));
+/** Chapter 10's present-value data from the end of `start` to 2025. */
+export function presentValueSample(data: PresentValueData, start: Period): PresentValueSample {
+  const i0 = data.years.indexOf(Number(start));
   return {
-    years: years.slice(i0), dp: all.dp.slice(i0), r: all.r.slice(i0), dd: all.dd.slice(i0),
-    rho: linearisationConstants(arithmeticMean(all.pd.slice(i0))).rho,
+    years: data.years.slice(i0), dp: data.dp.slice(i0), r: data.r.slice(i0), dd: data.dd.slice(i0),
+    rho: linearisationConstants(arithmeticMean(data.pd.slice(i0))).rho,
   };
 }
 
@@ -49,14 +46,4 @@ export function dogInputs(s: PresentValueSample) {
 export function dogDraws(s: PresentValueSample, phi: number, seed: number) {
   const { estimates, residualCov } = dogInputs(s);
   return simulateDogNull({ T: estimates.nobs, phi, rho: s.rho, residualCov, samples: DOG_SAMPLES, seed });
-}
-
-/** Load goyal-welch-annual once; null while loading. */
-export function usePresentValueSeries(): { series: Series<'goyal-welch-annual'> | null; failed: boolean } {
-  const [series, setSeries] = useState<Series<'goyal-welch-annual'> | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    loadSeries('goyal-welch-annual').then(setSeries, () => setFailed(true));
-  }, []);
-  return { series, failed };
 }
