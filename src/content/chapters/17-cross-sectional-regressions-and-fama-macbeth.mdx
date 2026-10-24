@@ -1,0 +1,314 @@
+---
+title: "Cross-sectional regressions and Fama–MacBeth"
+part: 4
+chapter: 17
+difficulty: 2
+prerequisites: [16]
+summary: "Estimate betas first, then ask whether they price the cross-section of average returns, month by month with Fama–MacBeth, and learn what the cross-sectional R² can and cannot show."
+---
+
+import FamaMacBethMovie from '../../components/plots/FamaMacBethMovie';
+import SMLPlot from '../../components/plots/SMLPlot';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Is the falling line real?
+
+[Chapter 7](/empirical-finance-lbs/chapters/07-mean-variance-and-the-capm/) drew a line through 25 dots. Each dot
+was one of the size and book-to-market portfolios, with its CAPM beta across and its average excess return up.
+From July 1963 to August 2026, the CAPM said the line should rise by 7.2% a year per unit of beta, the market's
+average excess return. The fitted line went the other way. Its slope was −4.3% a year.
+
+So here is the question. A line through 25 dots is an estimate, and every estimate has an error. Is that falling
+slope a fact about the market, or is it noise? And if it is noise, how large is the noise? Chapter 7 could not
+say, because it gave the line no standard error.
+
+This chapter gives it one. The method is the workhorse of empirical asset pricing. Run the cross-sectional
+regression once in every month, and treat the 758 monthly slopes as a sample. Their average is −4.3% a year, with
+a standard error of 4.8. That is a $t$-statistic of −0.91, so the data cannot tell this slope from zero. Fama &
+French (1992, p. 438) found the same kind of result for single stocks from 1963 to 1990: the average monthly
+slope on beta alone was 0.15% a month, only 0.46 standard errors from zero. Beta, on its own, did not explain
+average returns.
+
+## <span class="section-tag">Intuition</span> A movie of 758 lines
+
+Picture one month, say October 1987. The market fell 23.2% that month. Each of the 25 portfolios fell too, and
+the ones with a high beta fell more. Plot the 25 returns of that month against the 25 betas and draw the best
+line. Its slope is steep and negative: −27.7%. In a month when the market rises, the high-beta portfolios rise
+more, and the slope is positive.
+
+So one month's slope is mostly that month's market news. It jumps around. Across the 758 months, the CAPM slope
+has a standard deviation of 10.9% a month, and it is negative in 52% of the months. No single month tells you much
+about the price of beta. But the *average* of the slopes is an estimate of that price, and the spread of the slopes
+tells you how precise the average is. That is the whole idea. It is the same idea as estimating the equity premium
+from a sample of monthly returns: a noisy series, an average, and a standard error that shrinks with $\sqrt{T}$.
+
+The movie below plays the months one by one. The top panel is the month's cross-section: dots for the returns,
+the line for the month's fit, thin lines for the gaps. The bottom panel is the running mean of all the slopes so
+far, with a 95% band. The dashed line is the market's average excess return, the slope the CAPM predicts.
+
+<FamaMacBethMovie client:visible />
+
+<p class="try-this"><strong>Try this:</strong> pause the movie and drag the month slider to 1987-10. The line is
+steep and negative. Then step forward a month at a time and watch the line swing. Now let the movie run to the end.
+The running mean settles at −4.3% a year, and the band is ±9.3%. The dashed line at 7.2% sits outside the band.</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch to Fama–French 3. Each month now has three slopes, one for
+each beta, so the fitted values (rings) no longer lie on one line against the market beta. The lower panel shows
+the market slope. It ends at −6.6% a year, with a $t$-statistic of −1.80.</p>
+
+<Callout type="key">A monthly cross-sectional slope is noisy because it mostly carries that month's market news.
+Its time-series average estimates the price of the risk, and the spread of the monthly slopes gives the standard
+error.</Callout>
+
+## <span class="section-tag">Formalisation</span> Two passes, then one pass a month
+
+### The model and the first pass
+
+A factor model says that expected excess returns line up with betas:
+
+$$
+\mathbb{E}\big[\Ret{R^e_i}\big] = \beta_i'\lambda, \qquad i = 1, \dots, N.
+$$
+
+Here $\beta_i$ is the $K$-vector of asset $i$'s exposures to the factors, and $\lambda$ is the $K$-vector of risk
+premia, the price of one unit of each exposure. We do not know the betas. So the **first pass** estimates them with
+one time-series regression for each asset, as in
+[Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/):
+
+$$
+\Ret{R^e_{i,t}} = a_i + \beta_i'\Factor{f_t} + \Err{\varepsilon_{i,t}}, \qquad t = 1, \dots, T.
+$$
+
+Chapter 16 called the intercept $\alpha_i$. Here we write $a_i$, because in this chapter $\alpha$ names the
+pricing error of the cross-sectional regression. The CAPM has one factor, the market's excess return. The Fama–French three-factor model (FF3) adds SMB and HML.
+From here on, $\hat\beta_i$ is the first-pass estimate, and $\hat\beta$ is the $N \times K$ matrix whose row $i$
+is $\hat\beta_i'$. We treat $\hat\beta$ as if it were the true $\beta$ until Chapter 18.
+
+### The second pass: one regression across assets
+
+Average each asset's excess return over time, $\Data{\bar R^e_i} = \tfrac1T \sum_t \Ret{R^e_{i,t}}$, and stack the
+$N$ averages in a vector $\bar R^e$. The model says that $\bar R^e$ is close to $\hat\beta\lambda$. The gap is
+the pricing error:
+
+$$
+\Data{\bar R^e} = \hat\beta\lambda + \Err{\alpha}.
+$$
+
+This is a regression *across assets*. There are $N$ observations, the regressors are the betas, and the
+coefficients are the premia. Ordinary least squares picks $\lambda$ to make the sum of squared pricing errors
+$\alpha'\alpha$ as small as possible. Write it out and set the derivative with respect to $\lambda$ to zero:
+
+$$
+\alpha'\alpha = (\bar R^e - \hat\beta\lambda)'(\bar R^e - \hat\beta\lambda), \qquad
+\frac{\partial\, \alpha'\alpha}{\partial \lambda} = -2\hat\beta'(\bar R^e - \hat\beta\lambda) = 0.
+$$
+
+Move the terms with $\lambda$ to one side, $\hat\beta'\hat\beta\,\lambda = \hat\beta'\bar R^e$, and multiply by the
+inverse of $\hat\beta'\hat\beta$:
+
+$$
+\hat\lambda = (\hat\beta'\hat\beta)^{-1}\hat\beta'\,\Data{\bar R^e}.
+$$
+
+The fitted mean returns are $\Model{\hat\beta_i'\hat\lambda}$, and the pricing errors are
+$\Err{\hat\alpha_i} = \Data{\bar R^e_i} - \Model{\hat\beta_i'\hat\lambda}$. Many studies also add a constant,
+$\lambda_0$, so that $\bar R^e_i = \lambda_0 + \hat\beta_i'\lambda + \alpha_i$. The algebra is the same with the
+design matrix $X = [\mathbf{1}\ \hat\beta]$ in place of $\hat\beta$ and the coefficient vector $(\lambda_0, \lambda')'$
+in place of $\lambda$. The model says $\lambda_0 = 0$: an asset with zero betas should earn no premium over the
+risk-free rate. So an estimate of $\lambda_0$ far from zero is evidence against the model.
+
+### GLS: weight the assets by their noise
+
+OLS treats every asset the same. But some portfolios are noisier than others, and their noise is correlated.
+Generalised least squares (GLS) takes this into account. It minimises $\alpha'\Sigma^{-1}\alpha$ instead, where
+$\Sigma$ is the $N \times N$ covariance matrix of the returns. The same steps give
+
+$$
+\frac{\partial\, \alpha'\Sigma^{-1}\alpha}{\partial \lambda} = -2\hat\beta'\Sigma^{-1}(\bar R^e - \hat\beta\lambda) = 0
+\quad\Longrightarrow\quad
+\hat\lambda_{GLS} = (\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}\,\Data{\bar R^e}.
+$$
+
+The weight $\Sigma^{-1}$ counts a precise combination of assets more than a noisy one. In sample,
+$\hat\Sigma = \hat\beta\hat\Sigma_f\hat\beta' + \hat\Sigma_\varepsilon$, where $\Sigma_f$ is the covariance of the
+factors and $\Sigma_\varepsilon$ that of the residuals. The first term only adds directions along the betas, which
+the regression fits anyway. So the weight $\hat\Sigma_\varepsilon^{-1}$ gives the same $\hat\lambda_{GLS}$. Our
+numbers use it.
+
+How far can these estimates be from the factors' own averages $\Factor{\bar f}$? The first pass fits each asset's
+mean exactly, $\bar R^e_i = \hat a_i + \hat\beta_i'\Factor{\bar f}$, because an OLS line passes through the means.
+Stack these as $\bar R^e = \hat a + \hat\beta\Factor{\bar f}$ and put them into either estimator, with a weight
+matrix $W$ ($I$ for OLS, $\Sigma^{-1}$ for GLS):
+
+$$
+\hat\lambda = (\hat\beta'W\hat\beta)^{-1}\hat\beta'W(\hat a + \hat\beta\Factor{\bar f})
+= \Factor{\bar f} + (\hat\beta'W\hat\beta)^{-1}\hat\beta'W\hat a.
+$$
+
+So the cross-sectional premium is the factor's average plus a regression of the time-series intercepts $\hat a_i$
+on the betas. It is close to $\bar f$ when those intercepts are small or unrelated to the betas.
+
+On our 25 portfolios, the two weightings differ. For the CAPM without a constant, OLS gives a market premium of
+8.2% a year and GLS gives 7.5%. The market's average excess return is 7.2%. For FF3, OLS gives 6.7%, 1.7% and 4.2%
+a year for the market, SMB and HML, and GLS gives 7.5%, 1.8% and 3.6%. The factors' own averages are 7.2%, 1.8% and
+3.5%. For the market and HML, GLS lands closer to them.
+
+### Fama–MacBeth: a cross-sectional regression every month
+
+The second pass gives a number but no standard error. Here is a simple way to get one. Instead of one regression
+on the averages, run one regression in each month $t$ on that month's excess returns, with the same betas:
+
+$$
+\Ret{R^e_{i,t}} = \lambda_{0t} + \hat\beta_i'\lambda_t + \Err{\alpha_{i,t}}, \qquad i = 1, \dots, N.
+$$
+
+Each month gives OLS estimates $\hat\lambda_{0t}$ and $\hat\lambda_t$. With $X = [\mathbf{1}\ \hat\beta]$ and the
+$N$-vector $R^e_t$ of the month's excess returns, the coefficients are
+$(\hat\lambda_{0t}, \hat\lambda_t')' = (X'X)^{-1}X'R^e_t$. The estimate is the time average, and its standard
+error treats the $T$ monthly slopes as a sample:
+
+$$
+\hat\lambda = \frac1T\sum_{t=1}^{T} \hat\lambda_t, \qquad
+\mathrm{se}(\hat\lambda_k) = \frac{\sigma(\hat\lambda_{k,t})}{\sqrt T}, \qquad
+\sigma^2(\hat\lambda_{k,t}) = \frac1T\sum_{t=1}^{T}\left(\hat\lambda_{k,t} - \hat\lambda_k\right)^2.
+$$
+
+This is the cross-sectional approach of Fama and MacBeth (1973), which Fama & French (1992, p. 430) use: regress
+the cross-section each month, then test the time-series means of the slopes.
+
+On July 1963 to August 2026 ($T = 758$), with a constant:
+
+| Model | Market | SMB | HML | Constant $\hat\lambda_0$ |
+|---|---|---|---|---|
+| CAPM | −4.3% ($t$ = −0.91) | | | 13.9% ($t$ = 3.13) |
+| FF3 | −6.6% ($t$ = −1.80) | 1.4% ($t$ = 1.04) | 3.9% ($t$ = 2.95) | 13.9% ($t$ = 4.50) |
+
+All numbers are % a year (monthly slopes ×12). Only HML has a premium more than two standard errors from zero, and
+the constant is large in both models, when the theory says it should be zero.
+
+### Why Fama–MacBeth equals the two-pass estimate
+
+Write $A = (X'X)^{-1}X'$. It does not depend on $t$, because the betas are the same in every month. Then the
+average of the monthly coefficients is
+
+$$
+\frac1T\sum_{t=1}^{T} A\,R^e_t = A\left(\frac1T\sum_{t=1}^{T} R^e_t\right) = A\,\bar R^e = (X'X)^{-1}X'\,\Data{\bar R^e}.
+$$
+
+The first step takes the constant matrix $A$ out of the sum. The last expression is the second-pass OLS estimate.
+So with fixed betas, Fama–MacBeth gives *exactly* the two-pass OLS estimate. On our data the two differ by less
+than $10^{-14}$, which is rounding error.
+
+The standard error has the same kind of story. The monthly coefficients are $A R^e_t$, so their sample covariance
+is $A\hat\Sigma A'$, with $\hat\Sigma$ the sample covariance of the returns. Divide by $T$:
+
+$$
+\widehat{\operatorname{Var}}(\hat\lambda) = \frac1T\, A\hat\Sigma A' = \frac1T (X'X)^{-1}X'\hat\Sigma X(X'X)^{-1}.
+$$
+
+This is the right OLS formula when the errors of a regression are correlated across observations. The 25 portfolios
+move together every month, so their errors are strongly correlated. Fama–MacBeth takes this into account without
+estimating $\Sigma$ at all: the monthly slopes carry the correlation with them.
+
+There is also a picture behind $A$. Since $AX = (X'X)^{-1}X'X = I$, each row of $A$ is a set of portfolio weights.
+The row for a factor has weights that add up to zero and a beta of one on that factor, and zero on the others. So
+$\hat\lambda_t$ is the return in month $t$ of a zero-cost portfolio with a beta of one. That is why the slope fell
+with the market in October 1987.
+
+Two assumptions are hidden in the standard error. First, it treats the monthly slopes as uncorrelated over time.
+If they are autocorrelated, a Newey–West correction, as in
+[Chapter 4](/empirical-finance-lbs/chapters/04-autocorrelation-and-newey-west/), is safer. Second, it treats the
+betas as known. They are estimates, and their error adds to the error of $\hat\lambda$. Chapter 18 adds that error
+back.
+
+### What the cross-sectional R² shows
+
+The **cross-sectional $R^2$** measures how much of the spread in average returns the fitted values explain:
+
+$$
+R^2 = 1 - \frac{\sum_i \Err{\hat\alpha_i}^2}{\sum_i \left(\Data{\bar R^e_i} - m\right)^2}, \qquad m = \frac1N\sum_i \Data{\bar R^e_i}.
+$$
+
+With a constant and OLS, it is the usual $R^2$ of a regression. Without a constant, it can be negative: the model
+then prices the 25 portfolios worse than one number for all of them would.
+
+Read it with care. With a constant, FF3 has an $R^2$ of 0.66. That looks good, but it comes with a constant of
+13.9% a year and a negative market premium, and the model says the constant is zero. Without a constant, the $R^2$
+of FF3 falls to 0.48, and with GLS weights it is 0.36. The CAPM without a constant has an $R^2$ of −0.59. So the
+number depends on the constant and on the weights. It also has no standard error in this chapter, and 25 points
+with three or four slopes are easy to fit. A high $R^2$ says the fitted values line up with the means. It does not
+say the premia are right, and it is not a test. The test of the pricing errors is the GRS test of Chapter 16, or a
+test on the $\hat\alpha_i$ of this chapter with the right standard errors.
+
+Cochrane (2011, p. 1061) makes a broader point. Sorting stocks into portfolios and running a cross-sectional
+regression are two ways of doing the same thing: describing average returns as a function of something you can
+measure about each asset. On the next page he goes one step further. Time-series forecasts, cross-sectional
+regressions and portfolio means are all views of one panel regression (Cochrane, 2011, p. 1062).
+
+## <span class="section-tag">Playground</span> Fitted against actual
+
+Chapter 7 plotted average returns against beta. With more than one factor, that picture no longer works, because
+each portfolio has three betas. So plot what the model predicts against what happened. Across is the fitted mean
+excess return $\Model{\hat\beta_i'\hat\lambda}$ from the second pass without a constant. Up is the actual average
+$\Data{\bar R^e_i}$. A perfect model puts every dot on the 45-degree line, and the vertical gaps are the pricing
+errors.
+
+<SMLPlot client:visible fitted />
+
+<p class="try-this"><strong>Try this:</strong> start with the CAPM. The fitted values only run from 7.1% to 11.7% a
+year, because the betas hardly differ, while the actual averages run from 4.0% to 13.4%. The $R^2$ is −0.59. Now switch to
+Fama–French 3. The dots spread along the line, and the $R^2$ rises to 0.48. Ring small growth (ME1-BM1): FF3
+predicts 8.8% a year, it earned 4.0%, and its pricing error of −4.8% is still the largest.</p>
+
+<p class="try-this"><strong>Try this too:</strong> keep FF3 and switch the sample to 1926–2026. The $R^2$ falls to
+0.30. The same model fits the longer history less well, which is one more reason not to read an $R^2$ as proof.</p>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="You run Fama–MacBeth over 600 months. The monthly market slopes have a mean of 0.5% and a standard deviation of 5%. What is the standard error of the average slope?"
+  options={["5%", "0.5%", "About 0.2%", "About 0.01%"]}
+  answer={2}
+  explanation="The standard error is $\sigma(\hat\lambda_t)/\sqrt T = 5\%/\sqrt{600} \approx 0.20\%$. The $t$-statistic is about $0.5/0.2 = 2.45$."
+/>
+
+<Quiz
+  client:visible
+  question="Why does the average of the Fama–MacBeth monthly slopes equal the second-pass OLS estimate on mean returns?"
+  options={["Because the monthly slopes are uncorrelated over time", "Because each month's slope is a fixed linear function of that month's returns when the betas do not change", "Because the betas are estimated without error", "It is only true for GLS"]}
+  answer={1}
+  explanation="Each month's coefficients are $(X'X)^{-1}X'R^e_t$ with the same $X$, so their average is $(X'X)^{-1}X'\bar R^e$. This uses only linearity and fixed betas, not the betas being right."
+/>
+
+<Quiz
+  client:visible
+  question="A three-factor model has a cross-sectional $R^2$ of 0.66 with a constant. The constant is 13.9% a year with a $t$-statistic of 4.5. What is the best reading?"
+  options={["The model prices the portfolios well", "The fitted values line up with the means, but the large constant is evidence against the model", "An $R^2$ of 0.66 proves the premia are correct", "The constant does not matter for excess returns"]}
+  answer={1}
+  explanation="The model says an asset with zero betas earns no excess return, so the constant should be zero. A high $R^2$ only says that the fitted values move with the means; it is not a test."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- The first pass estimates each asset's betas with a time-series regression. The second pass regresses mean excess
+  returns on those betas across assets: $\hat\lambda = (\hat\beta'\hat\beta)^{-1}\hat\beta'\bar R^e$.
+- GLS weights the assets by $\Sigma^{-1}$. Either way, a premium is the factor's average plus a regression of
+  the time-series intercepts on the betas.
+- Fama–MacBeth runs the cross-sectional regression every month and averages the slopes, with
+  $\mathrm{se}(\hat\lambda) = \sigma(\hat\lambda_t)/\sqrt T$. With fixed betas, the average equals the two-pass
+  estimate exactly.
+- From 1963 to 2026, the CAPM's market slope on the 25 portfolios is −4.3% a year with a $t$-statistic of −0.91,
+  and the constant is far from zero. Beta alone does not price these portfolios.
+- A high cross-sectional $R^2$ is a description, not a test. It depends on the constant and the weights.
+
+**Next up:** Chapter 18 shows that the betas are estimates, and that the standard errors of this chapter are too
+small because they ignore it. The Shanken correction puts the missing error back.
+
+### Further reading
+
+- Fama & French (1992)
+- Cochrane (2011)
+- Cochrane (2005), Ch. 12
+- Fama & MacBeth (1973)
