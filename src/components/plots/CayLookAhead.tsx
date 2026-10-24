@@ -72,7 +72,7 @@ export default function CayLookAhead({ initialEnd = '1998-07-01' }: { initialEnd
       readout={
         view ? (
           <dl className="readout-grid">
-            <dt><RichText>{'Full-sample $\\hat\\beta_a$, $\\hat\\beta_y$'}</RichText></dt>
+            <dt><RichText>{'Full-sample $\\hat\\theta_n$, $\\hat\\theta_y$'}</RichText></dt>
             <dd>{num(view.omega)}, {num(view.betaY)}</dd>
             <dt>Full-sample: slope, t</dt>
             <dd style={{ color: 'var(--c-signal)' }}>{num(view.fullFit.slope)}, {num(view.fullFit.tStat)}</dd>
@@ -89,7 +89,7 @@ export default function CayLookAhead({ initialEnd = '1998-07-01' }: { initialEnd
           <p>{waiting}</p>
         )
       }
-      caption="Data: fred-cay-quarterly (BEA and the Board's Financial Accounts, via FRED) for log real consumption $c_t$, asset wealth $a_t$ and labour income $y_t$ per person, from 1952-Q1; goyal-welch-monthly for returns. Dashed: weights from one dynamic OLS (8 leads and lags) on the data up to the chosen quarter. Solid: weights re-estimated each quarter with the data up to that quarter, from a first window of 62 quarters. Regression: log excess return of the CRSP S&P 500 in quarter $t+1$ on $\Signal{cay_t}$, Newey–West standard errors with 1 lag."
+      caption="Data: fred-cay-quarterly (BEA and the Board's Financial Accounts, via FRED) for log real consumption $c_t$, asset wealth $n_t$ and labour income $y_t$ per person, from 1952-Q1; goyal-welch-monthly for returns. Dashed: weights from one dynamic OLS (8 leads and lags) on the data up to the chosen quarter. Solid: weights re-estimated each quarter with the data up to that quarter, from a first window of 62 quarters. Regression: log excess return of the CRSP S&P 500 in quarter $t+1$ on $\Signal{cay_t}$, Newey–West standard errors with 1 lag."
     />
   );
 }

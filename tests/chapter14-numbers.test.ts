@@ -33,11 +33,12 @@ const llWindow = quarterly('1952-07-01', '1998-07-01');
 const allData = quarterly('1951-10-01', '2026-04-01');
 
 describe('chapter 14 prose numbers', () => {
-  test('hook: one quarter ahead, on the paper sample and on all our data', () => {
+  test('hook: one quarter ahead, on the paper sample and on all our data (1952-Q1 to 2026-Q2)', () => {
     const dp = dataSample(annual);
     expect(percent(predictiveRegression(dp.r, dp.dp, 1).r2, 1)).toBe('1.2'); // chapter 9's one-year R²
     expect([llWindow.dates[0], llWindow.dates.at(-1)]).toEqual(['1952-10-01', '1998-07-01']);
     expect([percent(llWindow.reg.r2, 1), fixed(llWindow.reg.tStat, 2)]).toEqual(['7.6', '3.96']);
+    expect([allData.fit.dates[0], allData.fit.dates.at(-1)]).toEqual(['1952-01-01', '2026-04-01']);
     expect([allData.dates[0], allData.dates.at(-1)]).toEqual(['1952-01-01', '2025-10-01']);
     expect([percent(allData.reg.r2, 2), fixed(allData.reg.tStat, 2)]).toEqual(['0.07', '0.38']);
   });
@@ -45,7 +46,7 @@ describe('chapter 14 prose numbers', () => {
   test('intuition: the cointegration demo at its default seed', () => {
     expect(DEFAULT_PAIR_SEED).toBe(2);
     const pair = pairSample(DEFAULT_PAIR_SEED);
-    const at = (w: number) => fixed(pairCombination(pair, w).persistence, 3);
+    const at = (theta: number) => fixed(pairCombination(pair, theta).persistence, 3);
     expect([at(0), at(0.6), at(1.2)]).toEqual(['0.980', '0.492', '0.979']);
     expect(Math.abs(pair.estimate - 0.6)).toBeLessThan(0.01);
     // "Press New draw a few times": on the slider grid, the lowest persistence stays near 0.6.
@@ -58,7 +59,8 @@ describe('chapter 14 prose numbers', () => {
     }
   });
 
-  test('formalisation: dynamic OLS weights', () => {
+  test('formalisation: dynamic OLS weights θ_n and θ_y', () => {
+    // The library calls θ_n (on log asset wealth n_t) omega and θ_y (on log labour income y_t) betaY.
     const ll = llWindow.fit;
     expect(ll.dates[0]).toBe('1952-10-01');
     expect([fixed(ll.omega, 2), fixed(ll.standardErrors[0], 3), fixed(ll.betaY, 2), fixed(ll.standardErrors[1], 3)])
@@ -104,6 +106,7 @@ describe('chapter 14 prose numbers', () => {
     expect(ll.realFit.nobs).toBe(125);
     expect([fixed(ll.fullFit.slope, 2), fixed(ll.fullFit.tStat, 2), percent(ll.fullFit.r2, 1)]).toEqual(['0.90', '2.99', '5.8']);
     expect([fixed(ll.realFit.slope, 2), fixed(ll.realFit.tStat, 2), percent(ll.realFit.r2, 1)]).toEqual(['0.35', '1.05', '0.9']);
+    // The wealth weight θ_n in the CayLookAhead readout.
     const weights = (['1998-07-01', '2019-10-01', '2026-04-01'] as const).map((end) => fixed(lookAhead(data, end).omega, 2));
     expect(weights).toEqual(['0.39', '0.09', '-0.03']);
     const all = lookAhead(data, '2026-04-01');

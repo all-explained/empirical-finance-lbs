@@ -26,8 +26,8 @@ the way they spend today tells you what they expect their wealth to earn.
 
 We rebuilt their signal, called $\Signal{cay}$, from public data. On quarterly data from 1952 to 1998, the
 sample of their paper, $\Signal{cay}$ explains 7.6% of the variance of next quarter's excess stock return. The
-Newey–West $t$-statistic is 3.96. That is a lot for one quarter. Now use all our data, from 1952 to 2025, and
-estimate again. The share falls to 0.07%, with a $t$-statistic of 0.38.
+Newey–West $t$-statistic is 3.96. That is a lot for one quarter. Now use all our data, from 1952-Q1 to 2026-Q2,
+and estimate again. The share falls to 0.07%, with a $t$-statistic of 0.38.
 
 So you probably have two questions. Why should spending forecast returns? And why does the evidence look so
 different with more data? This chapter answers both.
@@ -45,14 +45,14 @@ the same at every date, so it keeps coming back.
 
 The widget makes this concrete. It draws a random walk $x_t$ and a second series $y_t = 0.6\,x_t + u_t$, where
 the gap $u_t$ dies out quickly. In this demo only, $x_t$ and $y_t$ are two made-up series. From the
-Formalisation on, $y_t$ is labour income. The bottom panel shows the combination $\Signal{y_t - w\,x_t}$ for the
-weight $w$ that you choose. Its **persistence** is the slope of an AR(1) fitted to it: near 1, it trends; well
+Formalisation on, $y_t$ is labour income. The bottom panel shows the combination $\Signal{y_t - \theta\,x_t}$ for the
+weight $\theta$ that you choose. Its **persistence** is the slope of an AR(1) fitted to it: near 1, it trends; well
 below 1, it keeps returning to its mean.
 
 <CointegrationDemo client:visible />
 
-<p class="try-this"><strong>Try this:</strong> start at $w = 0$. The bottom panel is $y_t$ itself, and its
-persistence is 0.980. Move $w$ to 0.60: the line turns into noise around a fixed level, and the persistence falls
+<p class="try-this"><strong>Try this:</strong> start at $\theta = 0$. The bottom panel is $y_t$ itself, and its
+persistence is 0.980. Move $\theta$ to 0.60: the line turns into noise around a fixed level, and the persistence falls
 to 0.492. Move on to 1.20, and the trend comes back, with a persistence of 0.979. Then press "New draw" a few times.
 The lowest point moves a little around 0.6, and the estimate in the readout stays close to it.</p>
 
@@ -60,10 +60,11 @@ Only one weight removes the trend. Any other weight leaves a part of the random 
 random walk, however small its share, wanders off in the end. That is why the right weight is easy to find in a
 long sample: the wrong ones fail in a way that grows with time.
 
-Now replace the walker and the dog with three household series: log consumption $c_t$, log asset wealth $a_t$
-(stocks, bonds, houses, minus debts) and log labour income $y_t$. Each grows over the decades. But consumption
-cannot drift far from what wealth and income can pay for. The gap between consumption and a weighted sum of the
-other two is $\Signal{cay_t}$.
+Now replace the walker and the dog with three household series: log consumption $c_t$, log asset wealth $n_t$
+(stocks, bonds, houses, minus debts: the households' net worth) and log labour income $y_t$. The paper writes
+asset wealth as $a_t$. We use $n_t$, because $a$ is the intercept of a predictive regression; the name $cay$ keeps
+the paper's letters. Each series grows over the decades. But consumption cannot drift far from what wealth and
+income can pay for. The gap between consumption and a weighted sum of the other two is $\Signal{cay_t}$.
 
 Why should that gap forecast returns? Suppose households start to expect high returns for the next few years.
 Prices fall today, so their wealth looks low. But they know that the high returns will rebuild it. So they cut
@@ -95,8 +96,8 @@ $$
 \frac{W_{t+1}}{W_t} = (1 + \Ret{R_{w,t+1}})\left(1 - \frac{C_t}{W_t}\right).
 $$
 
-Take logs, with lower-case letters for logs and $\Ret{r_{w,t+1}} = \log(1 + \Ret{R_{w,t+1}})$. Then
-$C_t/W_t = e^{c_t - w_t}$, and
+Take logs, with lower-case letters for logs and $\Ret{r_{w,t+1}} = \log(1 + \Ret{R_{w,t+1}})$. So in this
+chapter $w_t = \log W_t$ is log total wealth, not a portfolio weight. Then $C_t/W_t = e^{c_t - w_t}$, and
 
 $$
 \Delta w_{t+1} = \Ret{r_{w,t+1}} + \log\!\left(1 - e^{c_t - w_t}\right).
@@ -169,8 +170,8 @@ average share of assets in total wealth:
 
 $$
 \begin{aligned}
-w_t &\approx \omega\,a_t + (1 - \omega)\,h_t, \\
-\Ret{r_{w,t}} &\approx \omega\,\Ret{r_{a,t}} + (1 - \omega)\,\Ret{r_{h,t}}, \\
+w_t &\approx \omega\,n_t + (1 - \omega)\,h_t, \\
+\Ret{r_{w,t}} &\approx \omega\,\Ret{r_{n,t}} + (1 - \omega)\,\Ret{r_{h,t}}, \\
 h_t &= \text{const} + y_t + z_t.
 \end{aligned}
 $$
@@ -180,7 +181,7 @@ $z_t$. Put the first and third into the left side of the forward solution:
 
 $$
 \begin{aligned}
-c_t - w_t \approx{} &c_t - \omega\,a_t - (1 - \omega)\,y_t \\
+c_t - w_t \approx{} &c_t - \omega\,n_t - (1 - \omega)\,y_t \\
 &- (1 - \omega)\,z_t.
 \end{aligned}
 $$
@@ -189,53 +190,53 @@ Put the second into the right side, and move $(1 - \omega)z_t$ across. This is e
 
 $$
 \begin{aligned}
-&c_t - \omega\,a_t - (1 - \omega)\,y_t \\
+&c_t - \omega\,n_t - (1 - \omega)\,y_t \\
 &\quad = \mathbb{E}_t \sum_{j \ge 1} \rho_w^{\,j}
-\Big[\omega\,\Ret{r_{a,t+j}} + (1 - \omega)\,\Ret{r_{h,t+j}} \\
+\Big[\omega\,\Ret{r_{n,t+j}} + (1 - \omega)\,\Ret{r_{h,t+j}} \\
 &\qquad\qquad - \Delta c_{t+j}\Big] + (1 - \omega)\,z_t.
 \end{aligned}
 $$
 
 ### Why the left side is stationary
 
-Each of $c_t$, $a_t$ and $y_t$ has a trend that never dies out. The right side holds only returns, growth rates
+Each of $c_t$, $n_t$ and $y_t$ has a trend that never dies out. The right side holds only returns, growth rates
 and the gap $z_t$. None of them trends, so the right side is stationary. Then the left side must be stationary
-too. So $c$, $a$ and $y$ are cointegrated, with the weights $(1, -\omega, -(1-\omega))$. The left side is
+too. So $c$, $n$ and $y$ are cointegrated, with the weights $(1, -\omega, -(1-\omega))$. The left side is
 $\Signal{cay_t}$.
 
 The equation also says when $\Signal{cay_t}$ measures expected *stock* returns. It does so as long as expected
 returns on human capital and expected consumption growth do not move much (pp. 820–821). One detail changes the
 weights. Measured consumption covers only nondurables and services, a part of the total. So the paper lets the two
-weights be free, as $c_t - \beta_a a_t - \beta_y y_t$, and they need not add up to one (p. 822).
+weights be free, as $c_t - \theta_n n_t - \theta_y y_t$, and they need not add up to one (p. 822).
 
 ### Estimating the weights: dynamic OLS
 
-The regressors $a_t$ and $y_t$ are not independent of the error, so ordinary OLS looks unsafe. With cointegration,
+The regressors $n_t$ and $y_t$ are not independent of the error, so ordinary OLS looks unsafe. With cointegration,
 it is not. A wrong weight leaves a trend in the residual, so its sum of squares grows much faster with $T$ than at
 the right weight. The widget showed this. The estimate converges at the rate $T$, not $\sqrt T$: it is
 **superconsistent** (p. 823).
 
-In a finite sample, the correlation between the error and the shocks to $a$ and $y$ still biases the estimate.
+In a finite sample, the correlation between the error and the shocks to $n$ and $y$ still biases the estimate.
 **Dynamic OLS** removes it. It adds the changes of the regressors before, at and after $t$:
 
 $$
 \begin{aligned}
-c_t = {} &\text{const} + \beta_a\,a_t + \beta_y\,y_t \\
-&+ \sum_{j=-k}^{k}\left(d_{a,j}\,\Delta a_{t+j} + d_{y,j}\,\Delta y_{t+j}\right) \\
+c_t = {} &\text{const} + \theta_n\,n_t + \theta_y\,y_t \\
+&+ \sum_{j=-k}^{k}\left(d_{n,j}\,\Delta n_{t+j} + d_{y,j}\,\Delta y_{t+j}\right) \\
 &+ \Err{\varepsilon_t}.
 \end{aligned}
 $$
 
-The changes take up the part of the error that moves with the shocks to $a$ and $y$. What is left is unrelated to
-them, so the bias in $\hat\beta_a$ and $\hat\beta_y$ becomes much smaller. Lettau & Ludvigson (2001, p. 822) take this method
-from Stock and Watson (1993). They use $k = 8$ quarters (p. 823, fn. 8), and so do we. The standard errors are
+The changes take up the part of the error that moves with the shocks to $n$ and $y$. What is left is unrelated to
+them, so the bias in $\hat\theta_n$ and $\hat\theta_y$ becomes much smaller. Lettau & Ludvigson (2001, p. 822) take this method
+from Stock & Watson (1993). They use $k = 8$ quarters (p. 823, fn. 8), and so do we. The standard errors are
 Newey–West, as in [Chapter 4](/empirical-finance-lbs/chapters/04-autocorrelation-and-newey-west/), because the
-error is autocorrelated. Then $\Signal{cay_t} = c_t - \hat\beta_a a_t - \hat\beta_y y_t - \text{const}$; the
+error is autocorrelated. Then $\Signal{cay_t} = c_t - \hat\theta_n n_t - \hat\theta_y y_t - \text{const}$; the
 changes are dropped.
 
-On 1952-Q4 to 1998-Q3, the paper reports $\hat\beta_a = 0.31$ and $\hat\beta_y = 0.59$ (eq. 12, p. 823). On the
-same quarters, our public data give $\hat\beta_a = 0.39$ (standard error 0.034) and $\hat\beta_y = 0.61$ (0.032).
-On all our data, 1952-Q1 to 2026-Q2, they give $\hat\beta_a = -0.03$ (0.053) and $\hat\beta_y = 0.98$ (0.058).
+On 1952-Q4 to 1998-Q3, the paper reports $\hat\theta_n = 0.31$ and $\hat\theta_y = 0.59$ (eq. 12, p. 823). On the
+same quarters, our public data give $\hat\theta_n = 0.39$ (standard error 0.034) and $\hat\theta_y = 0.61$ (0.032).
+On all our data, 1952-Q1 to 2026-Q2, they give $\hat\theta_n = -0.03$ (0.053) and $\hat\theta_y = 0.98$ (0.058).
 With the later data, the weight on wealth goes to zero.
 
 ### The predictive regression
@@ -294,7 +295,7 @@ Over 125 forecasts, the full-sample $\Signal{cay}$ has a slope of 0.90, a $t$-st
 the look-ahead.</p>
 
 <p class="try-this"><strong>Try this too:</strong> choose "to 2019-Q4" and then "to 2026-Q2". Watch the wealth
-weight $\hat\beta_a$ in the readout fall from 0.39 to 0.09 and then to −0.03. With the weights to 2026-Q2, the
+weight $\hat\theta_n$ in the readout fall from 0.39 to 0.09 and then to −0.03. With the weights to 2026-Q2, the
 full-sample slope is 0.01 with a $t$-statistic of 0.09.</p>
 
 The real-time line does not change when you switch, because each of its dates uses only the past. Only the
@@ -325,7 +326,7 @@ trust its forecasts, rebuild it in real time, and check that the weights stay st
   question="$x_t$ is a random walk and $y_t = 0.6\,x_t + u_t$, where $u_t$ is a stationary AR(1). Which combination is stationary?"
   options={["$y_t - x_t$", "$y_t - 0.3\\,x_t$", "$y_t - 0.6\\,x_t$", "$x_t - y_t$"]}
   answer={2}
-  explanation="$y_t - 0.6\,x_t = u_t$, which is stationary. Any other weight leaves $(0.6 - w)\,x_t$ in the combination, and that part is a random walk."
+  explanation="$y_t - 0.6\,x_t = u_t$, which is stationary. Any other weight $\theta$ leaves $(0.6 - \theta)\,x_t$ in the combination, and that part is a random walk."
 />
 
 <Quiz
@@ -341,7 +342,7 @@ trust its forecasts, rebuild it in real time, and check that the weights stay st
 - The budget constraint, log-linearised and solved forward, gives
   $c_t - w_t = \mathbb{E}_t \sum_{j \ge 1} \rho_w^j (\Ret{r_{w,t+j}} - \Delta c_{t+j})$: consumption is the
   dividend of total wealth.
-- With human capital tied to labour income, $c_t - \omega a_t - (1-\omega) y_t$ is stationary, so $c$, $a$ and $y$
+- With human capital tied to labour income, $c_t - \omega n_t - (1-\omega) y_t$ is stationary, so $c$, $n$ and $y$
   are cointegrated. The gap is $\Signal{cay_t}$.
 - Dynamic OLS estimates the weights with leads and lags of the changes. On 1952 to 1998 our weights are 0.39 and
   0.61; on all our data the weight on wealth is −0.03.
@@ -355,5 +356,5 @@ bound on the expected market return from option prices alone, with no regression
 
 - Lettau & Ludvigson (2001)
 - Campbell (2018), Ch. 5
-- Stock and Watson (1993)
-- Campbell and Mankiw (1989)
+- Stock & Watson (1993)
+- Campbell & Mankiw (1989)

@@ -23,8 +23,8 @@ run the regression again and forecast 1966. You keep doing this until 2025. Your
 simpler. Each year, the rival forecasts the average return of all the years so far.
 
 So here is the question. Over those 61 years, whose forecasts were closer to the returns that happened? The
-answer is the rival's. On goyal-welch-annual, the real-time regression on the dividend–price ratio made squared
-errors 3.1% larger than the plain average. Goyal & Welch (2008, p. 1455) found the same for most of the
+answer is the rival's. On Goyal and Welch's annual data (1926 to 2025), the real-time regression on the
+dividend–price ratio made squared errors 3.1% larger than the plain average. Goyal & Welch (2008, p. 1455) found the same for most of the
 predictors in the literature. On our data, none of the 12 predictors in this chapter beats the average from 1965
 on. This chapter shows how to measure that, how to test it, and what it does and does not prove.
 
@@ -294,13 +294,13 @@ luck. Report them all, as the widget does.
   against the historical mean of the same returns.
 - $R^2_{OS} = 1 - \sum(r^e_{t+1} - \hat r^e_{t+1})^2 / \sum(r^e_{t+1} - \bar r^e_t)^2$ can be negative, and the
   running squared-error gain ends above zero exactly when it is positive.
-- On goyal-welch-annual from 1965, none of the 12 predictors beats the mean. The dp line wins until the mid-1990s
-  and then loses it all.
+- On Goyal and Welch's annual data (1926 to 2025), with forecasts from 1965, none of the 12 predictors beats
+  the mean. The dp line wins until the mid-1990s and then loses it all.
 - Estimation noise pushes $R^2_{OS}$ below zero even under the null, so test with Clark–West. Sign and slope
   restrictions and the certainty-equivalent gain turn the forecast into an investor's question.
 - A poor $R^2_{OS}$ is weak evidence against predictability, because the test has low power.
 
-**Next up:** Chapter 14 builds a predictor from consumption, wealth and labour income, and meets the look-ahead
+**Next up:** [Chapter 14](/empirical-finance-lbs/chapters/14-consumption-wealth-ratio/) builds a predictor from consumption, wealth and labour income, and meets the look-ahead
 problem from a new side.
 
 ### Further reading

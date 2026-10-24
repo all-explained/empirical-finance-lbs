@@ -24,7 +24,7 @@ idea, so here is the short version.
 
 ## <span class="section-tag">Hook</span> What return can you expect today?
 
-Chapter 9 measured expected returns with a regression on a century of data. The callout above gives the catch:
+[Chapter 9](/empirical-finance-lbs/chapters/09-time-varying-expected-returns/) measured expected returns with a regression on a century of data. The callout above gives the catch:
 a regression fitted on the past can fail in real time. So here is a question you may have. Is
 there a way to read the expected return of the stock market off today's prices, with no regression at all?
 
@@ -126,7 +126,7 @@ $$
 Divide the variance of Step 2 by $1 + \Rf{R^f_t}$. You get exactly the first brace. In the second brace, use
 $\mathbb{E}_t[\SDF{M}(1 + \Ret{R})] = 1$ to write $\mathbb{E}_t[1 + \Ret{R}]$ as
 $\mathbb{E}_t[\SDF{M}(1 + \Ret{R})]\,\mathbb{E}_t[1 + \Ret{R}]$. Then the brace is a covariance,
-$\mathbb{E}[XY] - \mathbb{E}[X]\mathbb{E}[Y]$ with $X = \SDF{M}(1 + \Ret{R})$ and $Y = 1 + \Ret{R}$:
+$\mathbb{E}[AB] - \mathbb{E}[A]\mathbb{E}[B]$ with $A = \SDF{M}(1 + \Ret{R})$ and $B = 1 + \Ret{R}$:
 
 $$
 \begin{aligned}
@@ -366,7 +366,7 @@ assets, and it says nothing about how far above the floor the true premium lies.
 - The bound grows with the square of volatility, so it spikes in crises: Martin's monthly bound went from an
   average of 1.86% in 2004–2006 to 55.0% in November 2008 (p. 385).
 
-**Next up:** Chapter 16 opens Part IV and turns from the market as a whole to the cross-section: it tests a factor
+**Next up:** [Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/) opens Part IV and turns from the market as a whole to the cross-section: it tests a factor
 model one asset at a time, and then all assets together.
 
 ### Further reading
