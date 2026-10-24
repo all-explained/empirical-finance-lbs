@@ -1,6 +1,7 @@
 import { Polyline } from 'mafs';
 import { useMemo, useState } from 'react';
 import { Segmented, Select } from '../ui/controls';
+import { RichText } from '../ui/Tex';
 import { WidgetFrame } from '../ui/WidgetFrame';
 import { buildView, SORTS, useSortData, WINDOWS, type SortKind, type Window } from './factorModelSample';
 import { niceTicks } from './format';
@@ -117,15 +118,19 @@ export default function FactorBuilder({ kind = 'size-value', initialWindow = 'al
         view ? (
           <>
             <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem' }}>
-              <span style={{ color: 'var(--c-factor)' }}>solid: rebuilt from the six</span> · dashed: published
+              <span style={{ color: 'var(--c-factor)' }}>solid: {factor} ({spec.name}) rebuilt from the six</span> · dashed: published. Gap: largest monthly difference between the two.
             </p>
             <dl className="readout-grid">
               <dt>Sample</dt>
-              <dd>{view.first} to {view.last} ({view.T} months)</dd>
-              <dt>{factor} ({spec.name})</dt>
-              <dd style={{ color: 'var(--c-factor)' }}>mean {pct(view.mean, 2)} a year, t = {view.meanT.toFixed(2)}</dd>
-              <dt>Largest gap, rebuilt vs published</dt>
-              <dd>{(view.gap * 100).toFixed(3)} points in {view.gapDate}</dd>
+              <dd>{view.first} to {view.last}</dd>
+              <dt>Months</dt>
+              <dd>{view.T}</dd>
+              <dt>Mean {factor}</dt>
+              <dd style={{ color: 'var(--c-factor)' }}>{pct(view.mean, 2)} a year</dd>
+              <dt><RichText>{'$t$-statistic'}</RichText></dt>
+              <dd style={{ color: 'var(--c-factor)' }}>{view.meanT.toFixed(2)}</dd>
+              <dt>Largest gap</dt>
+              <dd>{(view.gap * 100).toFixed(3)} points ({view.gapDate})</dd>
             </dl>
           </>
         ) : (

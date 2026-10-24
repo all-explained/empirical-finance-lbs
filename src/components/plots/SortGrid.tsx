@@ -46,7 +46,6 @@ export default function SortGrid({ initialMeasure = 'mean', initialModel = 'capm
       formatX={(v) => BM[Math.floor(v)]}
       formatY={(v) => SIZE[4 - Math.floor(v)]}
       xLabel="book-to-market quintile"
-      yLabel="size quintile"
       marginLeft={46}
     >
       {values.map((v, j) => {
