@@ -73,13 +73,15 @@ $$
 
 Here $\beta_i$ is the $K$-vector of asset $i$'s exposures to the factors, and $\lambda$ is the $K$-vector of risk
 premia, the price of one unit of each exposure. We do not know the betas. So the **first pass** estimates them with
-one time-series regression for each asset, as in Chapter 16, *Time-series tests and the GRS statistic*:
+one time-series regression for each asset, as in
+[Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/):
 
 $$
 \Ret{R^e_{i,t}} = a_i + \beta_i'\Factor{f_t} + \Err{\varepsilon_{i,t}}, \qquad t = 1, \dots, T.
 $$
 
-The CAPM has one factor, the market's excess return. The Fama–French three-factor model (FF3) adds SMB and HML.
+Chapter 16 called the intercept $\alpha_i$. Here we write $a_i$, because in this chapter $\alpha$ names the
+pricing error of the cross-sectional regression. The CAPM has one factor, the market's excess return. The Fama–French three-factor model (FF3) adds SMB and HML.
 From here on, $\hat\beta_i$ is the first-pass estimate, and $\hat\beta$ is the $N \times K$ matrix whose row $i$
 is $\hat\beta_i'$. We treat $\hat\beta$ as if it were the true $\beta$ until Chapter 18.
 
