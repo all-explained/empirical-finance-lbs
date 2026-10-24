@@ -2,10 +2,11 @@
 id: TASK-090
 title: 'Chapter 26: GMM for asset pricing models'
 milestone: M-8
-state: approved
+state: cancelled
 depends_on: [TASK-086]
 delivery: pr
 route: {platform: claude, model: opus, effort: high}
+reason: 'duplicate of TASK-093..100: proposal TASK-034 was applied twice'
 ---
 
 ## Why
