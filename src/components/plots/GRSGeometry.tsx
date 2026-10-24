@@ -16,7 +16,10 @@ const SD_GRID = Array.from({ length: 151 }, (_, i) => (i / 150) * X_MAX);
 /** Where the gap between the two tangent lines is marked. */
 const X_GAP = 0.1;
 const pct = (v: number) => `${v < 0 ? '−' : ''}${Math.abs(v * 100).toFixed(0)}%`;
-const SHORT = { 'Mkt-RF': 'Mkt', SMB: 'SMB', HML: 'HML' } as Record<string, string>;
+// SMB and HML sit close together, so their labels go on opposite sides.
+const SHORT: Record<string, { text: string; attach: 'se' | 'nw' | 'e' }> = {
+  'Mkt-RF': { text: 'Mkt', attach: 'se' }, SMB: { text: 'SMB', attach: 'e' }, HML: { text: 'HML', attach: 'nw' },
+};
 
 /** Points of one branch inside the plot. */
 const branch = (sd: number[], mean: number[]) =>
@@ -77,7 +80,7 @@ export default function GRSGeometry({ initialModel = 'ff3' }: { initialModel?: F
         {p.factorPoints.map((f) => (
           <g key={f.name}>
             <Point x={f.sd} y={f.mean} color="var(--c-factor)" svgCircleProps={{ r: 6, style: { fill: 'none', stroke: 'var(--c-factor)', strokeWidth: 2 } }} />
-            <Label x={f.sd} y={f.mean} attach="se" attachDistance={8} size={12} color="var(--c-factor)">{SHORT[f.name]}</Label>
+            <Label x={f.sd} y={f.mean} attach={SHORT[f.name].attach} attachDistance={8} size={12} color="var(--c-factor)">{SHORT[f.name].text}</Label>
           </g>
         ))}
       </PlotFrame>

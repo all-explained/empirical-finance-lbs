@@ -125,14 +125,17 @@ p. 1124) call this a Hotelling $T^2$ test, the many-asset version of the $t$-tes
 without proof:
 
 $$
-GRS = \frac{T - N - K}{N}\;\frac{\Err{\hat\alpha}'\hat\Sigma_\varepsilon^{-1}\Err{\hat\alpha}}{1 + \bar f'\hat\Sigma_f^{-1}\bar f} \;\sim\; F_{N,\,T-N-K} \quad\text{when } \alpha = 0.
+\begin{aligned}
+GRS &= \frac{T - N - K}{N}\;\frac{\Err{\hat\alpha}'\hat\Sigma_\varepsilon^{-1}\Err{\hat\alpha}}{1 + \bar f'\hat\Sigma_f^{-1}\bar f} \\
+&\sim F_{N,\,T-N-K} \quad\text{when } \alpha = 0.
+\end{aligned}
 $$
 
 The paper gives it for one factor on p. 1124 and for several on p. 1146. It writes the statistic with the
 residual covariance divided by $T - K - 1$ and a different leading factor. That is the same number.
 
-An $F_{N,\,M}$ variable is a ratio of two independent $\chi^2$ variables, each divided by its degrees of freedom
-($N$ and $M$). Under the model it is close to 1, and a large value rejects. With $N = 25$ and $T - N - K = 730$,
+An $F$ variable with degrees of freedom $N$ and $T - N - K$ is a ratio of two independent $\chi^2$ variables, each
+divided by its degrees of freedom. Under the model it is close to 1, and a large value rejects. With $N = 25$ and $T - N - K = 730$,
 the 5% critical value is 1.52. For FF3 from 1963-07, $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha = 0.129$
 and $SR^2_f = 0.036$ per month, so $GRS = (730/25) \times 0.129 / 1.036 = 3.64$, with
 $p = 8.3 \times 10^{-9}$.
@@ -162,20 +165,23 @@ The readout checks an identity: $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alph
 Here is why it holds, in four steps. All moments are sample moments with divisor $T$.
 
 1. From Chapter 7, with a risk-free asset, the highest squared Sharpe ratio of excess returns with mean $\mu$ and
-   covariance $V$ is $\mu'V^{-1}\mu$.
+   covariance $\Sigma$ is $\mu'\Sigma^{-1}\mu$.
 2. Replace each test asset by its hedged version, $R^e_{i,t} - \hat\beta_i'f_t = \hat\alpha_i +
-   \hat\varepsilon_{i,t}$. Stack the old set as $z_t = (f_t, R^e_t)$. The new set is $Az_t$, with
-   $A = \begin{pmatrix} I & 0 \\ -\hat B & I \end{pmatrix}$, where row $i$ of $\hat B$ is $\hat\beta_i'$. $A$ is
-   invertible, so the two sets reach the same portfolios. The highest Sharpe ratio does not change:
-   $(A\mu)'(AVA')^{-1}(A\mu) = \mu'A'(A')^{-1}V^{-1}A^{-1}A\mu = \mu'V^{-1}\mu$.
+   \hat\varepsilon_{i,t}$. Stack the old set as $z_t = (f_t, R^e_t)$, with mean $\mu_z$ and covariance
+   $\Sigma_z$. The new set is $Hz_t$, with $H = \begin{pmatrix} I & 0 \\ -\hat B & I \end{pmatrix}$, where row
+   $i$ of $\hat B$ is $\hat\beta_i'$ (we call it $H$ for "hedge"). $H$ is invertible, so the two sets reach the
+   same portfolios. The highest Sharpe ratio does not change:
+   $(H\mu_z)'(H\Sigma_z H')^{-1}(H\mu_z) = \mu_z'H'(H')^{-1}\Sigma_z^{-1}H^{-1}H\mu_z = \mu_z'\Sigma_z^{-1}\mu_z$.
 3. In the new set, the factors have mean $\bar f$ and covariance $\hat\Sigma_f$. The hedged assets have mean
    $\hat\alpha$, because OLS residuals average zero, and covariance $\hat\Sigma_\varepsilon$. OLS residuals are
    uncorrelated with the factors in sample, so the covariance matrix is block diagonal.
 4. The inverse of a block-diagonal matrix is block diagonal, so the quadratic form splits into two parts:
 
 $$
-SR^2_{\text{all}} = \bar f'\hat\Sigma_f^{-1}\bar f + \Err{\hat\alpha}'\hat\Sigma_\varepsilon^{-1}\Err{\hat\alpha}
-= SR^2_f + \Err{\hat\alpha}'\hat\Sigma_\varepsilon^{-1}\Err{\hat\alpha}.
+\begin{aligned}
+SR^2_{\text{all}} &= \bar f'\hat\Sigma_f^{-1}\bar f + \Err{\hat\alpha}'\hat\Sigma_\varepsilon^{-1}\Err{\hat\alpha} \\
+&= SR^2_f + \Err{\hat\alpha}'\hat\Sigma_\varepsilon^{-1}\Err{\hat\alpha}.
+\end{aligned}
 $$
 
 Put it into the statistic:
@@ -190,7 +196,8 @@ monthly numbers are $0.146 = 0.164 - 0.018$. For FF3 they are $0.129 = 0.165 - 0
 
 This answers the hook. FF3 raises $SR_f$, but the 25 portfolios still reach almost the same $SR_{\text{all}}$. SMB
 and HML are built from stocks much like those in the 25 portfolios, so adding them barely changes what the full set
-can reach. The smaller alphas and the narrower bars are the same fact, seen from the side of the alphas.
+can reach. Under FF3 the alphas shrink, but their bars shrink too, so the evidence against the model stays about
+as strong. The Sharpe-ratio gap shows that fact as one number.
 
 ## <span class="section-tag">Playground</span> Short samples and long ones
 
