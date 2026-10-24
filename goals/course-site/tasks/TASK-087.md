@@ -2,10 +2,11 @@
 id: TASK-087
 title: 'Library: useless factors, the rank test and GRS-FAR confidence sets'
 milestone: M-8
-state: approved
+state: cancelled
 depends_on: [TASK-085]
 delivery: pr
 route: {platform: claude, model: opus, effort: high}
+reason: 'duplicate of TASK-093..100: proposal TASK-034 was applied twice'
 ---
 
 ## Why
