@@ -319,6 +319,7 @@ flowchart TD
   class TASK_086 cancelled
   class TASK_087 cancelled
   class TASK_088 cancelled
+  class TASK_089 cancelled
   class DEC_001 decision
   class DEC_002 decision
 ```
