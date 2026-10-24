@@ -113,6 +113,7 @@ flowchart TD
     TASK_058["TASK-058 Chapter 14: The consumption–wealth ratio"]
     TASK_059["TASK-059 Chapter 15: Expected returns from option prices"]
     TASK_060["TASK-060 Orchestrator reads Part III and signs it off"]
+    TASK_080["TASK-080 Part III fixes from the read-through"]
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
     TASK_032["TASK-032 Plan: decompose M-6"]

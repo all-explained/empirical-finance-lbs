@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Segmented } from '../ui/controls';
 import { RichText } from '../ui/Tex';
 import { WidgetFrame } from '../ui/WidgetFrame';
-import { GRID_MODELS, gridView, useModelData, type GridModel } from './factorModelSample';
+import { GRID_MODELS, gridView, useModelData, type GridModel } from './sizeValueSample';
 import { Label, PlotFrame } from './PlotFrame';
 
 const HEIGHT = 330;

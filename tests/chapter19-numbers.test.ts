@@ -12,14 +12,15 @@ import type { Series } from '../src/lib/data/series';
 import { modelPanel } from '../src/lib/finance/factors';
 import { arithmeticMean } from '../src/lib/finance/returns';
 import { annualiseMean, meanStandardError } from '../src/lib/stats/moments';
-import { buildView, GRID_START, gridView, type SortData } from '../src/components/plots/factorModelSample';
+import { sortView } from '../src/components/plots/factorModelSample';
+import { GRID_START, gridView } from '../src/components/plots/sizeValueSample';
 
 const data = {
   ff3: ff3 as unknown as Series<'ff3-monthly'>,
   ff5: ff5 as unknown as Series<'ff5-monthly'>,
   ff25: ff25 as unknown as Series<'ff25-size-bm-monthly'>,
 };
-const sorts: SortData = { six: ff6 as unknown as Series<'ff6-size-bm-monthly'>, published: data.ff3 };
+const sorts = sortView('size-value', { 'ff3-monthly': data.ff3, 'ff6-size-bm-monthly': ff6 as unknown as Series<'ff6-size-bm-monthly'> });
 const percent = (v: number, digits: number) => (v * 100).toFixed(digits);
 const fixed = (v: number, digits: number) => v.toFixed(digits);
 const scientific = (p: number) => p.toExponential(1);
@@ -78,16 +79,20 @@ describe('chapter 19 prose numbers', () => {
   });
 
   test('playground: rebuilt HML and the sample', () => {
-    const all = buildView(sorts, 'size-value', 'HML', 'all');
-    expect([all.first, all.last, all.T]).toEqual(['1926-07', '2026-08', 1202]);
-    expect(percent(all.gap, 3)).toBe('0.005');
-    expect(percent(buildView(sorts, 'size-value', 'SMB', 'all').gap, 3)).toBe('0.005');
-    expect(percent(buildView(sorts, 'size-value', 'HML', 'pre1963').mean, 2)).toBe('5.40');
-    expect(percent(buildView(sorts, 'size-value', 'HML', 'ff1992').mean, 2)).toBe('5.10');
-    const recent = buildView(sorts, 'size-value', 'HML', 'post1990');
-    expect([percent(recent.mean, 2), fixed(recent.meanT, 2)]).toEqual(['2.32', '1.23']);
-    const since2007 = buildView(sorts, 'size-value', 'HML', 'post2006');
-    expect([percent(since2007.mean, 2), fixed(since2007.meanT, 2), since2007.T]).toEqual(['-1.30', '-0.50', 236]);
+    const [smb, hml] = sorts.factors;
+    expect([smb.name, hml.name]).toEqual(['SMB', 'HML']);
+    expect([sorts.dates[0].slice(0, 7), sorts.dates.at(-1)!.slice(0, 7), sorts.dates.length]).toEqual(['1926-07', '2026-08', 1202]);
+    // The widget's readout shows the gap with two decimals.
+    expect([(hml.gap.value * 100).toFixed(2), (smb.gap.value * 100).toFixed(2)]).toEqual(['0.01', '0.01']);
+    const window = (start: string, end = '9999-12-31') => hml.rebuilt.filter((_, t) => sorts.dates[t] >= start && sorts.dates[t] <= end);
+    const mean = (v: number[]) => percent(annualiseMean(arithmeticMean(v)), 2);
+    const t = (v: number[]) => fixed(arithmeticMean(v) / meanStandardError(v), 2);
+    expect(mean(window('1926-07-01', '1963-06-30'))).toBe('5.40');
+    expect(mean(window('1963-07-01', '1990-12-31'))).toBe('5.10');
+    const recent = window('1991-01-01');
+    expect([mean(recent), t(recent)]).toEqual(['2.32', '1.23']);
+    const since2007 = window('2007-01-01');
+    expect([mean(since2007), t(since2007), since2007.length]).toEqual(['-1.30', '-0.50', 236]);
     expect([fixed(ff.critical5, 2), fixed(five.critical5, 2)]).toEqual(['1.52', '1.52']);
   });
 });

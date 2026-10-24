@@ -172,19 +172,18 @@ alpha is 1.05%, the same as FF3. Seven of the 25 alphas have $|t| > 1.96$. GRS f
 ## <span class="section-tag">Playground</span> Build the factors yourself
 
 The widget below starts from the six portfolios of the French library. Pick a factor, and the grid marks its long
-legs (solid border, filled) and its short legs (dashed border). The chart compounds \$1 in the factor rebuilt by our
-library (solid line), against the published factor (dashed line).
+legs (solid border, filled) and its short legs (dashed border). The chart compounds \$1 in T-bills plus the factor
+rebuilt by our library (wide line), against the same with the published factor (dashed line).
 
 <FactorBuilder client:visible />
 
-<p class="try-this"><strong>Try this:</strong> with all months, the rebuilt HML and the published HML lie on top of
-each other. The largest gap in any month is 0.005 percentage points, which is rounding in the published files. The
-factor is nothing more than the formula above.</p>
+<p class="try-this"><strong>Try this:</strong> pick HML. Over all months from 1926-07, the rebuilt HML and the
+published HML lie on top of each other. The readout puts the largest gap in any month at 0.01 percentage points.
+That is rounding: the published files keep two decimals. The factor is nothing more than the formula above.</p>
 
-<p class="try-this"><strong>Try this too:</strong> change the sample. HML averaged 5.40% a year from 1926-07 to
-1963-06, and 5.10% from 1963-07 to 1990-12, the period of Fama & French (1992). From 1991-01 it averaged 2.32%
-($t = 1.23$), and from 2007-01 it averaged −1.30% ($t = -0.50$). The value premium is not a constant. Its size
-depends on the sample you pick.</p>
+Now split the rebuilt HML by period. It averaged 5.40% a year from 1926-07 to 1963-06, and 5.10% from 1963-07 to
+1990-12, the period of Fama & French (1992). From 1991-01 it averaged 2.32% ($t = 1.23$), and from 2007-01 it
+averaged −1.30% ($t = -0.50$). The value premium is not a constant. Its size depends on the sample you pick.
 
 ### What the factors can and cannot show
 

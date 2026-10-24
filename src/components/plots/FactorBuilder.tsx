@@ -1,143 +1,147 @@
 import { Polyline } from 'mafs';
 import { useMemo, useState } from 'react';
-import { Segmented, Select } from '../ui/controls';
-import { RichText } from '../ui/Tex';
+import { Segmented } from '../ui/controls';
 import { WidgetFrame } from '../ui/WidgetFrame';
-import { buildView, SORTS, useSortData, WINDOWS, type SortKind, type Window } from './factorModelSample';
-import { niceTicks } from './format';
+import { useTweened } from './animation';
+import { SORT_SERIES, sortView, useSeriesData, type SortData, type SortKind } from './factorModelSample';
+import { extent, money, niceTicks } from './format';
 import { Label, PlotFrame } from './PlotFrame';
 
-const HEIGHT = 260;
-const pct = (v: number, digits = 1) => `${v < 0 ? '−' : '+'}${Math.abs(v * 100).toFixed(digits)}%`;
-const weightText = (w: number) => (w === 0 ? 'not used' : `${w > 0 ? 'long +' : 'short −'}${Math.abs(w) < 0.4 ? '⅓' : '½'}`);
-const year = (date: string) => Number(date.slice(0, 4)) + (Number(date.slice(5, 7)) - 1) / 12;
+const HEIGHT = 300;
+const COLUMNS: Record<SortKind, string[]> = {
+  'size-value': ['growth (low B/M)', 'middle', 'value (high B/M)'],
+  'size-momentum': ['losers', 'middle', 'winners'],
+};
+const SORT_NAME: Record<SortKind, string> = { 'size-value': 'book-to-market', 'size-momentum': 'the return from t−12 to t−2' };
+const FIRST: Record<SortKind, string> = { 'size-value': '1926-07', 'size-momentum': '1927-01' };
+const pct = (v: number, digits = 1) => `${v < 0 ? '−' : ''}${Math.abs(v * 100).toFixed(digits)}%`;
+const share = (w: number) => (w === 0 ? '0' : `${w > 0 ? '+' : '−'}${Math.abs(w) > 0.4 ? '½' : '⅓'}`);
+const yearOf = (iso: string) => Number(iso.slice(0, 4)) + (Number(iso.slice(5, 7)) - 1) / 12;
+const compact = (v: number) => (v >= 1e3 ? `$${v / 1e3}k` : v >= 1 ? `$${v}` : `$${v.toFixed(2)}`);
 
 /**
- * Chapter 19 (and 20 with kind="size-momentum"): the six portfolios of a 2×3 sort, the legs of the chosen
- * long–short factor, and the factor rebuilt from those legs against the published one.
+ * Chapters 19 and 20: the six value-weighted portfolios of a 2×3 sort (size by book-to-market, or size by
+ * past return), the legs of the chosen factor, and $1 in T-bills plus the rebuilt factor against the
+ * published one. kind 'size-value' rebuilds SMB and HML (ff6-size-bm-monthly vs ff3-monthly); kind
+ * 'size-momentum' rebuilds UMD (ff6-size-mom-monthly vs Mom of mom-monthly).
  */
-export default function FactorBuilder({ kind = 'size-value', initialWindow = 'all' }: { kind?: SortKind; initialWindow?: Window }) {
-  const sort = SORTS[kind];
-  const factorKeys = Object.keys(sort.factors) as string[];
-  const [factor, setFactor] = useState(factorKeys[factorKeys.length > 1 ? 1 : 0]);
-  const [window, setWindow] = useState<Window>(initialWindow);
-  const { data, failed } = useSortData(kind);
-  const view = useMemo(() => (data ? buildView(data, kind, factor, window) : null), [data, kind, factor, window]);
-  const spec = (sort.factors as Record<string, { name: string; weights: readonly number[] }>)[factor];
+export default function FactorBuilder({ kind = 'size-value' }: { kind?: SortKind }) {
+  const { data, failed } = useSeriesData(SORT_SERIES[kind]);
+  const view = useMemo(() => (data ? sortView(kind, data as SortData) : null), [data, kind]);
+  const [pick, setPick] = useState(0);
+  const factor = view?.factors[pick];
 
-  const grid = (
-    <div
-      style={{ display: 'grid', gridTemplateColumns: 'auto repeat(3, 1fr)', gap: 4, padding: '0.5rem 0.5rem 0', fontSize: '0.8rem' }}
+  const x = view ? [yearOf(view.dates[0]), ...view.dates.map((d) => yearOf(d) + 1 / 12)] : [];
+  const [lo, hi] = factor ? extent([...factor.growth.rebuilt, ...factor.growth.published].map(Math.log10)) : [0, 1];
+  const bottom = useTweened(Math.floor(lo));
+  const top = useTweened(Math.ceil(hi + 0.05));
+  const points = (ys: number[]) => x.map((xi, i) => [xi, Math.log10(ys[i])] as [number, number]);
+  const end = factor ? { rebuilt: factor.growth.rebuilt.at(-1)!, published: factor.growth.published.at(-1)! } : null;
+
+  const plot = view && factor && end ? (
+    <PlotFrame
+      x={[x[0], x.at(-1)!]}
+      y={[bottom, top]}
+      height={HEIGHT}
+      xTicks={niceTicks(x[0], x.at(-1)!, 5)}
+      yTicks={niceTicks(bottom, top, 6).filter(Number.isInteger)}
+      formatX={(v) => String(Math.round(v))}
+      formatY={(v) => compact(10 ** v)}
+      xLabel="calendar year"
+      yLabel="$1 in T-bills + factor (log scale)"
+      marginLeft={54}
     >
-      <span />
-      {sort.second.map((name) => <span key={name} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>{name}</span>)}
-      {['small', 'big'].map((size, r) => (
-        <div key={size} style={{ display: 'contents' }}>
-          <span style={{ alignSelf: 'center', color: 'var(--text-muted)' }}>{size}</span>
-          {[0, 1, 2].map((c) => {
-            const j = r * 3 + c;
-            const w = spec.weights[j];
-            return (
-              <div
-                key={c}
-                style={{
-                  padding: '0.3rem',
-                  borderRadius: 6,
-                  textAlign: 'center',
-                  border: `2px ${w < 0 ? 'dashed' : 'solid'} ${w === 0 ? 'var(--border)' : 'var(--c-factor)'}`,
-                  background: w > 0 ? 'color-mix(in srgb, var(--c-factor) 22%, transparent)' : 'transparent',
-                  opacity: w === 0 ? 0.6 : 1,
-                }}
-              >
-                <strong>{sort.legs[j]}</strong> {view ? pct(view.legMean[j]) : ''}
-                <br />
-                <span>{weightText(w)}</span>
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
+      <Polyline points={points(factor.growth.rebuilt)} color="var(--c-factor)" weight={6} fillOpacity={0} strokeOpacity={0.35} />
+      <Polyline points={points(factor.growth.published)} color="var(--c-factor)" weight={1.5} fillOpacity={0} strokeStyle="dashed" />
+      <Label x={x.at(-1)!} y={Math.log10(end.published)} attach="nw" attachDistance={8} size={12} color="var(--c-factor)">
+        {`${factor.name} rebuilt (wide) and ${factor.published} published (dashed)`}
+      </Label>
+    </PlotFrame>
+  ) : (
+    <p style={{ padding: '1rem', margin: 0, color: 'var(--text-muted)' }}>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
   );
 
-  let chart = <p style={{ padding: '1rem', margin: 0, color: 'var(--text-muted)' }}>{failed ? 'The data did not load.' : 'Loading the data…'}</p>;
-  if (view) {
-    // Wealth of $1 on a log10 axis, so a century of compounding fits.
-    const x = [year(view.dates[0]), ...view.dates.map((d) => year(d) + 1 / 12)];
-    const ours = view.rebuiltPath.map(Math.log10);
-    const theirs = view.publishedPath.map(Math.log10);
-    const lo = Math.min(...ours, ...theirs, 0);
-    const hi = Math.max(...ours, ...theirs, 0);
-    const pad = Math.max((hi - lo) * 0.08, 0.05);
-    const yTicks = niceTicks(lo - pad, hi + pad, 5);
-    chart = (
-      <PlotFrame
-        x={[x[0], x.at(-1)!]}
-        y={[lo - pad, hi + pad]}
-        height={HEIGHT}
-        xTicks={niceTicks(x[0], x.at(-1)!, 5).filter((v) => v >= x[0] && v <= x.at(-1)!)}
-        yTicks={yTicks}
-        formatX={(v) => String(Math.round(v))}
-        formatY={(v) => `$${(10 ** v).toPrecision(2).replace(/\.0+$/, '')}`}
-        xLabel="year"
-        yLabel={<tspan style={{ fill: 'var(--c-factor)' }}>value of $1, log scale</tspan>}
-        baseline={0}
-        marginLeft={50}
-      >
-        <Polyline points={x.map((v, t) => [v, theirs[t]])} color="var(--text-muted)" weight={4} strokeStyle="dashed" fillOpacity={0} />
-        <Polyline points={x.map((v, t) => [v, ours[t]])} color="var(--c-factor)" weight={2} fillOpacity={0} />
-        <Label x={x.at(-1)!} y={ours.at(-1)!} attach="nw" attachDistance={6} size={12} color="var(--c-factor)">{factor}</Label>
-      </PlotFrame>
-    );
-  }
-
-  const plot = (
-    <div>
-      {grid}
-      {chart}
-    </div>
-  );
+  const grid = view && factor ? (
+    <table className="sort-grid" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 4, marginBottom: '0.75rem', fontSize: '0.85rem', tableLayout: 'fixed' }}>
+      <caption style={{ textAlign: 'left', marginBottom: 4, color: 'var(--text-muted)' }}>
+        Mean return of each portfolio, % a year, and its weight in {factor.name}
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col" style={{ width: '18%' }} />
+          {COLUMNS[kind].map((c) => <th key={c} scope="col" style={{ fontWeight: 500 }}>{c}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {['small', 'big'].map((row, r) => (
+          <tr key={row}>
+            <th scope="row" style={{ fontWeight: 500, textAlign: 'left' }}>{row}</th>
+            {view.legs.slice(3 * r, 3 * r + 3).map((leg) => {
+              const w = factor.weights[leg.name];
+              return (
+                <td
+                  key={leg.name}
+                  aria-label={`${row} ${COLUMNS[kind][view.legs.indexOf(leg) % 3]}: mean ${pct(leg.mean)} a year, weight ${share(w)}`}
+                  style={{
+                    textAlign: 'center',
+                    padding: '0.4rem 0.2rem',
+                    borderRadius: 6,
+                    border: `2px ${w < 0 ? 'dashed' : 'solid'} ${w === 0 ? 'transparent' : 'var(--c-factor)'}`,
+                    background: w > 0 ? 'color-mix(in srgb, var(--c-factor) 22%, transparent)' : 'transparent',
+                  }}
+                >
+                  <div>{pct(leg.mean)}</div>
+                  <div style={{ fontWeight: 700, color: w === 0 ? 'var(--text-muted)' : 'var(--c-factor)' }}>{share(w)}</div>
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ) : null;
 
   return (
     <WidgetFrame
-      title="From six portfolios to one factor"
+      title={kind === 'size-value' ? 'Build SMB and HML from six portfolios' : 'Build the momentum factor from six portfolios'}
       ariaLabel={
-        view
-          ? `A 2 by 3 grid of the six ${kind === 'size-value' ? 'size and book-to-market' : 'size and momentum'} portfolios, with the long and short legs of ${factor} marked, and a line chart of $1 invested in ${factor} from ${view.first} to ${view.last} on a log scale. The rebuilt factor (solid) and the published one (dashed) lie on top of each other: the largest monthly gap is ${(view.gap * 100).toFixed(3)} percentage points. ${factor} averaged ${pct(view.mean)} a year with t-statistic ${view.meanT.toFixed(2)}.`
-          : 'Six portfolios and a factor built from them. The data is loading.'
+        view && factor && end
+          ? `Six portfolios sorted on size and ${SORT_NAME[kind]}, ${view.dates[0].slice(0, 7)} to ${view.dates.at(-1)!.slice(0, 7)}. ${factor.name} buys the cells marked plus and sells the cells marked minus. One dollar in T-bills plus the rebuilt ${factor.name} grows to ${money(end.rebuilt, 0)}; with the published ${factor.published} it grows to ${money(end.published, 0)}. The largest gap in one month is ${(factor.gap.value * 100).toFixed(2)} percentage points, in ${factor.gap.date.slice(0, 7)}.`
+          : 'Six portfolios of a 2×3 sort and a factor rebuilt from them. The data is loading.'
       }
-      plotHeight={HEIGHT + 120}
+      plotHeight={HEIGHT}
       plot={plot}
       controls={
-        <>
-          <Segmented label="Factor" value={factor} onChange={setFactor} options={factorKeys.map((k) => ({ value: k, label: k, color: 'var(--c-factor)' }))} />
-          <Select label="Sample" value={window} onChange={setWindow} options={WINDOWS.map((w) => ({ value: w.value, label: w.label }))} />
-        </>
+        view && view.factors.length > 1 ? (
+          <Segmented
+            label="Factor"
+            value={String(pick)}
+            onChange={(v) => setPick(Number(v))}
+            options={view.factors.map((f, i) => ({ value: String(i), label: f.name, color: 'var(--c-factor)' }))}
+          />
+        ) : null
       }
       readout={
-        view ? (
+        view && factor && end ? (
           <>
-            <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem' }}>
-              <span style={{ color: 'var(--c-factor)' }}>solid: {factor} ({spec.name}) rebuilt from the six</span> · dashed: published. Gap: largest monthly difference between the two.
-            </p>
+            {grid}
+            <p style={{ margin: '0 0 0.5rem' }}>Solid cell: bought (+). Dashed cell: sold (−). 0: left out.</p>
             <dl className="readout-grid">
-              <dt>Sample</dt>
-              <dd>{view.first} to {view.last}</dd>
-              <dt>Months</dt>
-              <dd>{view.T}</dd>
-              <dt>Mean {factor}</dt>
-              <dd style={{ color: 'var(--c-factor)' }}>{pct(view.mean, 2)} a year</dd>
-              <dt><RichText>{'$t$-statistic'}</RichText></dt>
-              <dd style={{ color: 'var(--c-factor)' }}>{view.meanT.toFixed(2)}</dd>
-              <dt>Largest gap</dt>
-              <dd>{(view.gap * 100).toFixed(3)} points ({view.gapDate})</dd>
+              <dt>Mean of {factor.name} rebuilt</dt>
+              <dd style={{ color: 'var(--c-factor)' }}>{pct(factor.mean.rebuilt, 2)} a year (published {pct(factor.mean.published, 2)})</dd>
+              <dt>$1 in T-bills + {factor.name} rebuilt</dt>
+              <dd>{money(end.rebuilt, 0)}</dd>
+              <dt>$1 in T-bills + {factor.published} published</dt>
+              <dd>{money(end.published, 0)}</dd>
+              <dt>Largest gap in one month</dt>
+              <dd>{(factor.gap.value * 100).toFixed(2)} percentage points ({factor.gap.date.slice(0, 7)})</dd>
             </dl>
           </>
         ) : (
           <p>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
         )
       }
-      caption={`Data: ${sort.six} and ${sort.published} (Kenneth French Data Library), ${view ? `${view.first} to ${view.last}` : 'the chosen sample'}. Each leg is a value-weighted portfolio; cells show its mean monthly return ×12. The factor is the equal-weighted average of its long legs minus that of its short legs, rebuilt each month. The chart compounds \\$1 in the factor's monthly return. The gap is the largest absolute monthly difference from the published factor, in percentage points.`}
+      caption={`Data: ${kind === 'size-value' ? 'ff6-size-bm-monthly and ff3-monthly' : 'ff6-size-mom-monthly, mom-monthly and ff3-monthly'} (Kenneth French Data Library), ${FIRST[kind]} to ${view ? view.dates.at(-1)!.slice(0, 7) : '2026-08'}. Six value-weighted portfolios: stocks split at the median size, then into thirds on ${SORT_NAME[kind]}. ${kind === 'size-value' ? 'SMB = ⅓(small row) − ⅓(big row); HML = ½(small value + big value) − ½(small growth + big growth).' : 'UMD = ½(small winners + big winners) − ½(small losers + big losers).'} Lines compound RF + factor monthly. Means are monthly means × 12, before costs.`}
     />
   );
 }
