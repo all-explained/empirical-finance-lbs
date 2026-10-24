@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { loadSeries, type Series } from '../../lib/data/series';
 import { arithmeticMean, sampleVariance } from '../../lib/finance/returns';
+import { goyalWelchPredictors } from '../../lib/finance/outOfSample';
 import {
   fitAR1, forwardSums, goyalWelchAnnualPredictors, simulatePredictive,
 } from '../../lib/finance/predictive';
 import { ols } from '../../lib/stats/ols';
 
 export type Source = 'data' | 'sim';
+/** dp (chapter 9) or the published annual cay of Lettau and Ludvigson (chapter 14). */
+export type Predictor = 'dp' | 'cay';
 export const DEFAULT_SEED = 1;
 
 export interface PredictiveSample {
   /** Year label of each dp observation (dp at the end of that year). */
   years: number[];
+  /** The predictor: dp, or cay when that predictor is chosen. */
   dp: number[];
   /** Log excess return earned during each year. */
   r: number[];
@@ -21,11 +25,23 @@ export interface PredictiveSample {
   b1: number;
 }
 
-/** The annual data and the AR(1) fit that calibrates the simulation. */
-export function dataSample(series: Series<'goyal-welch-annual'>): PredictiveSample {
-  const { dates, dp, r } = goyalWelchAnnualPredictors(series);
+/** The annual data and the AR(1) fit that calibrates the simulation.
+ * cay starts in 1945; the years before it have no value and are dropped.
+ */
+export function dataSample(series: Series<'goyal-welch-annual'>, predictor: Predictor = 'dp'): PredictiveSample {
+  const { dates, dp, r } = predictor === 'dp' ? goyalWelchAnnualPredictors(series) : cayPredictor(series);
   const fit = ols(forwardSums(r, 1), [dp.slice(0, -1)]);
   return { years: dates.map((d) => Number(d.slice(0, 4))), dp, r, phi: fitAR1(dp).phi, b1: fit.coefficients[1] };
+}
+
+function cayPredictor(series: Series<'goyal-welch-annual'>): { dates: string[]; dp: number[]; r: number[] } {
+  const all = goyalWelchPredictors(series, 'annual');
+  const cay = all.predictors.cay!;
+  const start = cay.findIndex((v) => v != null);
+  const x = cay.slice(start);
+  // Source gaps sit only at the start (docs/DATA.md); a later gap would be a data change.
+  if (x.some((v) => v == null)) throw new RangeError('cay has an interior gap');
+  return { dates: all.dates.slice(start), dp: x as number[], r: all.r.slice(start) };
 }
 
 /** An annual world where the AR(1) story is true: same length, slope, persistence and shock sizes as the data.
@@ -44,12 +60,14 @@ export function simulatedSample(data: PredictiveSample, seed: number): Predictiv
 }
 
 /** Load goyal-welch-annual once; return the chosen sample, or null while loading. */
-export function usePredictiveSample(source: Source, seed: number): { sample: PredictiveSample | null; failed: boolean } {
+export function usePredictiveSample(
+  source: Source, seed: number, predictor: Predictor = 'dp',
+): { sample: PredictiveSample | null; failed: boolean } {
   const [data, setData] = useState<PredictiveSample | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
-    loadSeries('goyal-welch-annual').then((series) => setData(dataSample(series)), () => setFailed(true));
-  }, []);
+    loadSeries('goyal-welch-annual').then((series) => setData(dataSample(series, predictor)), () => setFailed(true));
+  }, [predictor]);
   const sample = useMemo(
     () => (data && source === 'sim' ? simulatedSample(data, seed) : data),
     [data, source, seed],
