@@ -98,7 +98,7 @@ export default function AlphaBound({ initialSigmaLambda = 0.06 }: { initialSigma
                   <dd style={{ color: 'var(--c-data)' }}>{pct(r.capm.alpha, 2)} ({pct(r.capm.alphaSE, 2)})</dd>
                   <dt><RichText>{`${r.value}: $\\sigma(\\lambda_t)$ the bound needs`}</RichText></dt>
                   <dd>{pct(r.needed)}</dd>
-                  <dt><RichText>{`${r.value}: bound with true $\\sigma(\\beta_{i,q}) = ${r.quarters.sigmaBetaTrue.toFixed(2)}$`}</RichText></dt>
+                  <dt><RichText>{`${r.value}: bound with true $\\sigma(\\beta_{iq}) = ${r.quarters.sigmaBetaTrue.toFixed(2)}$`}</RichText></dt>
                   <dd>{pct(r.boundTrue, 2)}</dd>
                 </Fragment>
               ))}

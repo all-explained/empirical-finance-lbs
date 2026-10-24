@@ -106,18 +106,20 @@ unconditional covariance over the unconditional variance. That is not the averag
 world, $\beta_t = \beta_0 + s_\beta z_t$ and $\lambda_t = \lambda_0 + s_\lambda z_t$, where $s_\beta$ and
 $s_\lambda$ are how much the beta and the premium move per standard deviation $\sigma_z$ of the state. The market
 excess return is $\lambda_t$ plus a shock with standard deviation $\sigma_m$, and the state is normal and
-independent of the shocks. Write $c = s_\beta s_\lambda\sigma_z^2 = \operatorname{Cov}(\beta_t, \lambda_t)$ and
-$V = \operatorname{Var}(R^e_m) = s_\lambda^2\sigma_z^2 + \sigma_m^2$. Then:
+independent of the shocks. Write $\sigma_{\beta\lambda} = s_\beta s_\lambda\sigma_z^2 = \operatorname{Cov}(\beta_t,
+\lambda_t)$ for the covariance and $V = \operatorname{Var}(R^e_m) = s_\lambda^2\sigma_z^2 + \sigma_m^2$. Then:
 
-1. $\mathbb{E}[R^e_m] = \lambda_0$, and from the split above, $\mathbb{E}[R^e_i] = \beta_0\lambda_0 + c$.
+1. $\mathbb{E}[R^e_m] = \lambda_0$, and from the split above,
+   $\mathbb{E}[R^e_i] = \beta_0\lambda_0 + \sigma_{\beta\lambda}$.
 2. $\mathbb{E}[R^e_i R^e_m] = \mathbb{E}[\beta_t (R^e_m)^2]$, because the asset's own shock is independent of the
    market. Given $z_t$, $\mathbb{E}_t[(R^e_m)^2] = \lambda_t^2 + \sigma_m^2$. Expand
    $\mathbb{E}[(\beta_0 + s_\beta z_t)((\lambda_0 + s_\lambda z_t)^2 + \sigma_m^2)]$. A normal $z_t$ with mean zero
-   has $\mathbb{E}[z_t^3] = 0$, so this is $\beta_0(\lambda_0^2 + V) + 2c\lambda_0$.
-3. $\operatorname{Cov}(R^e_i, R^e_m) = \beta_0(\lambda_0^2 + V) + 2c\lambda_0 - (\beta_0\lambda_0 + c)\lambda_0
-   = \beta_0 V + c\lambda_0$. So $\beta^u = \beta_0 + c\lambda_0/V$.
-4. $\alpha^u = \mathbb{E}[R^e_i] - \beta^u\,\mathbb{E}[R^e_m] = \beta_0\lambda_0 + c - \beta_0\lambda_0 -
-   c\lambda_0^2/V$, which gives
+   has $\mathbb{E}[z_t^3] = 0$, so this is $\beta_0(\lambda_0^2 + V) + 2\sigma_{\beta\lambda}\lambda_0$.
+3. $\operatorname{Cov}(R^e_i, R^e_m) = \beta_0(\lambda_0^2 + V) + 2\sigma_{\beta\lambda}\lambda_0 -
+   (\beta_0\lambda_0 + \sigma_{\beta\lambda})\lambda_0 = \beta_0 V + \sigma_{\beta\lambda}\lambda_0$.
+   So $\beta^u = \beta_0 + \sigma_{\beta\lambda}\lambda_0/V$.
+4. $\alpha^u = \mathbb{E}[R^e_i] - \beta^u\,\mathbb{E}[R^e_m] = \beta_0\lambda_0 + \sigma_{\beta\lambda} - \beta_0\lambda_0 -
+   \sigma_{\beta\lambda}\lambda_0^2/V$, which gives
 
 $$
 \Err{\alpha^u} = \operatorname{Cov}(\beta_t, \lambda_t)\left(1 - \frac{\mathbb{E}[R^e_m]^2}{\operatorname{Var}(R^e_m)}\right).
@@ -136,17 +138,18 @@ You rarely see $\beta_{it}$ or $\lambda_t$. The stochastic discount factor of
 [Chapter 8](/empirical-finance-lbs/chapters/08-euler-equation-and-sdf/) gives a way around this. For an excess
 return, $\mathbb{E}_t[M_{t+1}(1 + R_{t+1})] = 1$ and $\mathbb{E}_t[M_{t+1}(1 + R^f_t)] = 1$; subtract them to get
 $\mathbb{E}_t[\SDF{M_{t+1}}\,\Ret{R^e_{i,t+1}}] = 0$. A conditional linear factor model says
-$M_{t+1} = a_t + b_t f_{t+1}$, with coefficients that are known at $t$ but can change. Model the coefficients as
-linear in a variable $\Signal{z_t}$ known at $t$: $a_t = a_0 + a_1 z_t$ and $b_t = b_0 + b_1 z_t$. Multiply out:
+$M_{t+1} = \eta_t + b_t f_{t+1}$, with coefficients that are known at $t$ but can change. Model the coefficients as
+linear in a variable $\Signal{z_t}$ known at $t$: $\eta_t = \eta_0 + \eta_1 z_t$ and $b_t = b_0 + b_1 z_t$.
+Multiply out:
 
 $$
 \begin{aligned}
-\SDF{M_{t+1}} &= (a_0 + a_1 \Signal{z_t}) + (b_0 + b_1 \Signal{z_t})\,\Factor{f_{t+1}} \\
-&= a_0 + a_1\,\Signal{z_t} + b_0\,\Factor{f_{t+1}} + b_1\,\Signal{z_t}\Factor{f_{t+1}}.
+\SDF{M_{t+1}} &= (\eta_0 + \eta_1 \Signal{z_t}) + (b_0 + b_1 \Signal{z_t})\,\Factor{f_{t+1}} \\
+&= \eta_0 + \eta_1\,\Signal{z_t} + b_0\,\Factor{f_{t+1}} + b_1\,\Signal{z_t}\Factor{f_{t+1}}.
 \end{aligned}
 $$
 
-The second line has four constant coefficients, $a_0$, $a_1$, $b_0$ and $b_1$, on the "factors" $1$, $z_t$,
+The second line has four constant coefficients, $\eta_0$, $\eta_1$, $b_0$ and $b_1$, on the "factors" $1$, $z_t$,
 $f_{t+1}$ and $z_t f_{t+1}$. Take the unconditional expectation of $\mathbb{E}_t[M_{t+1}R^e_{i,t+1}] = 0$: by the
 law of iterated expectations, $\mathbb{E}[M_{t+1}R^e_{i,t+1}] = 0$. Nothing in $M_{t+1}$ changes over time except
 the factors. So the conditional one-factor model is an *unconditional* three-factor model, with factors $z_t$,
@@ -181,6 +184,10 @@ $$
 
 where $\otimes$ (the Kronecker product) pairs each return with each entry of $(1, z_t)$. Scaled factors change the
 model. Managed portfolios change the test. A full test of a conditional model uses both.
+
+The two conditions $\mathbb{E}[M_{t+1}R^e_{i,t+1}] = 0$ and $\mathbb{E}[M_{t+1}z_tR^e_{i,t+1}] = 0$ are **moment
+conditions**: averages that a correct model sets to zero. Part VI shows how to estimate and test them directly, in
+Chapter 24, *The generalized method of moments*, and Chapter 26, *GMM for asset pricing models*.
 
 ## <span class="section-tag">Playground</span> Four models on the 25 portfolios
 
@@ -247,10 +254,10 @@ The $R^2$ in the widget has no standard error. It describes the fit; it does not
 
 <Quiz
   client:visible
-  question="You let the SDF coefficients move with $z_t$: $M_{t+1} = (a_0 + a_1 z_t) + (b_0 + b_1 z_t) f_{t+1}$. Which factors does the unconditional model have?"
+  question="You let the SDF coefficients move with $z_t$: $M_{t+1} = (\eta_0 + \eta_1 z_t) + (b_0 + b_1 z_t) f_{t+1}$. Which factors does the unconditional model have?"
   options={["$z_t$, $f_{t+1}$ and $z_t f_{t+1}$", "$f_{t+1}$ only", "$z_t$ and $f_{t+1}$ only", "$z_{t+1}$ and $f_{t+1}$"]}
   answer={0}
-  explanation="Multiply out: $M_{t+1} = a_0 + a_1 z_t + b_0 f_{t+1} + b_1 z_t f_{t+1}$. The coefficients are constant, and the variable parts are $z_t$, $f_{t+1}$ and the scaled factor $z_t f_{t+1}$."
+  explanation="Multiply out: $M_{t+1} = \eta_0 + \eta_1 z_t + b_0 f_{t+1} + b_1 z_t f_{t+1}$. The coefficients are constant, and the variable parts are $z_t$, $f_{t+1}$ and the scaled factor $z_t f_{t+1}$."
 />
 
 <Quiz

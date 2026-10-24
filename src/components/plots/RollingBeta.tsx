@@ -82,9 +82,9 @@ export default function RollingBeta({ initialFactor = 'HML', initialWindow = 36 
             <dl className="readout-grid">
               <dt><RichText>{`$\\sigma$ of ${window}-month rolling betas`}</RichText></dt>
               <dd style={{ color: 'var(--c-data)' }}>{rolling.sigmaBeta.toFixed(2)}</dd>
-              <dt><RichText>{'$\\sigma(\\hat\\beta_{i,q})$ of quarterly betas'}</RichText></dt>
+              <dt><RichText>{'$\\sigma(\\hat\\beta_{iq})$ of quarterly betas'}</RichText></dt>
               <dd>{quarters.sigmaBeta.toFixed(2)}</dd>
-              <dt><RichText>{'Implied $\\sigma(\\beta_{i,q})$ of true betas'}</RichText></dt>
+              <dt><RichText>{'Implied $\\sigma(\\beta_{iq})$ of true betas'}</RichText></dt>
               <dd>{quarters.sigmaBetaTrue.toFixed(2)}</dd>
               <dt>Average s.e. of one quarterly beta</dt>
               <dd>{quarters.meanBetaSE.toFixed(2)}</dd>
