@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
 import { getColumn, loadSeries, type Series } from '../../lib/data/series';
 import { arithmeticMean, sampleVariance } from '../../lib/finance/returns';
 import { conditionalAlphaSummary, dailyFactorPanel, rollingBetas, shortWindowRegressions } from '../../lib/finance/shortWindow';
 import { invCdf } from '../../lib/math/normal';
 import { annualiseMean } from '../../lib/stats/moments';
 import { ols } from '../../lib/stats/ols';
+import { useLoaded } from './seriesSample';
 
 export type Factor = 'HML' | 'Mom';
 export const FACTORS: { value: Factor; label: string }[] = [
@@ -132,13 +132,10 @@ export function capmAlpha(data: ShortWindowData, factor: Factor): CapmAlpha {
 /** The σ(λ_t), decimal a year, at which the bound reaches the actual alpha. */
 export const lambdaNeeded = (alpha: number, sigmaBeta: number) => Math.abs(alpha) / sigmaBeta;
 
+const loadShortWindowData = () => Promise.all([loadSeries('ff3-monthly'), loadSeries('mom-monthly'), loadSeries('ff3-daily'), loadSeries('mom-daily')])
+  .then(([ff3, mom, ff3Daily, momDaily]) => ({ ff3, mom, ff3Daily, momDaily }));
+
 /** Load the four French files once. */
 export function useShortWindowData(): { data: ShortWindowData | null; failed: boolean } {
-  const [data, setData] = useState<ShortWindowData | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    Promise.all([loadSeries('ff3-monthly'), loadSeries('mom-monthly'), loadSeries('ff3-daily'), loadSeries('mom-daily')])
-      .then(([ff3, mom, ff3Daily, momDaily]) => setData({ ff3, mom, ff3Daily, momDaily }), () => setFailed(true));
-  }, []);
-  return { data, failed };
+  return useLoaded(loadShortWindowData);
 }

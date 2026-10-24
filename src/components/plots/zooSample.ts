@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
 import { loadOsapSignals, type OsapSignal } from '../../lib/data/osap-signals';
 import { betweenDates, getColumn, loadSeries, type Series } from '../../lib/data/series';
 import { spanningTest, type FactorName } from '../../lib/finance/factors';
 import { byPublicationYear, compareConstructions, constructionSeries, countAbove, signalSummaries, type Construction, type SignalSummary } from '../../lib/finance/zoo';
+import { useLoaded } from './seriesSample';
 
 /** The constructions with committed data (only the original papers' today; see docs/DATA.md). */
 export const CONSTRUCTIONS: { value: Construction; label: string }[] = [{ value: 'original', label: 'Original papers' }];
@@ -104,13 +104,10 @@ export function spanningView(data: ZooData, factor: FactorName, start = SPANNING
   };
 }
 
+const loadZooData = () => Promise.all([loadSeries(constructionSeries.original), loadOsapSignals(), loadSeries('ff5-monthly'), loadSeries('mom-monthly')])
+  .then(([original, docs, ff5, mom]) => ({ returns: { original }, signals: docs.signals, ff5, mom }));
+
 /** Load the OSAP returns and documentation, ff5-monthly and mom-monthly once. */
 export function useZooData(): { data: ZooData | null; failed: boolean } {
-  const [data, setData] = useState<ZooData | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    Promise.all([loadSeries(constructionSeries.original), loadOsapSignals(), loadSeries('ff5-monthly'), loadSeries('mom-monthly')])
-      .then(([original, docs, ff5, mom]) => setData({ returns: { original }, signals: docs.signals, ff5, mom }), () => setFailed(true));
-  }, []);
-  return { data, failed };
+  return useLoaded(loadZooData);
 }
