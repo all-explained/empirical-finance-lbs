@@ -2,9 +2,10 @@
 id: TASK-060
 title: Orchestrator reads Part III and signs it off
 milestone: M-5
-state: approved
+state: done
 depends_on: [TASK-057, TASK-058, TASK-059]
 delivery: manual
+reason: Part III read; fixes merged in TASK-080
 ---
 
 ## Why
