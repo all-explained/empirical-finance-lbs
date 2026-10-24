@@ -235,7 +235,7 @@ Each chapter entry lists:
 - **Widgets:** `AlphaBars`: the alpha of each test portfolio with confidence bars, for CAPM and FF3. `GRSGeometry`:
   two frontiers (factors only, factors plus test assets) and the gap GRS measures.
 - **Data:** `ff25-size-bm-monthly`, `ff3-monthly`.
-- **Readings:** Gibbons, Ross & Shanken (1987); Cochrane (2005), Ch. 12.
+- **Readings:** Gibbons, Ross & Shanken (1989); Cochrane (2005), Ch. 12.
 - **Prereqs:** 3, 7.
 
 ### 17. Cross-sectional regressions and Fama–MacBeth

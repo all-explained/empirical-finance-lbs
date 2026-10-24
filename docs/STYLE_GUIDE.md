@@ -89,6 +89,8 @@ Use these symbols everywhere. If a chapter needs a new symbol, add it to this ta
 | $\beta_i$, $\beta_{i,k}$ | — | Exposure (beta) of asset $i$ to the factors: a $K$-vector, and its $k$-th entry. $\beta$ is only ever a regression or factor exposure |
 | $\lambda$, $\lambda_k$ | — | Risk premia (factor prices): $\mathbb{E}[R^e_i] = \beta_i'\lambda$ |
 | $\alpha_i$, $\alpha$ | `\Err` | Pricing error (alpha) of asset $i$, and the $N$-vector of them. Never a significance level |
+| $a_i$ | — | Intercept of asset $i$ in a first-pass time-series regression, $R^e_{i,t} = a_i + \beta_i'f_t + \varepsilon_{i,t}$, in a two-pass test (Chapters 17–18), where $\alpha_i$ is the cross-sectional pricing error. In a time-series test with traded factors (Chapter 16) the intercept is the pricing error, so it is $\alpha_i$. In predictive regressions $a$ is the intercept; context separates the two |
+| $\zeta$ | — | Shanken factor $\zeta = \lambda'\Sigma_f^{-1}\lambda$, per period: the corrected variance of $\hat\lambda$ scales the residual part by $1 + \zeta$. For traded factors it is the squared highest Sharpe ratio of the factors, $SR^2_f$. Not $c$, which is log consumption or a slope on characteristics, nor $\kappa$, which is a Campbell–Shiller constant |
 | $\varepsilon_{i,t}$ | `\Err` | Residual or shock. $u_t$, $v_t$ name the shocks of a second equation (for example a predictor's) |
 | $T$, $N$, $K$ | — | Sample size (periods), number of test assets, number of factors. Index them $t = 1, \dots, T$, $i = 1, \dots, N$, $k = 1, \dots, K$ |
 | $\hat\beta$, $\bar R$ | — | A hat marks an estimate or a fitted value. A bar marks a sample mean over time, $\bar R_i = \tfrac1T \sum_t R_{i,t}$ |

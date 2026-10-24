@@ -152,7 +152,7 @@ export default function ShankenCorrection({ initialSharpe = 0.4, initialT = 600 
               {pending && <> · updating…</>}
             </p>
             <dl className="readout-grid">
-              <dt><RichText>{"$c = \\lambda'\\Sigma_f^{-1}\\lambda$ (monthly)"}</RichText></dt>
+              <dt><RichText>{"$\\zeta = \\lambda'\\Sigma_f^{-1}\\lambda$ (monthly)"}</RichText></dt>
               <dd>{num(view.w.c)}</dd>
               <dt>Naive standard error, average</dt>
               <dd>{pctYear(view.w.meanNaiveSE, 3)} a year</dd>
@@ -176,7 +176,7 @@ export default function ShankenCorrection({ initialSharpe = 0.4, initialT = 600 
                 <dd>{pctYear(ff3.lambda[0])} a year</dd>
                 <dt>Naive, corrected standard error</dt>
                 <dd>{pctYear(ff3.naiveSE[0], 3)}, <span style={{ color: 'var(--c-model)' }}>{pctYear(ff3.correctedSE[0], 3)}</span> a year</dd>
-                <dt><RichText>{'$c$ at the estimated premia'}</RichText></dt>
+                <dt><RichText>{'$\\zeta$ at the estimated premia'}</RichText></dt>
                 <dd>{num(ff3.c, 4)}</dd>
               </dl>
             ) : (
