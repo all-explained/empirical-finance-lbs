@@ -2,10 +2,11 @@
 id: TASK-092
 title: Orchestrator reads Part VI and signs it off
 milestone: M-8
-state: approved
+state: cancelled
 depends_on: [TASK-088, TASK-089, TASK-090, TASK-091]
 delivery: pr
 kind: gate
+reason: 'duplicate of TASK-093..100: proposal TASK-034 was applied twice'
 ---
 
 ## Why
