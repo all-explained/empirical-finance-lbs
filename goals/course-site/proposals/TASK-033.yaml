@@ -1,0 +1,447 @@
+format: goal-proposal/v1
+task: TASK-033
+add:
+  - ref: data-french-sorts-daily
+    title: 'Data: French 2×3 sorts and daily factors'
+    milestone: M-7
+    why: >-
+      SC-4, SC-7 and M-7. Chapters 19 and 20 rebuild SMB, HML and the momentum factor from the 2×3 sorts behind
+      them, and chapter 23 runs within-quarter regressions on daily returns, as Lewellen & Nagel (2006) do. None of
+      these four public French files is in the pipeline yet.
+    scope: |-
+      Add four datasets to the data pipeline, all from the Kenneth French Data Library, with no credentials. Set up `.venv` as `docs/DATA.md` describes before `npm run data`. Read first: `docs/DATA.md` (file contract and French notes), `scripts/data/fetch.py` (its `french()` helper and the French entries in `build_all`), `src/lib/data/series.ts` and `src/lib/data/series.test.ts`.
+
+      Datasets (keep source units: percent per period; first table only, value-weighted returns; drop `-99.99` and `-999`):
+      - `ff6-size-bm-monthly`: "6 Portfolios Formed on Size and Book-to-Market (2 x 3)" (`6_Portfolios_2x3_CSV.zip`). Columns `SMALL-LoBM`, `ME1-BM2`, `SMALL-HiBM`, `BIG-LoBM`, `ME2-BM2`, `BIG-HiBM` as in the source header, or a clear renaming documented in `docs/DATA.md`.
+      - `ff6-size-mom-monthly`: "6 Portfolios Formed on Size and Momentum (2 x 3)" (`6_Portfolios_ME_Prior_12_2_CSV.zip`). Same rule for column names.
+      - `ff3-daily`: "Fama/French 3 Factors [Daily]" (`F-F_Research_Data_Factors_daily_CSV.zip`), columns `Mkt-RF`, `SMB`, `HML`, `RF`, from 1963-07-01 on to keep the file small.
+      - `mom-daily`: "Momentum Factor (Mom) [Daily]" (`F-F_Momentum_Factor_daily_CSV.zip`), column `Mom`, from 1963-07-01 on.
+      Check each file name and header against the download before you use it; if the library has renamed a file, use the current name and record it. Daily dates are trading days in ISO form. In `docs/DATA.md`, add the four rows to the sources table (terms and citations as for the other French files), update the dataset count in the opening line, and add a bullet under "File contract and transformations" that says how each 2×3 sort is formed (the breakpoints and timing as the library page states them) and that the daily files start in 1963-07 by choice.
+
+      Another data task (`data-osap`) may merge first and touch the same files. Rebase on `origin/main` before you finish and keep both sets of entries. Touch only: `scripts/data/fetch.py`, the four new JSON files in `src/data/series/`, `src/lib/data/series.ts` (four new `seriesColumns` entries), `src/lib/data/series.test.ts` (schema test and three raw-source cells per dataset, as for the others) and `docs/DATA.md`. `npm run data` rebuilds every dataset; if it changes any other JSON file, restore it with `git checkout -- <file>` and say so in the outcome. Each JSON file stays under 1 MB. Out of scope: library maths, chapters and widgets. If a download is blocked, stop with `Goal-Blocked` and name the exact file the owner must download.
+    acceptance:
+      - '`npm run data` writes the four JSON files, and the outcome states each file''s first and last date, row count and size.'
+      - '`npm test` passes, including the new schema and raw-cell tests.'
+      - '`npm run build` passes.'
+      - '`git status --short` shows only the files named above and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm run data
+      git status --short
+      npm test
+      npm run build
+      du -k src/data/series/ff6-size-bm-monthly.json src/data/series/ff6-size-mom-monthly.json src/data/series/ff3-daily.json src/data/series/mom-daily.json
+  - ref: data-osap
+    title: 'Data: published anomaly portfolios from Open Source Asset Pricing'
+    milestone: M-7
+    why: >-
+      SC-4, SC-7 and M-7. Chapter 21 plots published return predictors by year with their t-statistics and shows
+      how many shrink when portfolios are value-weighted or microcaps are dropped. `docs/CURRICULUM.md` ("Data wanted
+      later") names Open Source Asset Pricing (Chen & Zimmermann) as the public source; it is not in the pipeline.
+    scope: |-
+      Add the Open Source Asset Pricing (OSAP) predictor data to the data pipeline. Public sources only, no credentials. Set up `.venv` as `docs/DATA.md` describes before `npm run data`. Read first: `docs/DATA.md`, `scripts/data/fetch.py`, `src/lib/data/series.ts`, `src/lib/data/series.test.ts`, and the OSAP data page (https://www.openassetpricing.com/data/) with its signal documentation.
+
+      What the chapter needs:
+      - Monthly long–short returns of every signal OSAP classes as a clear predictor, built as in the original papers (OSAP's "original paper" portfolios). One series file, `osap-ls-monthly`: column zero is the date, then one column per signal acronym; cells are `null` before a signal's data start, so every signal column is optional (`required: false`).
+      - The same long–short returns under value weighting, `osap-ls-vw-monthly`, and with microcaps excluded (OSAP's NYSE 20th-percentile size screen), `osap-ls-exmicro-monthly`, if OSAP publishes these variants. If one is not published, say so in the outcome and leave it out; do not build it yourself.
+      - Signal documentation, `osap-signals`: one record per signal with acronym, authors, publication year, journal, original sample start and end years and OSAP's category. This is not a dated series. Add it as a small JSON file with its own typed loader in `src/lib/data/` and its own test, and document its contract in `docs/DATA.md` next to the series contract.
+      Keep OSAP's units (state them: OSAP reports percent per month). Do not compute means, t-statistics or any summary here; the library task does that. Start the series in 1963-01 if a file would otherwise pass 1.5 MB; if it is still over 1.5 MB, report the sizes and keep the original-paper file only.
+
+      Downloads. OSAP serves files from Google Drive and through its Python package `openassetpricing`. Use whichever works without credentials; pin any new Python dependency in `scripts/data/requirements.txt`. Record the exact file names, release (vintage) and retrieval date in `docs/DATA.md`, and add the rows to the sources table with the terms OSAP states. If OSAP states no redistribution licence, follow the goal's assumption for small derived public academic data, as for the French files, and say so. If the download is blocked, stop with `Goal-Blocked` and name the exact files the owner must download.
+
+      Another data task (`data-french-sorts-daily`) may merge first and touch the same files. Rebase on `origin/main` before you finish and keep both sets of entries. Touch only: `scripts/data/fetch.py`, `scripts/data/requirements.txt` if needed, the new JSON files in `src/data/series/`, `src/lib/data/series.ts` (new `seriesColumns` entries), one new loader file for the signal documentation in `src/lib/data/` with its test, `src/lib/data/series.test.ts` and `docs/DATA.md`. If `npm run data` changes any other JSON file, restore it with `git checkout -- <file>` and say so. Out of scope: library maths, chapters and widgets.
+    acceptance:
+      - '`npm run data` writes the OSAP files, and the outcome states each file''s first and last date (or record count), number of signals and size.'
+      - '`npm test` passes, including schema tests, three raw-source cells per series file and a test of the signal documentation loader.'
+      - '`npm run build` passes.'
+      - '`git status --short` shows only the files named above and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm run data
+      git status --short
+      npm test
+      npm run build
+      du -k src/data/series/osap-*.json
+  - ref: lib-factors
+    title: 'Library: factor models beyond FF3, 2×3 sorts, momentum and spanning tests'
+    milestone: M-7
+    after: [data-french-sorts-daily]
+    why: >-
+      SC-7 and M-7. Chapters 19 to 21 need the 25 portfolios priced by CAPM, FF3, Carhart and FF5, the SMB, HML and
+      momentum factors rebuilt from their 2×3 sorts, the momentum formation signal, a bear-market regression for
+      momentum crashes, and spanning regressions, in `src/lib`, with tests.
+    scope: |-
+      Add `src/lib/finance/factors.ts` and `src/lib/finance/factors.test.ts`. Read first: the entries of chapters 19, 20 and 21 in `docs/CURRICULUM.md`, the notation table in `docs/STYLE_GUIDE.md` §3 ("Factor models and tests"), the French notes in `docs/DATA.md` (percent per month; divide by 100), `src/lib/finance/timeSeriesTests.ts` (`factorPanel`, `timeSeriesRegressions`, `grs`), `src/lib/stats/ols.ts`, `src/lib/finance/returns.ts` and `src/components/plots/factorTestSample.ts` (how chapter 16 uses the panel). The 2×3 construction follows the Kenneth French Data Library page for each factor; cite that page in a doc comment. No reading in `source/papers/` defines these factors: Fama & French (1993, 2015), Jegadeesh & Titman (1993) and Carhart (1997) are not supplied, so attribute nothing to them beyond the names of the factors.
+
+      Functions:
+      - `modelPanel({ ff3, ff5?, mom? }, ff25, { start, end?, model })` with `model` `'capm'`, `'ff3'`, `'carhart'` (FF3 plus Mom) or `'ff5'`: returns the `FactorPanel` shape of `timeSeriesTests.ts` (widen the factor-name type here, not there). For `'capm'` and `'ff3'` it equals `factorPanel` exactly. Throw a `RangeError` when a start lies before a source's first month (Mom starts 1927-01, FF5 1963-07) or when dates do not line up. Do not change `factorPanel`.
+      - `sortFactors(six, kind)` with `kind` `'size-value'` (from `ff6-size-bm-monthly`) or `'size-momentum'` (from `ff6-size-mom-monthly`): the six decimal leg returns and the factors built from them, $SMB = \tfrac13(SL + SM + SH) - \tfrac13(BL + BM + BH)$ and $HML = \tfrac12(SH + BH) - \tfrac12(SL + BL)$ for the first, $UMD = \tfrac12(SW + BW) - \tfrac12(SL + BL)$ (winners minus losers) for the second.
+      - `formationReturn(returns, t, { lookback = 12, skip = 1 })`: the compounded return from $t-12$ to $t-2$, the formation signal $r_{t-12 \to t-2}$, through `grossGrowth`.
+      - `bearMarketRegression(wml, market, { lookback = 24 })`: the bear-market indicator $I_{B,t-1} = 1$ when the market's compounded excess return over the previous `lookback` months is negative, and the OLS fit of $WML_t = \alpha_0 + \alpha_B I_{B,t-1} + (\beta_0 + \beta_B I_{B,t-1}) R^e_{m,t} + \varepsilon_t$ with White standard errors from `ols`.
+      - `worstMonths(dates, values, k)` and `windowBefore(dates, values, date, months)` for a crash-by-crash view.
+      - `spanningTest(newFactors, baseFactors)`: the time-series regression of each new factor on the base factors, $f_{\text{new},t} = \alpha + \beta' f_t + \varepsilon_t$, with $\alpha$, its classical and White $t$-statistics and $R^2$, and the GRS test of all alphas when there are several new factors. Reuse `timeSeriesRegressions` and `grs`.
+
+      Tests against reference values, each stated in the test: `modelPanel` equals `factorPanel` for CAPM and FF3, and throws for an FF5 start before 1963-07; `sortFactors` on a hand-made six-portfolio row; on the committed data, rebuilt HML, SMB and UMD match the published `HML`, `SMB` (of `ff3-monthly`) and `Mom` to within the source's rounding (state the largest gap); `formationReturn` on a hand-computed series; `bearMarketRegression` recovers known coefficients on a seeded series (seed with `src/lib/math/rng.ts`); `spanningTest` gives $\alpha = 0$ and $R^2 = 1$ for a factor that is an exact combination of the base; and pinned values on the committed data from 1963-07: the GRS statistic of the 25 portfolios under each model, and the FF3 alpha of Mom with its $t$-statistic. Reuse `ols`, `grossGrowth`, `timeSeriesRegressions` and `grs`; do not copy them. Out of scope: chapters, widgets, edits to docs or to code outside the files named.
+    acceptance:
+      - Every exported function has a test against a reference value, and `npm test` passes.
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`git status --short` shows only `src/lib/finance/factors.ts`, its test and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-zoo
+    title: 'Library: anomaly t-statistics across the factor zoo'
+    milestone: M-7
+    after: [data-osap]
+    why: >-
+      SC-7 and M-7. Chapter 21 needs, for each published predictor, its mean long–short return and t-statistic
+      in and after its original sample, under each portfolio construction, and counts of how many clear a given
+      t-statistic, in `src/lib`, with tests.
+    scope: |-
+      Add `src/lib/finance/zoo.ts` and `src/lib/finance/zoo.test.ts`. Read first: the entry of chapter 21 in `docs/CURRICULUM.md`, the OSAP notes in `docs/DATA.md` and the loaders the data task added (`src/lib/data/series.ts` and the signal documentation loader in `src/lib/data/`), `src/lib/stats/moments.ts` (`meanStandardError`). Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/HarveyLiuZhu2016.pdf` and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/HouXueZhang2018.pdf` (published 2020) with `pdftotext -layout` for the $t$-statistic thresholds and the microcap point, and cite pages in doc comments.
+
+      Functions:
+      - `signalSummaries(returns, signals, { construction })` with `construction` `'original'`, `'vw'` or `'exmicro'` (only those the data task committed): for each signal its acronym, publication year, mean and $t$-statistic over its original sample, the same after the sample ends, and the number of months in each. Months with `null` are skipped; a signal with fewer than 24 months in a window gets `null` for that window. OSAP units are percent per month; return decimals.
+      - `countAbove(summaries, threshold, window)`: how many signals have $|t|$ above the threshold, for a draggable significance line.
+      - `compareConstructions(a, b, threshold)`: for signals in both, how many cross below the threshold when moving from `a` to `b`, and the median ratio of their mean returns.
+      - `byPublicationYear(summaries)`: signals grouped by year with cumulative counts, for the zoo's time axis.
+
+      Tests against reference values, each stated in the test: every function on a hand-made three-signal case; `signalSummaries` $t$ equals $\bar r / (s/\sqrt{T})$ by hand; and pinned values on the committed data: number of signals, number with original-sample $|t| > 1.96$ and $> 3$, and, for each committed variant, the number that fall below 1.96. Reuse `meanStandardError`; do not copy it. Out of scope: chapters, widgets, edits to docs or to code outside the files named.
+    acceptance:
+      - Every exported function has a test against a reference value, and `npm test` passes.
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`git status --short` shows only `src/lib/finance/zoo.ts`, its test and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-conditional
+    title: 'Library: conditional betas, scaled factors and the scaled CCAPM'
+    milestone: M-7
+    why: >-
+      SC-7 and M-7. Chapter 22 needs a seeded world where a conditional CAPM holds and the unconditional one fails,
+      the decomposition E[R] = E[β]E[λ] + Cov(β, λ), scaled factors and managed portfolios, and a quarterly panel
+      that fits CAPM, FF3, the CCAPM and the cay-scaled CCAPM on the 25 portfolios, in `src/lib`, with tests.
+    scope: |-
+      Add `src/lib/finance/conditional.ts` and `src/lib/finance/conditional.test.ts`. Read first: the entry of chapter 22 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3, `docs/DATA.md` (French and cay notes), `src/lib/finance/cay.ts` (`cayInputs`, `fullSampleCay`), `src/lib/finance/timeSeriesTests.ts` and `src/lib/finance/crossSection.ts`. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/LettauLudvigson2001b.pdf` (Lettau & Ludvigson (2001, JPE)) with `pdftotext -layout` for the scaled CCAPM and its timing, and cite pages in doc comments. Cochrane (2005), Ch. 8, is a book the owner has not supplied: derive the managed-portfolio argument from the model and attribute nothing to it.
+
+      Functions:
+      - `simulateConditionalCapm(seed, { T, beta0, betaSlope, lambda0, lambdaSlope, stateRho, stateSd, marketSd, residualSd })`: a seeded state $z_t$ (AR(1)), $\beta_t = \beta_0 + b\,z_t$, $\lambda_t = \lambda_0 + l\,z_t$, market excess returns with conditional mean $\lambda_t$, and an asset with $\mathbb{E}_t[R^e_{i,t+1}] = \beta_{it}\lambda_t$. Returns the paths, the unconditional OLS alpha and beta, and the parts $\overline{\beta}\,\overline{\lambda}$ and $\widehat{\mathrm{Cov}}(\beta_t, \lambda_t)$.
+      - `betaPremiumDecomposition(beta, lambda)`: $\overline{\beta\lambda} = \overline{\beta}\,\overline{\lambda} + \widehat{\mathrm{Cov}}(\beta, \lambda)$ with the divisor $T$, so the identity is exact in sample.
+      - `scaledFactors(factors, z)`: the columns $f_{t+1}$, $z_t$ and $z_t f_{t+1}$ (state the timing); `managedPortfolios(excess, z)`: $R^e_{t+1} \otimes (1, z_t)$.
+      - `quarterlyPanel({ ff3, ff25, cay }, { start, end? })`: compound the monthly French returns into calendar quarters, align them with the quarter dates of `fred-cay-quarterly`, and return quarterly decimal excess returns of the 25 portfolios, the quarterly factors, log consumption growth $\Delta c_{t+1}$ from `cayInputs`, and $cay_t$ from `fullSampleCay`. Say in a doc comment that full-sample $cay$ uses future data, as the paper's does.
+      - `conditionalModelFits(panel, models)` for `'capm'`, `'ff3'`, `'ccapm'` ($\Delta c$) and `'scaled-ccapm'` ($cay_t$, $\Delta c_{t+1}$, $cay_t \Delta c_{t+1}$): first-pass betas with `timeSeriesRegressions`, second pass with `crossSectionalRegression` (intercept, OLS), returning $\hat\lambda$, fitted and actual mean returns and the cross-sectional $R^2$.
+
+      Tests against reference values, each stated in the test: `simulateConditionalCapm` gives the same output for the same seed; with $b = 0$ or $l = 0$ the unconditional alpha is within sampling error of zero for large $T$ (state the numbers); `betaPremiumDecomposition` holds to 1e-12; `scaledFactors` and `managedPortfolios` on a hand-made case; `quarterlyPanel` compounds one quarter by hand from the committed data and lines up with the cay dates; and pinned values on the committed data: the sample quarters, and $\hat\lambda$ and the cross-sectional $R^2$ of each model. Reuse `timeSeriesRegressions`, `crossSectionalRegression`, `cayInputs`, `fullSampleCay`, `grossGrowth`, `ols` and the RNG helpers; do not copy them. Out of scope: chapters, widgets, edits to docs or to code outside the files named.
+    acceptance:
+      - Every exported function has a test against a reference value, and `npm test` passes.
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`git status --short` shows only `src/lib/finance/conditional.ts`, its test and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-short-window
+    title: 'Library: rolling and short-window betas and the Lewellen–Nagel alpha bound'
+    milestone: M-7
+    after: [data-french-sorts-daily]
+    why: >-
+      SC-7 and M-7. Chapter 23 needs rolling betas, betas and alphas from within-quarter regressions on daily
+      returns, the average conditional alpha, and the largest alpha that beta timing can create, in `src/lib`, with
+      tests.
+    scope: |-
+      Add `src/lib/finance/shortWindow.ts` and `src/lib/finance/shortWindow.test.ts`. Read first: the entry of chapter 23 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3, the French notes in `docs/DATA.md` (including the daily files), `src/lib/stats/ols.ts` and `src/lib/finance/timeSeriesTests.ts`. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/LewellenNagel2006.pdf` with `pdftotext -layout`: follow its short-window method, its formula for the unconditional alpha implied by a conditional CAPM, and its bound, and cite each page in a doc comment.
+
+      Functions:
+      - `dailyFactorPanel(ff3Daily, momDaily, { start, end? })`: aligned decimal daily `Mkt-RF`, `SMB`, `HML`, `Mom` and `RF`; throw a `RangeError` when dates do not line up.
+      - `rollingBetas(y, x, window)`: the OLS alpha and beta of $y$ on $x$ for each window of `window` periods, ending at each date.
+      - `shortWindowRegressions(dates, y, x, { period, minObs, lags? })` with `period` `'month'`, `'quarter'`, `'half'` or `'year'`: for each calendar window the OLS $R^e_{it} = \alpha_{iq} + \beta_{iq} R^e_{mt} + \varepsilon_{it}$, its number of days, and, if the paper adds lagged market returns for nonsynchronous trading, the summed beta under `lags`.
+      - `conditionalAlphaSummary(windows)`: the average conditional alpha with its $t$-statistic from the time series of window alphas, and $\sigma(\hat\beta_{iq})$.
+      - `unconditionalAlpha(...)` and `alphaBound(sigmaBeta, sigmaLambda)`: the paper's expression for $\alpha^u_i$ in terms of $\mathrm{Cov}(\beta_{it}, \lambda_t)$ and the bound $|\mathrm{Cov}(\beta_{it}, \lambda_t)| \le \sigma(\beta_{it})\,\sigma(\lambda_t)$, with every term defined in a doc comment.
+
+      Tests against reference values, each stated in the test: `rollingBetas` and `shortWindowRegressions` on hand-computed short series (one window by hand); `alphaBound` by hand; `unconditionalAlpha` matches a long seeded simulation with time-varying beta and premium within a stated tolerance (seed with `src/lib/math/rng.ts`); and pinned values on the committed daily data from 1964-01 for HML and Mom (or WML): the number of quarters, $\sigma(\hat\beta_{iq})$, the average conditional alpha and its $t$-statistic, the unconditional CAPM alpha from monthly data, and the bound for a stated $\sigma(\lambda_t)$. Reuse `ols` and the RNG helpers; do not copy them. Out of scope: chapters, widgets, edits to docs or to code outside the files named.
+    acceptance:
+      - Every exported function has a test against a reference value, and `npm test` passes.
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`git status --short` shows only `src/lib/finance/shortWindow.ts`, its test and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: chapter-19
+    title: 'Chapter 19: Size and value'
+    milestone: M-7
+    after: [lib-factors]
+    why: >-
+      SC-7 and M-7. Part V opens with the two best-known patterns the CAPM misses, size and value, and the factors
+      built to price them. This chapter follows the pattern of the Part I to Part IV chapters.
+    scope: |-
+      Write chapter 19 of `docs/CURRICULUM.md`, "Size and value", as `src/content/chapters/19-size-and-value.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md`, `docs/DATA.md`, the finished chapters `src/content/chapters/01-returns.mdx`, `src/content/chapters/07-mean-variance-and-the-capm.mdx`, `src/content/chapters/13-out-of-sample-predictability.mdx` and `src/content/chapters/16-time-series-tests-and-grs.mdx` (the models to copy), and the library code named below: `src/lib/finance/factors.ts` (from the library task this task depends on) and `src/lib/finance/timeSeriesTests.ts`.
+
+      Readings. Open these PDFs with `pdftotext -layout` and name the page for any number or fact you take from them: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/FamaFrench1992.pdf` (Fama & French (1992)) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/Cochrane2011.pdf` (Cochrane (2011), NBER working-paper version). Fama & French (1993) and (2015), which define the three- and five-factor models, are not in `source/papers/`: describe the factors as the Kenneth French Data Library pages do, cite those pages, and take no other fact from the two papers. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper.
+
+      Chapter:
+      - Frontmatter: `part: 5`, `chapter: 19`, `difficulty: 2`, `prerequisites: [16, 17]`, a one-sentence `summary`. Link chapter 16. Link chapter 17 if it is merged when you finish; otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site; name chapters 20 to 23 only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: the size and value spreads in the 25 portfolios, the CAPM alphas they leave, the 2×3 sort and why each factor averages over the other sort, the FF3 regression, and what RMW and CMA add in FF5. Teach the limits honestly: a factor that prices the portfolios it was built from is a low bar (link the GRS reading of chapter 16), and the value premium's size depends on the sample (show it with our data).
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter19-numbers.test.ts` that recomputes each one, as `tests/chapter16-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above and the typed loaders in `src/lib/data/series.ts`:
+      - `SortGrid`: the 5×5 grid of size and book-to-market portfolios coloured by annualised mean excess return or by alpha (`Segmented`), with a `Segmented` model control (CAPM, FF3, FF5) on the common sample from 1963-07, each cell labelled with its number; the readout gives the GRS statistic and p-value of the chosen model. Use a diverging colour scale from CSS variables with a legend, and do not let colour be the only cue.
+      - `FactorBuilder`: the six 2×3 portfolios of `ff6-size-bm-monthly` as a grid, the legs of SMB and HML highlighted as the reader picks a factor, and the rebuilt factor's cumulative return against the published one, with the largest gap in the readout. Give it a `kind` prop (`'size-value'` default, `'size-momentum'`) so chapter 20 reuses it.
+      Both follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout, `prefers-reduced-motion`. Put the data hook the widgets and the numbers test share in one helper, `src/components/plots/factorModelSample.ts`, built on `modelPanel` and `sortFactors`; reuse the loaders of `factorTestSample.ts` rather than writing new loading code.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` or `docs/STYLE_GUIDE.md` (report mismatches in the outcome), changes to shared code. Where the curriculum's Key math and the notation table of `docs/STYLE_GUIDE.md` §3 disagree, follow the style guide and report the mismatch; list symbols the table lacks (such as $b_i$, $s_i$, $h_i$, $SMB$, $HML$, $RMW$, $CMA$) as candidates. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`; a new symbol or colour goes into the `docs/STYLE_GUIDE.md` tables only if the spec says so, otherwise report it.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 19-size-and-value` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 19-size-and-value` passes and reports every widget of the chapter.'
+      - The six `section-tag` headings are in template order.
+      - No hex colour in the chapter or its widgets.
+      - The widgets use real data from the chapter's curriculum entry (`ff25-size-bm-monthly`, `ff3-monthly`, `ff5-monthly`) and `ff6-size-bm-monthly`.
+      - The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.
+      - The prose is 1,500–3,000 words (give the command).
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 19-size-and-value
+      npm run clickthrough -- 19-size-and-value
+      grep -n 'section-tag' src/content/chapters/19-size-and-value.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/19-size-and-value.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-20
+    title: 'Chapter 20: Momentum'
+    milestone: M-7
+    after: [lib-factors]
+    why: >-
+      SC-7 and M-7. Momentum is the anomaly the three-factor model cannot absorb, and its crashes show what a
+      factor's risk can look like. This chapter follows the pattern of the earlier chapters.
+    scope: |-
+      Write chapter 20 of `docs/CURRICULUM.md`, "Momentum", as `src/content/chapters/20-momentum.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md`, `docs/DATA.md`, the finished chapters `src/content/chapters/01-returns.mdx`, `src/content/chapters/13-out-of-sample-predictability.mdx` and `src/content/chapters/16-time-series-tests-and-grs.mdx` (the models to copy), chapter 19 if it is merged, and the library code named below: `src/lib/finance/factors.ts` (from the library task this task depends on), `src/lib/finance/returns.ts` and `src/lib/finance/timeSeriesTests.ts`.
+
+      Readings. Open these PDFs with `pdftotext -layout` and name the page for any number or fact you take from them: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/Cochrane2011.pdf` (Cochrane (2011)) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/FamaFrench1992.pdf` (Fama & French (1992)). Jegadeesh & Titman (1993), Carhart (1997) and Daniel & Moskowitz (2016) are not in `source/papers/`: teach the formation signal and the bear-market regression as methods, show them with our data, and attribute nothing to those papers beyond the names. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper.
+
+      Chapter:
+      - Frontmatter: `part: 5`, `chapter: 20`, `difficulty: 2`, `prerequisites: [19]`, a one-sentence `summary`. Link chapter 19 if it is merged when you finish; otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: the signal $r_{t-12 \to t-2}$ and why the last month is skipped, $WML_t$ from the size–momentum 2×3 sort, the FF3 alpha of momentum, and the bear-market regression with its separate beta. Teach the limits honestly: momentum's high Sharpe ratio comes with rare, large crashes, and a sample without them overstates it.
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter20-numbers.test.ts` that recomputes each one, as `tests/chapter16-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above and the typed loaders in `src/lib/data/series.ts`:
+      - `CompoundingPath` preset with momentum: add one optional prop to `src/components/plots/CompoundingPath.tsx` that plots the growth of a dollar in `Mom` next to the market, with the default unchanged; then re-run `npm run screenshots -- 01-returns` and report the change.
+      - `CrashZoom`: momentum's worst months from `worstMonths`, a `Select` to pick one, and the market's path and momentum's path in the months before it from `windowBefore`; the readout gives that month's return, the bear-market indicator, and the two betas of `bearMarketRegression`.
+      - `FactorBuilder` with `kind="size-momentum"` if chapter 19 has merged it; otherwise create it with the `kind` prop as the chapter 19 spec describes, and say so in the outcome so the Part keeps one widget.
+      All follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout, `prefers-reduced-motion`. Use the data hook in `src/components/plots/factorModelSample.ts` if chapter 19 has merged it; otherwise create that file with a hook built on `modelPanel` and `sortFactors`, and say so in the outcome so the Part keeps one helper.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` or `docs/STYLE_GUIDE.md` (report mismatches in the outcome), changes to shared code other than the one optional `CompoundingPath` prop. Where the curriculum's Key math and the notation table of `docs/STYLE_GUIDE.md` §3 disagree, follow the style guide and report the mismatch; list symbols the table lacks (such as $WML$, $I_B$) as candidates. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`; a new symbol or colour goes into the `docs/STYLE_GUIDE.md` tables only if the spec says so, otherwise report it.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 20-momentum` and `npm run screenshots -- 01-returns` pass in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 20-momentum` passes and reports every widget of the chapter.'
+      - The six `section-tag` headings are in template order.
+      - No hex colour in the chapter or its widgets.
+      - The widgets use real data from the chapter's curriculum entry (`mom-monthly`, `ff3-monthly`) and `ff6-size-mom-monthly`.
+      - The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.
+      - The prose is 1,500–3,000 words (give the command).
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 20-momentum
+      npm run screenshots -- 01-returns
+      npm run clickthrough -- 20-momentum
+      grep -n 'section-tag' src/content/chapters/20-momentum.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/20-momentum.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-21
+    title: 'Chapter 21: Anomalies and the factor zoo'
+    milestone: M-7
+    after: [lib-factors, lib-zoo]
+    why: >-
+      SC-7 and M-7. After size, value and momentum come hundreds of published predictors. This chapter asks how many
+      survive honest checks and which few factors span the rest, following the pattern of the earlier chapters.
+    scope: |-
+      Write chapter 21 of `docs/CURRICULUM.md`, "Anomalies and the factor zoo", as `src/content/chapters/21-anomalies-and-the-factor-zoo.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md`, `docs/DATA.md` (including the OSAP notes), the finished chapters `src/content/chapters/01-returns.mdx`, `src/content/chapters/13-out-of-sample-predictability.mdx` and `src/content/chapters/16-time-series-tests-and-grs.mdx` (the models to copy), chapters 19 and 20 if they are merged, and the library code named below: `src/lib/finance/zoo.ts` and `src/lib/finance/factors.ts` (from the library tasks this task depends on).
+
+      Readings. Open these PDFs with `pdftotext -layout` and name the page for any number or fact you take from them: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/Cochrane2011.pdf` (Cochrane (2011)), `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/HouXueZhang2018.pdf` (published in the Review of Financial Studies in 2020, see `docs/READINGS.md`; cite it as "Hou, Xue & Zhang (2020)" and report the curriculum's "2018" as a mismatch) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/HarveyLiuZhu2016.pdf` (Harvey, Liu & Zhu (2016)). Cite the OSAP data as `docs/DATA.md` does. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper.
+
+      Chapter:
+      - Frontmatter: `part: 5`, `chapter: 21`, `difficulty: 2`, `prerequisites: [19, 20]`, a one-sentence `summary`. Link each prerequisite that is merged when you finish; name the others by title and say so in the outcome. Every sentence about another chapter must be true of the merged site. Multiple testing and shrinkage are Part VII (chapters 28 to 30): name them only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: what makes a predictor an anomaly, the $t$-statistics of many published predictors, how many shrink under value weighting or without microcaps (with the OSAP variants the data task committed), the spanning regression and why only $\alpha \ne 0$ adds to a model. Teach the limits honestly: a higher $t$ threshold is a blunt fix for data mining, and a factor can be spanned in one sample and not in another.
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter21-numbers.test.ts` that recomputes each one, as `tests/chapter16-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above and the typed loaders in `src/lib/data/`:
+      - `ZooChart`: each published predictor as a point at its publication year and original-sample $t$-statistic from `signalSummaries`, a draggable significance line (keyboard-movable, default 1.96, with a mark at 3) and a `Segmented` control for the portfolio construction; the readout gives `countAbove` and `compareConstructions` for the line's value.
+      - `SpanningTest`: a `Select` for a factor among the FF5 factors and Mom, regressed on the others with `spanningTest`; a scatter of the factor against its fitted value and a readout of $\alpha$, its $t$-statistic and $R^2$, on the common sample from 1963-07.
+      Both follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout, `prefers-reduced-motion`. Put the data hook the widgets and the numbers test share in one helper, `src/components/plots/zooSample.ts`; for the factors, use `src/components/plots/factorModelSample.ts` if it is merged.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` or `docs/STYLE_GUIDE.md` (report mismatches in the outcome), changes to shared code. Where the curriculum's Key math and the notation table of `docs/STYLE_GUIDE.md` §3 disagree, follow the style guide and report the mismatch; list symbols the table lacks (such as $f_{\text{new},t}$) as candidates. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`; a new symbol or colour goes into the `docs/STYLE_GUIDE.md` tables only if the spec says so, otherwise report it.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 21-anomalies` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 21-anomalies` passes and reports every widget of the chapter.'
+      - The six `section-tag` headings are in template order.
+      - No hex colour in the chapter or its widgets.
+      - The widgets use real data from the chapter's curriculum entry (`ff5-monthly`, `mom-monthly`) and the OSAP datasets.
+      - The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.
+      - The prose is 1,500–3,000 words (give the command).
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 21-anomalies
+      npm run clickthrough -- 21-anomalies
+      grep -n 'section-tag' src/content/chapters/21-anomalies-and-the-factor-zoo.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/21-anomalies-and-the-factor-zoo.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-22
+    title: 'Chapter 22: Conditional factor models'
+    milestone: M-7
+    after: [lib-conditional]
+    why: >-
+      SC-7 and M-7. A model can hold period by period and still fail on average. This chapter separates conditional
+      from unconditional models and shows how scaled factors turn one into the other, following the pattern of the
+      earlier chapters.
+    scope: |-
+      Write chapter 22 of `docs/CURRICULUM.md`, "Conditional factor models", as `src/content/chapters/22-conditional-factor-models.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md`, `docs/DATA.md`, the finished chapters `src/content/chapters/08-euler-equation-and-sdf.mdx`, `src/content/chapters/12-stambaugh-bias.mdx` (a seeded-simulation chapter) and `src/content/chapters/16-time-series-tests-and-grs.mdx` (the models to copy), and the library code named below: `src/lib/finance/conditional.ts` (from the library task this task depends on), `src/lib/finance/crossSection.ts` and `src/lib/finance/cay.ts`.
+
+      Readings. Open these PDFs and name the page for any number or fact you take from them: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/LettauLudvigson2001b.pdf` (Lettau & Ludvigson (2001, JPE); `pdftotext -layout`) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/JagannathanWang1996.pdf` (Jagannathan & Wang (1996)). The second file is a scan of Minneapolis Fed Staff Report 208 with no text layer: render the pages you need with `pdftoppm -r 200 -png` and read them with `tesseract` or by viewing the images, cite the published Journal of Finance article in the short form, and give staff-report page numbers, saying so. Cochrane (2005), Ch. 8, is a book the owner has not supplied: it is not in `source/papers/`, so take no fact from it and list it under further reading only. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data or the seeded simulation is read from library output, never from a paper.
+
+      Chapter:
+      - Frontmatter: `part: 5`, `chapter: 22`, `difficulty: 2`, `prerequisites: [8, 14, 17]`, a one-sentence `summary`. Link each prerequisite that is merged when you finish; name the others by title and say so in the outcome. Every sentence about another chapter must be true of the merged site.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: $\mathbb{E}_t[R^e_{i,t+1}] = \beta_{it}\lambda_t$, the decomposition $\mathbb{E}[R^e_i] = \mathbb{E}[\beta_{it}]\mathbb{E}[\lambda_t] + \mathrm{Cov}(\beta_{it}, \lambda_t)$, the scaled SDF $m_{t+1} = (a_0 + a_1 z_t) + (b_0 + b_1 z_t) f_{t+1}$ and why it is an unconditional model in the factors $f_{t+1}$, $z_t$, $z_t f_{t+1}$, and managed portfolios $R^e_{t+1} \otimes (1, z_t)$. Teach the limits honestly: the choice of $z_t$ is free and easy to overfit, full-sample $cay$ uses future data, and a high cross-sectional $R^2$ on the 25 portfolios is a low bar (link chapter 17 if merged).
+      - Every number in the prose is read from library output on the committed data or the seeded simulation, never typed from memory. Add `tests/chapter22-numbers.test.ts` that recomputes each one, as `tests/chapter16-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above and the typed loaders in `src/lib/data/series.ts`:
+      - `ConditionalBeta`: from `simulateConditionalCapm`, the state, $\beta_t$ and $\lambda_t$ over time, with `Slider`s for how much beta and the premium move with the state, a new-seed `Button` and a fixed default seed; the readout gives $\overline{\beta}\,\overline{\lambda}$, the covariance term, and the unconditional and conditional alphas.
+      - `ScaledFactors`: fitted against actual quarterly mean excess returns of the 25 portfolios from `conditionalModelFits`, with a `Segmented` control for CAPM, FF3, CCAPM and scaled CCAPM and the cross-sectional $R^2$ in the readout. Use `SMLPlot` in its fitted-against-actual mode if chapter 17 merged that mode; otherwise build this widget alone and say why in the outcome.
+      Both follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout, `prefers-reduced-motion`. Put the data hook the widgets and the numbers test share in one helper, `src/components/plots/conditionalSample.ts`.
+
+      Data. The curriculum lists `fred-consumption-quarterly` and `goyal-welch-annual`. The first starts in 2007, too short for this test, so take consumption growth and $cay$ from `fred-cay-quarterly` through `cayInputs` and `fullSampleCay`, and report the mismatch. Use `goyal-welch-annual` only if the chapter needs it, and say which.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` or `docs/STYLE_GUIDE.md` (report mismatches in the outcome), changes to shared code. Where the curriculum's Key math and the notation table of `docs/STYLE_GUIDE.md` §3 disagree, follow the style guide and report the mismatch; list symbols the table lacks (such as $\beta_{it}$, $\lambda_t$, $z_t$, $a_0$, $a_1$, $b_0$, $b_1$) as candidates, checking first that $z_t$ and $M$ are not already taken in §3. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`; a new symbol or colour goes into the `docs/STYLE_GUIDE.md` tables only if the spec says so, otherwise report it.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 22-conditional` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 22-conditional` passes and reports every widget of the chapter.'
+      - The six `section-tag` headings are in template order.
+      - No hex colour in the chapter or its widgets.
+      - The widgets use the chapter's data (`ff25-size-bm-monthly`, `ff3-monthly`, `fred-cay-quarterly`, simulated with a fixed seed).
+      - The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.
+      - The prose is 1,500–3,000 words (give the command).
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 22-conditional
+      npm run clickthrough -- 22-conditional
+      grep -n 'section-tag' src/content/chapters/22-conditional-factor-models.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/22-conditional-factor-models.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-23
+    title: 'Chapter 23: Does the conditional CAPM explain anomalies?'
+    milestone: M-7
+    after: [lib-short-window]
+    why: >-
+      SC-7 and M-7. Part V closes by measuring betas directly from short windows and asking how much alpha beta timing
+      can create. The answer, little, sends the reader to the GMM and factor-zoo Parts. This chapter follows the
+      pattern of the earlier chapters.
+    scope: |-
+      Write chapter 23 of `docs/CURRICULUM.md`, "Does the conditional CAPM explain anomalies?", as `src/content/chapters/23-does-the-conditional-capm-explain-anomalies.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md`, `docs/DATA.md` (including the daily French files), the finished chapters `src/content/chapters/04-autocorrelation-and-newey-west.mdx`, `src/content/chapters/13-out-of-sample-predictability.mdx` and `src/content/chapters/16-time-series-tests-and-grs.mdx` (the models to copy), chapter 22 if it is merged, and the library code named below: `src/lib/finance/shortWindow.ts` (from the library task this task depends on) and `src/lib/finance/timeSeriesTests.ts`.
+
+      Readings. Open this PDF with `pdftotext -layout` and name the page for any number or fact you take from it: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/LewellenNagel2006.pdf` (Lewellen & Nagel (2006)). Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper; where you set our numbers next to the paper's, say which sample each comes from.
+
+      Chapter:
+      - Frontmatter: `part: 5`, `chapter: 23`, `difficulty: 2`, `prerequisites: [22]`, a one-sentence `summary`. Link chapter 22 if it is merged when you finish; otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site; name Part VI (chapters 24 to 27) only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: rolling and within-quarter regressions on daily data, why short windows let beta move without a model of the state, the average conditional alpha, and the bound $\alpha^u_i \approx \mathrm{Cov}(\beta_{it}, \lambda_t) \le \sigma(\beta_{it})\,\sigma(\lambda_t)$ with a generous $\sigma(\lambda_t)$. Conclude with our numbers that beta timing leaves most of the value and momentum alphas unexplained. Teach the limits honestly: short-window betas are noisy, so $\sigma(\hat\beta_{iq})$ overstates the true variation, and the bound is an argument about magnitudes, not a formal test of every conditional model.
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter23-numbers.test.ts` that recomputes each one, as `tests/chapter16-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above and the typed loaders in `src/lib/data/series.ts`:
+      - `RollingBeta`: the market beta of HML or Mom (`Segmented`) over time from `rollingBetas` on monthly data, with a `Slider` for the window, and the within-quarter betas from daily data as points; the readout gives $\sigma$ of each beta series.
+      - `AlphaBound`: for HML and Mom, the actual unconditional CAPM alpha next to the largest alpha beta timing can create, $\sigma(\hat\beta_{iq})\,\sigma(\lambda_t)$, with a `Slider` for $\sigma(\lambda_t)$ (annualised, with a generous range) and the average conditional alpha with its confidence bar.
+      Both follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout, `prefers-reduced-motion`. Put the data hook the widgets and the numbers test share in one helper, `src/components/plots/shortWindowSample.ts`.
+
+      Data. The curriculum lists only monthly files (`ff25-size-bm-monthly`, `ff3-monthly`, `mom-monthly`). The within-quarter regressions need daily returns, so the chapter also uses `ff3-daily` and `mom-daily`; report this as a curriculum mismatch.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` or `docs/STYLE_GUIDE.md` (report mismatches in the outcome), changes to shared code. Where the curriculum's Key math and the notation table of `docs/STYLE_GUIDE.md` §3 disagree, follow the style guide and report the mismatch; list symbols the table lacks (such as $\alpha^u_i$, $\beta_{iq}$) as candidates. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`; a new symbol or colour goes into the `docs/STYLE_GUIDE.md` tables only if the spec says so, otherwise report it.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 23-does-the-conditional` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 23-does-the-conditional` passes and reports every widget of the chapter.'
+      - The six `section-tag` headings are in template order.
+      - No hex colour in the chapter or its widgets.
+      - The widgets use real data (`ff3-monthly`, `mom-monthly`, `ff3-daily`, `mom-daily`).
+      - The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.
+      - The prose is 1,500–3,000 words (give the command).
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 23-does-the-conditional
+      npm run clickthrough -- 23-does-the-conditional
+      grep -n 'section-tag' src/content/chapters/23-does-the-conditional-capm-explain-anomalies.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/23-does-the-conditional-capm-explain-anomalies.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: part-5-signoff
+    title: Orchestrator reads Part V and signs it off
+    milestone: M-7
+    kind: gate
+    after: [chapter-19, chapter-20, chapter-21, chapter-22, chapter-23]
+    why: >-
+      SC-7 and M-7. The orchestrator judges how Part V reads before the next Parts copy its pattern. No owner
+      approval is needed (owner decision, 2026-10-23).
+    scope: |-
+      A read-through of chapters 19–23 (Factors, anomalies and conditional models) on merged `main`, delivered as a report in this task's outcome. The worker changes no chapter, widget, library or doc; the only file in the PR is this task's outcome file under `goals/course-site/tasks/`.
+
+      1. Run the Verify commands and paste their tails in the outcome.
+      2. Read each chapter in the browser (`npm run dev`, then `http://localhost:4321/empirical-finance-lbs/`) in both themes at desktop and 360px width, and use every widget control.
+      3. Judge four things and write one short section on each: does the voice work for a reader who starts from zero (`docs/STYLE_GUIDE.md` §1); does each widget teach what its caption says; do the chapters share their data helpers (`factorModelSample.ts`, and `factorTestSample.ts` from Part IV) and one notation, with one `FactorBuilder` (report any duplicate loading code or any symbol used two ways); does Part V link the tests of Part IV to the GMM of Part VI, with every sentence about another chapter true of the merged site.
+      4. End with `## Sign-off`: either "Part V reads well" or a numbered list of changes, each naming the chapter, the file and the fix.
+
+      The orchestrator reads the report and the chapters. It signs off by merging this PR. Each listed change becomes a new M-7 task routed to claude opus high, and the orchestrator merges this PR only after those changes are merged.
+    acceptance:
+      - '`npm test` and `npm run build` pass on merged `main`; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots` and `npm run clickthrough` pass for `19-size-and-value`, `20-momentum`, `21-anomalies`, `22-conditional` and `23-does-the-conditional`.'
+      - The outcome holds the four judgements and a `## Sign-off` section with "Part V reads well" or a numbered list of changes.
+      - '`git diff --name-only origin/main` lists only this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 19-size-and-value
+      npm run screenshots -- 20-momentum
+      npm run screenshots -- 21-anomalies
+      npm run screenshots -- 22-conditional
+      npm run screenshots -- 23-does-the-conditional
+      npm run clickthrough -- 19-size-and-value
+      npm run clickthrough -- 20-momentum
+      npm run clickthrough -- 21-anomalies
+      npm run clickthrough -- 22-conditional
+      npm run clickthrough -- 23-does-the-conditional
+      git diff --name-only origin/main
+link:
+  - {id: TASK-034, after: [chapter-19]}
