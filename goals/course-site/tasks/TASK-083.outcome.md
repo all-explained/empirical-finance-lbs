@@ -45,7 +45,8 @@ and `useSeriesData` itself is built on `useLoaded`. `useZooData` is a one-line c
 `useModelData` used to call `useFactorData` and load `ff5-monthly` in a second effect. It now loads the three series
 in one `Promise.all`. The data and the failure flag are the same; `loadSeries` fetches each file as before.
 
-**Verified revision.** 4a6f8ad on top of `origin/main` d8eb74f.
+**Verified revision.** 4a6f8ad on top of `origin/main` d8eb74f. Rebased to a4cf642 on `origin/main` 55baf89;
+`git diff 4a6f8ad a4cf642 -- . ':!goals'` is empty, so the verified code is unchanged.
 
 **Proposed follow-up.** Move the nine Parts II–IV sample hooks listed above onto `useLoaded` where they fit (some
 depend on arguments or defer heavy work with a timer, so not all are a one-line change).
