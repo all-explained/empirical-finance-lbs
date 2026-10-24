@@ -9,6 +9,7 @@ import ff25 from '../src/data/series/ff25-size-bm-monthly.json';
 import type { Series } from '../src/lib/data/series';
 import { shankenCorrection } from '../src/lib/finance/crossSection';
 import { factorPanel } from '../src/lib/finance/timeSeriesTests';
+import { factorTest } from '../src/components/plots/factorTestSample';
 import { sharpeRatio, annualiseSharpe } from '../src/lib/stats/moments';
 import {
   DEFAULT_SEED, ff3Shanken, LAMBDA, N, REPLICATIONS, TRUE_BETA, twoPassWorld,
@@ -49,7 +50,10 @@ describe('chapter 18 prose numbers', () => {
   test('formalisation: when the correction matters on FF3', () => {
     expect(data.c.toFixed(4)).toBe('0.0386');
     expect([Math.sqrt(data.c).toFixed(3), Math.sqrt(12 * data.c).toFixed(2)]).toEqual(['0.196', '0.68']);
-    // Corrected/naive variance = 1 + c·s, so s = (ratio² − 1)/c.
+    // Chapter 16's SR²_f for the same factors uses their sample means, not the second-pass premia.
+    const ch16 = factorTest({ ff3: ff3 as unknown as Series<'ff3-monthly'>, ff25: ff25 as unknown as Series<'ff25-size-bm-monthly'> }, 'ff3', '1963-07-01');
+    expect(Math.sqrt(12 * ch16.grs.sharpeFactors2).toFixed(2)).toBe('0.65');
+    // Corrected/naive variance = 1 + ζ·s, so s = (ratio² − 1)/ζ.
     const ratio = data.correctedSE[0] / data.naiveSE[0];
     expect(pct((ratio ** 2 - 1) / data.c, 1)).toBe('2.8');
     expect(pct(ratio - 1, 2)).toBe('0.05');
@@ -63,7 +67,7 @@ describe('chapter 18 prose numbers', () => {
     expect([pct(short.naiveCoverage, 1), pct(short.correctedCoverage, 1), year(short.meanLambdaHat, 2)]).toEqual(['62.5', '78.0', '5.27']);
   });
 
-  test('quiz: a monthly Sharpe ratio of 0.2 gives c = 0.04', () => {
+  test('quiz: a monthly Sharpe ratio of 0.2 gives ζ = 0.04', () => {
     const { c } = shankenCorrection([[1]], [[1]], [[1]], [0.2], 100, { weighting: 'ols' });
     expect((1 + c).toFixed(2)).toBe('1.04');
   });

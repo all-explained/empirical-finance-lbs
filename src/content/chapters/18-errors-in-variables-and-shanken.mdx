@@ -23,15 +23,15 @@ Here is the snag. The second pass treats the betas as if we knew them. We do not
 regression with its own sampling error. So the usual standard error of $\hat\lambda$ leaves out one source of
 noise. It should be too small.
 
-How much too small? Take the Fama–French three factors (FF3) and the 25 size–book-to-market portfolios on
-ff3-monthly and ff25-size-bm-monthly, from 1963-07 to 2026-08. That is $T = 758$ months. The second pass gives a
-market premium of 6.72% a year. Its standard error is 1.970% a year if you treat the betas as known. With the
+How much too small? Take the Fama–French three factors (FF3) and the 25 size–book-to-market portfolios, on
+Kenneth French's monthly data from 1963-07 to 2026-08. That is $T = 758$ months. The second pass gives a market
+premium of 6.72% a year. Its standard error is 1.970% a year if you treat the betas as known. With the
 correction of this chapter it is 1.971%. The noise in the betas changes almost nothing.
 
 Now take a made-up world with one factor whose Sharpe ratio is 5 a year. Run the same two passes on 200 seeded
 samples of 600 months. The usual 95% interval for the premium contains the true value in only 83.5% of the
 samples. So here is the question you should have: **when do estimated betas make the standard errors wrong, and
-by how much?** The answer is one number, $c$, and it turns out to be a squared Sharpe ratio.
+by how much?** The answer is one number, $\zeta$, and it turns out to be a squared Sharpe ratio.
 
 ## <span class="section-tag">Intuition</span> A ruler that bends with the thing it measures
 
@@ -50,7 +50,7 @@ dashed bar is the usual, or **naive**, 95% interval, which treats the betas as k
 <p class="try-this"><strong>Try this:</strong> the widget opens with a factor Sharpe ratio of 5 a year. Look at the
 top chart: the estimated betas are far from the 45-degree line. Over all 200 samples, the naive intervals contain
 the truth 83.5% of the time, not 95%. The corrected intervals reach 93.5%. Now drag the Sharpe ratio down to 0.4,
-not far from the market's 0.47 a year on ff3-monthly since 1963-07. The beta errors shrink, and the two kinds of interval become almost the same.</p>
+not far from the market's 0.47 a year on Kenneth French's monthly factors since 1963-07. The beta errors shrink, and the two kinds of interval become almost the same.</p>
 
 Why does the Sharpe ratio matter? Think about one asset. Its mean excess return is noisy, because its residual
 $\varepsilon_{i,t}$ does not average out to exactly zero in a finite sample. The naive standard error counts that
@@ -66,11 +66,11 @@ beta error matters more when the premium $\lambda$ is large and when the factor'
 Both point to one ratio, $\lambda/\sigma_f$. For a factor that is itself a return, that ratio is its Sharpe ratio.
 
 The two noises are the same size up to that ratio. The beta error adds noise with variance $(\lambda/\sigma_f)^2$
-times the noise of the mean return. That squared ratio is $c$. The corrected standard error simply scales the
-residual part of the variance by $1 + c$.
+times the noise of the mean return. That squared ratio is $\zeta$. The corrected standard error simply scales the
+residual part of the variance by $1 + \zeta$.
 
 <Callout type="key">An error in an estimated beta looks like an error in the asset's mean return, scaled by the
-premium. The corrected variance multiplies the residual part by $1 + c$, where $c$ is the factor's squared Sharpe
+premium. The corrected variance multiplies the residual part by $1 + \zeta$, where $\zeta$ is the factor's squared Sharpe
 ratio.</Callout>
 
 ## <span class="section-tag">Formalisation</span> Deriving the corrected variance
@@ -217,49 +217,51 @@ $$
 = \lambda'\hat\Sigma_f^{-1}(T\hat\Sigma_f)\hat\Sigma_f^{-1}\lambda = T\,\lambda'\hat\Sigma_f^{-1}\lambda.
 $$
 
-In large samples $\hat\Sigma_f$ is close to $\Sigma_f$. So $\operatorname{Var}(u_3) = c\,A\Sigma_\varepsilon A'/T$, with
-$c = \lambda'\Sigma_f^{-1}\lambda$. Add the three variances:
+In large samples $\hat\Sigma_f$ is close to $\Sigma_f$. So $\operatorname{Var}(u_3) = \zeta\,A\Sigma_\varepsilon A'/T$, with
+$\zeta = \lambda'\Sigma_f^{-1}\lambda$. Add the three variances:
 
 $$
-\operatorname{Var}(\hat\lambda) = \frac1T\Big[(\beta'\beta)^{-1}\beta'\Sigma_\varepsilon\beta(\beta'\beta)^{-1}\,(1 + c) + \Sigma_f\Big],
-\qquad c = \lambda'\Sigma_f^{-1}\lambda.
+\operatorname{Var}(\hat\lambda) = \frac1T\Big[(\beta'\beta)^{-1}\beta'\Sigma_\varepsilon\beta(\beta'\beta)^{-1}\,(1 + \zeta) + \Sigma_f\Big],
+\qquad \zeta = \lambda'\Sigma_f^{-1}\lambda.
 $$
 
-This is the **Shanken correction**. It keeps the factor part and multiplies the residual part by $1 + c$. To use
+This is the **Shanken correction**. It keeps the factor part and multiplies the residual part by $1 + \zeta$. To use
 it, plug in the estimates $\hat\beta$, $\hat\Sigma_\varepsilon$, $\hat\Sigma_f$ and $\hat\lambda$. For a second pass weighted by
 $\Sigma_\varepsilon^{-1}$ (GLS), the same steps give $(\beta'\Sigma_\varepsilon^{-1}\beta)^{-1}$ in place of the residual sandwich.
 
-### Why $c$ is a squared Sharpe ratio
+### Why $\zeta$ is a squared Sharpe ratio
 
-With one factor, $c = \lambda^2/\sigma_f^2 = (\lambda/\sigma_f)^2$. Suppose the factor is an excess return, like Mkt-RF.
+With one factor, $\zeta = \lambda^2/\sigma_f^2 = (\lambda/\sigma_f)^2$. Suppose the factor is an excess return, like Mkt-RF.
 Then the model must price the factor itself. Its beta on itself is 1, so its premium is its own expected excess
-return: $\lambda = \mathbb{E}f$. So $c = (\mathbb{E}f/\sigma_f)^2$, the squared Sharpe ratio of the factor.
+return: $\lambda = \mathbb{E}f$. So $\zeta = (\mathbb{E}f/\sigma_f)^2$, the squared Sharpe ratio of the factor.
 
-With $K$ traded factors, again $\lambda = \mathbb{E}f$, and $c = \mathbb{E}f'\,\Sigma_f^{-1}\,\mathbb{E}f$. In
+With $K$ traded factors, again $\lambda = \mathbb{E}f$, and $\zeta = \mathbb{E}f'\,\Sigma_f^{-1}\,\mathbb{E}f$. In
 [Chapter 7](/empirical-finance-lbs/chapters/07-mean-variance-and-the-capm/) you saw that $\mu^{e\prime}\Sigma^{-1}\mu^e$ is
-the squared Sharpe ratio of the tangency portfolio. Here the assets are the factors, so $c$ is the highest squared
+the squared Sharpe ratio of the tangency portfolio. Here the assets are the factors, so $\zeta$ is the highest squared
 Sharpe ratio you can get from any mix of the factors.
 
 For a factor that is not a return, such as consumption growth, $\lambda$ is not the factor's mean. The formula still
 reads $(\lambda/\sigma_f)^2$ with one factor. So a factor with a small volatility and a large estimated premium has a
-large $c$, and a large correction. That is a property of the formula. Which real factors have a large $c$ is a
+large $\zeta$, and a large correction. That is a property of the formula. Which real factors have a large $\zeta$ is a
 question for the data.
 
-One more point about units: $c$ is per period. With monthly data it is the monthly squared Sharpe ratio, which is
-the annual one divided by 12. That is why $c$ is usually small with monthly data.
+One more point about units: $\zeta$ is per period. With monthly data it is the monthly squared Sharpe ratio, which is
+the annual one divided by 12. That is why $\zeta$ is usually small with monthly data.
 
 ### When the correction matters
 
-For one premium, the ratio of the corrected variance to the naive variance is $1 + c\,s$. Here $s$ is the share of
-the residual part in the naive variance. So two things must be large for the correction to matter: $c$, and the
+For one premium, the ratio of the corrected variance to the naive variance is $1 + \zeta\,s$. Here $s$ is the share of
+the residual part in the naive variance. So two things must be large for the correction to matter: $\zeta$, and the
 residual part.
 
-On our FF3 data, neither is large. At the estimated premia, $c = 0.0386$. That is a monthly Sharpe ratio of 0.196,
-or 0.68 a year. For the market premium, the residual part is only 2.8% of the naive variance. The rest is the
+On our FF3 data, neither is large. At the estimated premia, $\zeta = 0.0386$. That is a monthly Sharpe ratio of 0.196,
+or 0.68 a year. [Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/) gives 0.65 a year for the
+same three factors, because it uses their sample means, while here $\zeta$ uses the second-pass premia $\hat\lambda$.
+For traded factors the true premia are the factors' means, so $\zeta$ is the $SR^2_f$ of Chapter 16. For the market premium, the residual part is only 2.8% of the naive variance. The rest is the
 factor part: the market itself is so noisy that the sampling error of its mean dominates. Together, the correction
 raises the standard error of the market premium by 0.05%, from 1.970% to 1.971% a year.
 
-In the made-up world of the Intuition, the factor has a Sharpe ratio of 5 a year, so $c = 2.08$ per month. With
+In the made-up world of the Intuition, the factor has a Sharpe ratio of 5 a year, so $\zeta = 2.08$ per month. With
 $T = 600$, the average naive standard error is 0.218% a year, and the average corrected one is 0.293%. Across the
 200 samples, $\hat\lambda$ really spreads by 0.279% a year. The corrected standard error is close to the truth. The
 naive one is about a fifth too small.
@@ -290,7 +292,7 @@ months. The second readout gives the FF3 numbers from the Hook.
 
 <ShankenCorrection client:visible />
 
-<p class="try-this"><strong>Try this:</strong> read the readout first. At a Sharpe ratio of 0.4, $c = 0.013$. The
+<p class="try-this"><strong>Try this:</strong> read the readout first. At a Sharpe ratio of 0.4, $\zeta = 0.013$. The
 naive and corrected intervals both contain the truth in 97.0% of the 200 samples, close to the 95% target. The beta
 errors are too small to see. Now raise the Sharpe ratio to 5. The naive coverage falls to 83.5%, and the corrected
 one stays at 93.5%.</p>
@@ -310,21 +312,21 @@ the interval. It is also where the interval sits.
   question="A traded factor has a monthly Sharpe ratio of 0.2. By how much does the Shanken correction multiply the residual part of the variance of $\hat\lambda$?"
   options={["$1.04$", "$1.2$", "$1.4$", "$1.02$"]}
   answer={0}
-  explanation="For a traded factor, $c$ is its squared Sharpe ratio per period: $0.2^2 = 0.04$. The residual part is multiplied by $1 + c = 1.04$. The factor part does not change."
+  explanation="For a traded factor, $\zeta$ is its squared Sharpe ratio per period: $0.2^2 = 0.04$. The residual part is multiplied by $1 + \zeta = 1.04$. The factor part does not change."
 />
 
 <Quiz
   client:visible
   question="On FF3 and the 25 size–book-to-market portfolios, the correction raises the standard error of the market premium by only 0.05%. Why?"
-  options={["The first-pass betas have no estimation error", "Both $c$ and the residual share of the naive variance are small", "The FF3 factors are not excess returns", "The sample is too short for the correction to apply"]}
+  options={["The first-pass betas have no estimation error", "Both $\\zeta$ and the residual share of the naive variance are small", "The FF3 factors are not excess returns", "The sample is too short for the correction to apply"]}
   answer={1}
-  explanation="The variance ratio is $1 + c\,s$. On our data $c = 0.0386$ and, for the market premium, the residual share is $s = 2.8\%$. The factor part, the sampling error of the market's own mean, dominates."
+  explanation="The variance ratio is $1 + \zeta\,s$. On our data $\zeta = 0.0386$ and, for the market premium, the residual share is $s = 2.8\%$. The factor part, the sampling error of the market's own mean, dominates."
 />
 
 <Quiz
   client:visible
   question="In a short sample with a high factor Sharpe ratio, the corrected 95% intervals still contain the true premium less than 95% of the time. What is the main reason?"
-  options={["The correction uses the wrong sign of $c$", "The estimate $\\hat\\lambda$ is biased towards zero, and the correction does not move it", "The naive standard error is too large", "The factor part $\\Sigma_f/T$ is left out"]}
+  options={["The correction uses the wrong sign of $\\zeta$", "The estimate $\\hat\\lambda$ is biased towards zero, and the correction does not move it", "The naive standard error is too large", "The factor part $\\Sigma_f/T$ is left out"]}
   answer={1}
   explanation="Noisy betas spread out, which pulls the second-pass slope towards zero. The correction widens the interval but keeps its centre at the biased estimate."
 />
@@ -332,11 +334,11 @@ the interval. It is also where the interval sits.
 ## <span class="section-tag">Recap & next up</span> What to remember
 
 - The second pass uses estimated betas. Treating them as known makes the standard errors of $\hat\lambda$ too small.
-- To first order, $\operatorname{Var}(\hat\lambda) = \tfrac1T\big[(\beta'\beta)^{-1}\beta'\Sigma_\varepsilon\beta(\beta'\beta)^{-1}(1 + c) + \Sigma_f\big]$:
-  the residual part is scaled by $1 + c$.
-- $c = \lambda'\Sigma_f^{-1}\lambda$ is a squared Sharpe ratio per period. For traded factors it is the highest squared
+- To first order, $\operatorname{Var}(\hat\lambda) = \tfrac1T\big[(\beta'\beta)^{-1}\beta'\Sigma_\varepsilon\beta(\beta'\beta)^{-1}(1 + \zeta) + \Sigma_f\big]$:
+  the residual part is scaled by $1 + \zeta$.
+- $\zeta = \lambda'\Sigma_f^{-1}\lambda$ is a squared Sharpe ratio per period. For traded factors it is the highest squared
   Sharpe ratio of any mix of the factors.
-- On FF3 monthly data, $c = 0.0386$, and the standard error of the market premium moves from 1.970% to 1.971% a
+- On FF3 monthly data, $\zeta = 0.0386$, and the standard error of the market premium moves from 1.970% to 1.971% a
   year. A factor with a high Sharpe ratio, or a small volatility and a large premium, makes the correction large.
 - The correction assumes independent, conditionally homoskedastic months, and it does not fix the attenuation
   bias of $\hat\lambda$.
