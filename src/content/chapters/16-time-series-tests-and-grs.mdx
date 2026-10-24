@@ -1,0 +1,275 @@
+---
+title: "Time-series tests and the GRS statistic"
+part: 4
+chapter: 16
+difficulty: 2
+prerequisites: [3, 7]
+summary: "Regress each test portfolio on the factors, test all the alphas at once with the GRS statistic, and read that statistic as the Sharpe ratio the test portfolios add to the factors."
+---
+
+import AlphaBars from '../../components/plots/AlphaBars';
+import GRSGeometry from '../../components/plots/GRSGeometry';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Twenty-five alphas, one verdict
+
+[Chapter 7](/empirical-finance-lbs/chapters/07-mean-variance-and-the-capm/) put the CAPM next to 25 portfolios
+sorted on size and book-to-market. Take the 758 months from 1963-07 to 2026-08 and regress each portfolio's excess
+return on the market's. Small growth stocks have an alpha of −6.3% a year, with a $t$-statistic of −2.94. Small
+value stocks have an alpha of +5.7% a year, with a $t$-statistic of 3.17. In all, 10 of the 25 alphas have a 95%
+confidence interval that excludes zero.
+
+Does that reject the CAPM? Not on its own. You ran 25 tests. At the 5% level, a true model fails 1.25 of them on
+average, by luck alone. The 25 tests are also not independent, because the portfolios move together. You need one
+test of all 25 alphas at once.
+
+Now add size and value factors: the Fama–French three-factor model (FF3). The average absolute alpha falls from
+2.36% to 1.04% a year. That is less than half. Yet the joint test of this chapter rejects both models, with
+p-values of $7.4 \times 10^{-11}$ for the CAPM and $8.3 \times 10^{-9}$ for FF3. How can a model that halves the
+alphas be rejected almost as firmly? This chapter builds the test and answers that question.
+
+## <span class="section-tag">Intuition</span> Weigh each alpha by how well you know it
+
+Each dot below is the alpha of one portfolio, with its 95% confidence bar. The groups run from the smallest stocks
+on the left to the biggest on the right. Inside each group, book-to-market rises from growth to value. A filled dot
+has a bar that excludes zero.
+
+<AlphaBars client:visible />
+
+<p class="try-this"><strong>Try this:</strong> switch the model from CAPM to Fama–French 3 and watch the small
+growth portfolio, the first dot on the left. Its alpha moves from −6.28% to −5.58% a year, a small change. Its bar
+shrinks much more: the half-width falls from 4.18% to 2.16%. The $t$-statistic grows from −2.94 to −5.06.</p>
+
+Why does the bar shrink? The width of a bar depends on the **residual**: the part of the return that the factors
+do not explain. FF3 explains more of the monthly ups and downs of small growth stocks, so less noise is left. The
+residual volatility of small growth falls from 16.8% a year under the CAPM to 8.6% under FF3. With less noise, you
+measure the alpha more precisely. A smaller alpha that you know well can be stronger evidence than a bigger alpha
+that you know badly.
+
+There is a second reason to think of an alpha with its noise. An alpha is a return you can earn without factor
+risk. Buy the portfolio, and sell its beta's worth of each factor. This hedged position earns the alpha, and its
+only risk is the residual. Its Sharpe ratio is alpha over residual volatility. Now combine all 25 hedged positions
+in the best way, using how their residuals move together. The joint test asks one question: is the best Sharpe
+ratio of that combination too high to be luck?
+
+<Callout type="key">A joint test of alphas weighs each alpha by its precision and by its correlation with the
+others. It asks whether the test portfolios let you beat the Sharpe ratio of the factors alone.</Callout>
+
+## <span class="section-tag">Formalisation</span> From 25 regressions to one statistic
+
+### Time-series regressions
+
+Write $\Ret{R^e_{i,t}}$ for the excess return of test asset $i$ in month $t$, and $\Factor{f_t}$ for the $K$
+factors. Here every factor is itself an excess return: Mkt-RF for the CAPM, and Mkt-RF, SMB and HML for FF3. For
+each asset, run one regression over time, as in
+[Chapter 3](/empirical-finance-lbs/chapters/03-regression-and-standard-errors/):
+
+$$
+\Ret{R^e_{i,t}} = \Err{\alpha_i} + \beta_i'\Factor{f_t} + \Err{\varepsilon_{i,t}}, \qquad t = 1, \dots, T.
+$$
+
+Take expectations: $\mathbb{E}[R^e_{i}] = \alpha_i + \beta_i'\mathbb{E}[f]$. A factor model says that expected
+returns are betas times factor risk premia. When the factors are excess returns, the premium of each factor is its
+own expected excess return, so the model says $\mathbb{E}[R^e_i] = \beta_i'\mathbb{E}[f]$. That holds exactly when
+$\alpha_i = 0$. The test of the model is the test that all $N$ alphas are zero.
+
+OLS gives $\hat\alpha_i$, $\hat\beta_i$ and residuals $\hat\varepsilon_{i,t}$. Write $\bar f$ for the sample mean of
+the factors, $\hat\Sigma_f$ for their $K \times K$ sample covariance, and $\hat\Sigma_\varepsilon$ for the
+$N \times N$ covariance of the residuals. In this chapter both covariances divide by $T$, not $T - 1$.
+
+### How precise is one alpha?
+
+Treat the factors as given, and assume that the residuals are independent over time, with mean zero and covariance
+$\Sigma_\varepsilon$ in each month. Four steps give the variance of $\hat\alpha_i$.
+
+1. The OLS line passes through the sample means, so $\hat\alpha_i = \bar R^e_i - \hat\beta_i'\bar f$.
+2. Average the regression over time: $\bar R^e_i = \alpha_i + \beta_i'\bar f + \bar\varepsilon_i$. Substitute it
+   into step 1:
+   $\hat\alpha_i - \alpha_i = \bar\varepsilon_i - (\hat\beta_i - \beta_i)'\bar f.$
+3. The OLS slope error is
+   $\hat\beta_i - \beta_i = (T\hat\Sigma_f)^{-1}\sum_t (f_t - \bar f)\,\varepsilon_{i,t}.$
+   The two pieces of step 2 are uncorrelated. Their covariance is
+   $(T\hat\Sigma_f)^{-1}\sum_t (f_t - \bar f)\,\operatorname{Var}(\varepsilon_{i,t})/T$, and the deviations
+   $f_t - \bar f$ add up to zero.
+4. So the variances add. $\operatorname{Var}(\bar\varepsilon_i) = \sigma^2_{\varepsilon,i}/T$, and
+   $\operatorname{Var}(\hat\beta_i) = \sigma^2_{\varepsilon,i}\,(T\hat\Sigma_f)^{-1}(T\hat\Sigma_f)(T\hat\Sigma_f)^{-1}
+   = \sigma^2_{\varepsilon,i}\,\hat\Sigma_f^{-1}/T$, so $\operatorname{Var}\big((\hat\beta_i - \beta_i)'\bar f\big) =
+   \sigma^2_{\varepsilon,i}\,\bar f'\hat\Sigma_f^{-1}\bar f/T$. Hence
+
+$$
+\operatorname{Var}(\Err{\hat\alpha_i}) = \frac{\sigma^2_{\varepsilon,i}}{T}\left(1 + \bar f'\hat\Sigma_f^{-1}\bar f\right).
+$$
+
+The same steps for two assets give
+$\operatorname{Cov}(\hat\alpha_i, \hat\alpha_j) = \Sigma_{\varepsilon,ij}\,(1 + \bar f'\hat\Sigma_f^{-1}\bar f)/T$.
+The term $\bar f'\hat\Sigma_f^{-1}\bar f$ is the squared highest Sharpe ratio of the factors, $SR^2_f$, from
+Chapter 7 (in sample, and per month). A factor with a large mean makes the intercept harder to separate from the
+slope, so it widens the bar. The bars in the widget are $\pm 1.96$ times the square root of this variance, with
+$\sigma^2_{\varepsilon,i}$ estimated. These are the classical standard errors of Chapter 3, not White's.
+
+### The GRS statistic
+
+Stack the $N$ alphas into a vector. If the residuals are also normal, the result above says that
+$\hat\alpha$ is normal with mean $\alpha$ and covariance $\Sigma_\varepsilon(1 + SR^2_f)/T$. For any normal vector
+$z$ with mean zero and covariance $V$, the number $z'V^{-1}z$ is a sum of $N$ squared independent standard normals:
+a $\chi^2_N$ variable. So, if $\Sigma_\varepsilon$ were known, a model with $\alpha = 0$ would give
+
+$$
+\frac{T\,\Err{\hat\alpha}'\Sigma_\varepsilon^{-1}\Err{\hat\alpha}}{1 + \bar f'\hat\Sigma_f^{-1}\bar f} \sim \chi^2_N.
+$$
+
+$\Sigma_\varepsilon$ is not known, so use $\hat\Sigma_\varepsilon$. The noise in that estimate makes large values
+more likely, just as replacing $\sigma$ by $s$ turns a normal statistic into a $t$. Gibbons, Ross & Shanken (1989,
+p. 1124) call this a Hotelling $T^2$ test, the many-asset version of the $t$-test. We state the exact result
+without proof:
+
+$$
+GRS = \frac{T - N - K}{N}\;\frac{\Err{\hat\alpha}'\hat\Sigma_\varepsilon^{-1}\Err{\hat\alpha}}{1 + \bar f'\hat\Sigma_f^{-1}\bar f} \;\sim\; F_{N,\,T-N-K} \quad\text{when } \alpha = 0.
+$$
+
+The paper gives it for one factor on p. 1124 and for several on p. 1146. It writes the statistic with the
+residual covariance divided by $T - K - 1$ and a different leading factor. That is the same number.
+
+An $F_{N,\,M}$ variable is a ratio of two independent $\chi^2$ variables, each divided by its degrees of freedom
+($N$ and $M$). Under the model it is close to 1, and a large value rejects. With $N = 25$ and $T - N - K = 730$,
+the 5% critical value is 1.52. For FF3 from 1963-07, $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha = 0.129$
+and $SR^2_f = 0.036$ per month, so $GRS = (730/25) \times 0.129 / 1.036 = 3.64$, with
+$p = 8.3 \times 10^{-9}$.
+
+### Why the test needs $T > N + K$
+
+OLS makes each residual series orthogonal to the constant and to the $K$ factors. So the $N$ residual series lie
+in a space of $T - K - 1$ dimensions. If $N > T - K - 1$, they are linearly dependent, and
+$\hat\Sigma_\varepsilon$ cannot be inverted. The test needs $N \le T - K - 1$, which is $T > N + K$. The second
+degree of freedom, $T - N - K$, is then at least 1. Near that limit, $\hat\Sigma_\varepsilon^{-1}$ is very noisy and
+the test has almost no power. With 25 portfolios and 3 factors, you need at least 29 months. Our shortest sample
+in the widgets has 140.
+
+### GRS is a Sharpe-ratio gain
+
+Below, each set of assets has a frontier, and the dashed line from the origin touches it. The slope of that line is
+the highest Sharpe ratio of the set. The flatter line uses the factors alone. The steeper one adds the 25
+portfolios.
+
+<GRSGeometry client:visible />
+
+<p class="try-this"><strong>Try this:</strong> switch between the two models. With the CAPM, the factor set is the
+market alone, with a Sharpe ratio of 0.47 a year. FF3 raises it to 0.65. Adding the 25 portfolios takes both to
+about 1.4: 1.40 for the CAPM and 1.41 for FF3. The gap shrinks, but not by much.</p>
+
+The readout checks an identity: $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha = SR^2_{\text{all}} - SR^2_f$.
+Here is why it holds, in four steps. All moments are sample moments with divisor $T$.
+
+1. From Chapter 7, with a risk-free asset, the highest squared Sharpe ratio of excess returns with mean $\mu$ and
+   covariance $V$ is $\mu'V^{-1}\mu$.
+2. Replace each test asset by its hedged version, $R^e_{i,t} - \hat\beta_i'f_t = \hat\alpha_i +
+   \hat\varepsilon_{i,t}$. Stack the old set as $z_t = (f_t, R^e_t)$. The new set is $Az_t$, with
+   $A = \begin{pmatrix} I & 0 \\ -\hat B & I \end{pmatrix}$, where row $i$ of $\hat B$ is $\hat\beta_i'$. $A$ is
+   invertible, so the two sets reach the same portfolios. The highest Sharpe ratio does not change:
+   $(A\mu)'(AVA')^{-1}(A\mu) = \mu'A'(A')^{-1}V^{-1}A^{-1}A\mu = \mu'V^{-1}\mu$.
+3. In the new set, the factors have mean $\bar f$ and covariance $\hat\Sigma_f$. The hedged assets have mean
+   $\hat\alpha$, because OLS residuals average zero, and covariance $\hat\Sigma_\varepsilon$. OLS residuals are
+   uncorrelated with the factors in sample, so the covariance matrix is block diagonal.
+4. The inverse of a block-diagonal matrix is block diagonal, so the quadratic form splits into two parts:
+
+$$
+SR^2_{\text{all}} = \bar f'\hat\Sigma_f^{-1}\bar f + \Err{\hat\alpha}'\hat\Sigma_\varepsilon^{-1}\Err{\hat\alpha}
+= SR^2_f + \Err{\hat\alpha}'\hat\Sigma_\varepsilon^{-1}\Err{\hat\alpha}.
+$$
+
+Put it into the statistic:
+
+$$
+GRS = \frac{T - N - K}{N}\;\frac{SR^2_{\text{all}} - SR^2_f}{1 + SR^2_f}.
+$$
+
+Gibbons, Ross & Shanken (1989, p. 1126) give this reading of the test for one portfolio. GRS is the gain in squared
+Sharpe ratio from adding the test assets to the factors, scaled by sample size. For the CAPM from 1963-07, the
+monthly numbers are $0.146 = 0.164 - 0.018$. For FF3 they are $0.129 = 0.165 - 0.036$.
+
+This answers the hook. FF3 raises $SR_f$, but the 25 portfolios still reach almost the same $SR_{\text{all}}$. SMB
+and HML are built from stocks much like those in the 25 portfolios, so adding them barely changes what the full set
+can reach. The smaller alphas and the narrower bars are the same fact, seen from the side of the alphas.
+
+## <span class="section-tag">Playground</span> Short samples and long ones
+
+This copy of the widget starts in 2015-01. Use it to see what the sample length does to the test.
+
+<AlphaBars client:visible initialStart="2015-01-01" />
+
+<p class="try-this"><strong>Try this:</strong> keep the CAPM. Over these 140 months, the average absolute alpha is
+3.18% a year, larger than the 2.36% from 1963-07. Yet GRS is 1.52, below the 5% critical value of 1.60, and
+$p = 0.073$. No bar excludes zero. The alphas are bigger, but you know each of them much less well.</p>
+
+<p class="try-this"><strong>Try this too:</strong> move the start back to 1926-07, for 1,202 months. GRS is 3.40 for
+the CAPM and 3.37 for FF3. In the geometry widget above, set the start to 2015-01: $SR_{\text{all}}$ is 2.19 a year.
+In a short sample, the best mix of 26 assets looks much better than it is. The $F$ distribution allows for that.</p>
+
+### What a rejection does and does not say
+
+A rejection says one thing: in this sample, a mix of the test assets beats the factors' Sharpe ratio by more than
+luck would explain, if the errors are normal and independent over time. It does not say that the alphas are large,
+or that you could earn them after trading costs.
+
+The power of the test grows with $T$. Gibbons, Ross & Shanken (1989, p. 1131) show that the power depends on
+$T(SR^2_{\text{all}} - SR^2_f)/(1 + SR^2_f)$ for the population Sharpe ratios. Hold the gap fixed and add months, and
+the test rejects more often. At $T = 758$, GRS rejects FF3 when $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha$
+is above 0.054 a month. With four times as many months, about a quarter of that would be enough. No model is
+exactly true, so with enough data every model is rejected, even when its alphas are too small to matter.
+
+A pass is weak evidence. Over a short sample, the test can miss alphas that are large in economic terms, as the
+2015-01 sample shows. The authors' power figures (p. 1131–1132) make the same point for samples of five or ten
+years.
+
+Two more limits. The result depends on the test assets. Gibbons, Ross & Shanken (1989, p. 1122) note that the
+choice of assets can change the conclusion. The 25 portfolios are sorted on size and book-to-market, the same
+characteristics FF3 was built to explain, so they are a demanding test for the CAPM and a friendly one for FF3.
+And the exact $F$ result needs normal errors. The authors cite simulations showing that the test is fairly robust
+to departures from normality (p. 1124). Tests that drop the assumption exist, but this chapter does not cover them.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="You test $N = 25$ portfolios on $K = 3$ factors with $T = 100$ months. What distribution does GRS follow when every alpha is zero?"
+  options={["$F_{25,\\,72}$", "$F_{25,\\,97}$", "$F_{3,\\,72}$", "$\\chi^2_{28}$"]}
+  answer={0}
+  explanation="The degrees of freedom are $N = 25$ and $T - N - K = 100 - 25 - 3 = 72$. The exact $F$ result needs normal, independent errors."
+/>
+
+<Quiz
+  client:visible
+  question="In a sample, adding the test portfolios to the factors does not raise the highest Sharpe ratio at all: $SR_{\text{all}} = SR_f$. What is GRS?"
+  options={["Zero, because every alpha is then zero", "One, its value under the model", "It cannot be computed", "It depends on the betas"]}
+  answer={0}
+  explanation="$\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha = SR^2_{\text{all}} - SR^2_f = 0$, and since $\hat\Sigma_\varepsilon^{-1}$ is positive definite, every alpha is zero. The factors already reach the tangency portfolio."
+/>
+
+<Quiz
+  client:visible
+  question="With 6,000 months of data, a model is rejected with $p = 0.001$, yet every alpha is below 0.2% a year. What is the best reading?"
+  options={["The model's pricing errors are large in economic terms", "The test has so much power that it detects pricing errors too small to matter", "The test is wrong, because small alphas cannot reject", "The model is true and this is a 1-in-1,000 accident"]}
+  answer={1}
+  explanation="GRS grows with $T$ for a fixed Sharpe-ratio gap. A large sample detects tiny gaps. The rejection is statistical; whether the alphas matter is a separate, economic question."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- A time-series test regresses each test asset on the factors. When the factors are excess returns, the model says
+  that every alpha is zero.
+- The variance of an alpha is $\sigma^2_{\varepsilon,i}(1 + SR^2_f)/T$, so a model with smaller residuals measures
+  its alphas more precisely.
+- $GRS = \tfrac{T-N-K}{N}\,\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha/(1 + SR^2_f) \sim F_{N,\,T-N-K}$ tests
+  all alphas at once, and it needs $T > N + K$.
+- $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha = SR^2_{\text{all}} - SR^2_f$: GRS measures the Sharpe ratio
+  the test assets add to the factors. From 1963-07, it rejects the CAPM and FF3 on the 25 size–B/M portfolios.
+- A rejection with a large $T$ can come from tiny alphas, and a pass with a small $T$ can hide large ones.
+
+**Next up:** Chapter 17, *Cross-sectional regressions and Fama–MacBeth*, prices the betas across assets instead of
+over time.
+
+### Further reading
+
+- Gibbons, Ross & Shanken (1989)
+- Cochrane (2005), Ch. 12
