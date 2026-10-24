@@ -142,6 +142,7 @@ flowchart TD
     TASK_081["TASK-081 Part V notation, guide rows and Part VI bridge"]
     TASK_082["TASK-082 Part V Mom naming, t-statistics, caption and attribution"]
     TASK_083["TASK-083 Share one series-loading hook across chapter widgets"]
+    TASK_084["TASK-084 Part V notation, guide rows and Part VI bridge"]
   end
   subgraph M_8["M-8 · Part VI: GMM and tests of asset pricing models"]
     TASK_034["TASK-034 Plan: decompose M-8"]
