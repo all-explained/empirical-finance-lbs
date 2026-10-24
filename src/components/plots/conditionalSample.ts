@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
 import { loadSeries, type Series } from '../../lib/data/series';
 import {
   conditionalModelFits, managedPortfolios, quarterlyPanel, simulateConditionalCapm, type ConditionalCapmOptions, type ConditionalModel,
 } from '../../lib/finance/conditional';
 import { arithmeticMean, sampleVariance } from '../../lib/finance/returns';
 import { annualiseMean, meanStandardError } from '../../lib/stats/moments';
+import { useLoaded } from './seriesSample';
 
 export type ConditionalData = {
   ff3: Series<'ff3-monthly'>;
@@ -129,13 +129,10 @@ export function managedCapm(data: ConditionalData, window: Window) {
   };
 }
 
+const loadConditionalData = () => Promise.all([loadSeries('ff3-monthly'), loadSeries('ff25-size-bm-monthly'), loadSeries('fred-cay-quarterly')])
+  .then(([ff3, ff25, cay]) => ({ ff3, ff25, cay }));
+
 /** Load ff3-monthly, ff25-size-bm-monthly and fred-cay-quarterly once. */
 export function useConditionalData(): { data: ConditionalData | null; failed: boolean } {
-  const [data, setData] = useState<ConditionalData | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    Promise.all([loadSeries('ff3-monthly'), loadSeries('ff25-size-bm-monthly'), loadSeries('fred-cay-quarterly')])
-      .then(([ff3, ff25, cay]) => setData({ ff3, ff25, cay }), () => setFailed(true));
-  }, []);
-  return { data, failed };
+  return useLoaded(loadConditionalData);
 }

@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
 import { loadSeries, type Series } from '../../lib/data/series';
 import { modelPanel } from '../../lib/finance/factors';
 import { sampleMeans } from '../../lib/finance/portfolio';
 import { grs, timeSeriesRegressions, type GrsResult } from '../../lib/finance/timeSeriesTests';
 import { annualiseMean } from '../../lib/stats/moments';
-import { fCritical, useFactorData } from './factorTestSample';
+import { fCritical } from './factorTestSample';
+import { useLoaded } from './seriesSample';
 
 export type GridModel = 'capm' | 'ff3' | 'ff5';
 export const GRID_MODELS: { value: GridModel; label: string }[] = [
@@ -60,13 +60,10 @@ export function gridView({ ff3, ff5, ff25 }: ModelData, model: GridModel): GridV
   };
 }
 
-/** Load ff3-monthly and ff25-size-bm-monthly through factorTestSample, and ff5-monthly. */
+const loadModelData = () => Promise.all([loadSeries('ff3-monthly'), loadSeries('ff5-monthly'), loadSeries('ff25-size-bm-monthly')])
+  .then(([ff3, ff5, ff25]) => ({ ff3, ff5, ff25 }));
+
+/** Load ff3-monthly, ff5-monthly and ff25-size-bm-monthly once. */
 export function useModelData(): { data: ModelData | null; failed: boolean } {
-  const base = useFactorData();
-  const [ff5, setFf5] = useState<Series<'ff5-monthly'> | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    loadSeries('ff5-monthly').then(setFf5, () => setFailed(true));
-  }, []);
-  return { data: base.data && ff5 ? { ...base.data, ff5 } : null, failed: failed || base.failed };
+  return useLoaded(loadModelData);
 }

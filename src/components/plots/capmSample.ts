@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
 import { getColumn, loadSeries, type ColumnName, type Series } from '../../lib/data/series';
 import { betas, frontier, maxSharpeSquared, sampleCovariance, sampleMeans, securityMarketLine, tangencyWeights, type FrontierPoint } from '../../lib/finance/portfolio';
 import { arithmeticMean, excessReturn, sampleVariance } from '../../lib/finance/returns';
 import { annualiseMean, annualiseVolatility, meanStandardError } from '../../lib/stats/moments';
 import { ols } from '../../lib/stats/ols';
+import { useLoaded } from './seriesSample';
 
 export type Portfolio = ColumnName<'ff25-size-bm-monthly'>;
 export type Period = 'full' | 'post1963';
@@ -80,13 +80,10 @@ export function frontierView(mean: readonly number[], Sigma: readonly (readonly 
   return { curve, tangency: { mean: tMean, volatility, weights, sharpe: Math.sqrt(maxSharpeSquared(muExcess, Sigma)) } };
 }
 
+const loadCapmData = () => Promise.all([loadSeries('ff3-monthly'), loadSeries('ff25-size-bm-monthly')])
+  .then(([ff3, ff25]) => ({ ff3, ff25 }));
+
 /** Load ff3-monthly and ff25-size-bm-monthly once. */
 export function useCapmData(): { data: { ff3: Series<'ff3-monthly'>; ff25: Series<'ff25-size-bm-monthly'> } | null; failed: boolean } {
-  const [data, setData] = useState<{ ff3: Series<'ff3-monthly'>; ff25: Series<'ff25-size-bm-monthly'> } | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    Promise.all([loadSeries('ff3-monthly'), loadSeries('ff25-size-bm-monthly')])
-      .then(([ff3, ff25]) => setData({ ff3, ff25 }), () => setFailed(true));
-  }, []);
-  return { data, failed };
+  return useLoaded(loadCapmData);
 }

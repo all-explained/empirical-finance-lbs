@@ -1,21 +1,11 @@
-import { useEffect, useState } from 'react';
-import { getColumn, loadSeries, type ColumnName, type Series, type SeriesId } from '../../lib/data/series';
+import { getColumn, type ColumnName, type Series, type SeriesId } from '../../lib/data/series';
 import {
   bearMarketRegression, modelPanel, sortFactors, spanningTest, windowBefore, worstMonths, type BearMarketRegression,
 } from '../../lib/finance/factors';
 import { arithmeticMean, grossGrowth, growthPath, sampleVariance } from '../../lib/finance/returns';
 import { annualiseMean, annualiseSharpe, annualiseVolatility, sharpeRatio, skewness } from '../../lib/stats/moments';
 
-/** Load a fixed set of series once, keyed by id. Pass a module-level array. */
-export function useSeriesData<I extends SeriesId>(ids: readonly I[]): { data: { [K in I]: Series<K> } | null; failed: boolean } {
-  const [data, setData] = useState<{ [K in I]: Series<K> } | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    Promise.all(ids.map((id) => loadSeries(id)))
-      .then((all) => setData(Object.fromEntries(all.map((s) => [s.id, s])) as { [K in I]: Series<K> }), () => setFailed(true));
-  }, [ids]);
-  return { data, failed };
-}
+export { useSeriesData } from './seriesSample';
 
 // A percent column of series as decimals on the given dates; a missing date or value throws.
 function onDates<I extends SeriesId>(series: Series<I>, name: ColumnName<NoInfer<I>>, dates: readonly string[]): number[] {
