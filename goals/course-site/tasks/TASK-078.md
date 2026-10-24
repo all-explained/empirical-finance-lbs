@@ -3,7 +3,7 @@ id: TASK-078
 title: Orchestrator reads Part V and signs it off
 milestone: M-7
 state: approved
-depends_on: [TASK-073, TASK-074, TASK-075, TASK-076, TASK-077]
+depends_on: [TASK-073, TASK-074, TASK-075, TASK-076, TASK-077, TASK-081, TASK-082, TASK-083]
 delivery: pr
 kind: gate
 ---

@@ -269,6 +269,9 @@ flowchart TD
   TASK_075 --> TASK_078
   TASK_076 --> TASK_078
   TASK_077 --> TASK_078
+  TASK_081 --> TASK_078
+  TASK_082 --> TASK_078
+  TASK_083 --> TASK_078
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
