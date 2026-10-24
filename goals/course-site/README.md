@@ -140,6 +140,7 @@ flowchart TD
     TASK_077["TASK-077 Chapter 23: Does the conditional CAPM explain anomalies?"]
     TASK_078["TASK-078 Orchestrator reads Part V and signs it off"]
     TASK_081["TASK-081 Part V notation, guide rows and Part VI bridge"]
+    TASK_082["TASK-082 Part V Mom naming, t-statistics, caption and attribution"]
   end
   subgraph M_8["M-8 · Part VI: GMM and tests of asset pricing models"]
     TASK_034["TASK-034 Plan: decompose M-8"]
