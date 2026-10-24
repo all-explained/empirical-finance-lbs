@@ -2,9 +2,10 @@
 id: TASK-084
 title: Part V notation, guide rows and Part VI bridge
 milestone: M-7
-state: approved
+state: cancelled
 depends_on: []
 delivery: pr
+reason: duplicate of TASK-081, created by mistake
 ---
 
 ## Why

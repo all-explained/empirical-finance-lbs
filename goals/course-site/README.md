@@ -273,6 +273,7 @@ flowchart TD
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
   class TASK_007 cancelled
+  class TASK_084 cancelled
   class DEC_001 decision
   class DEC_002 decision
 ```
