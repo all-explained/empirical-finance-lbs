@@ -425,6 +425,167 @@ def goyal_welch(refresh: bool) -> list[dict]:
     return datasets
 
 
+OSAP_RELEASE = "October 2025 (v2.0.0)"
+OSAP_PAGE = "https://www.openassetpricing.com/data/"
+OSAP_CITATION = (
+    "Chen and Zimmermann (2022), Open Source Cross-Sectional Asset Pricing, "
+    "Critical Finance Review 11, 207–264."
+)
+OSAP_FILES = {
+    "SignalDoc.csv": "1rdi0jTPSA6xtn6TpQAMT5WyEczQ1gK59",
+    "PredictorLSretWide.csv": "10sOryk_ddjkXagaajTKUk1nwJs2ZLRiI",
+    "PredictorAltPorts_LiqScreen_VWforce.zip": "1KZE3FgBxFPaNOyxoRw63ubZHOlkR9kZW",
+    "PredictorAltPorts_LiqScreen_ME_gt_NYSE20pct.zip": "1Q4YatQ3soRU_V7VeACwUn2bnCnmhDUI2",
+}
+
+
+def json_content(item: dict) -> str:
+    return (
+        json.dumps(item, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+        + "\n"
+    )
+
+
+def osap(refresh: bool) -> list[dict]:
+    """Keep published clear predictors; never construct alternative portfolios."""
+    paths = {
+        name: download(
+            f"osap-202510-{name}",
+            f"https://drive.google.com/uc?export=download&id={file_id}",
+            refresh,
+        )
+        for name, file_id in OSAP_FILES.items()
+    }
+    with paths["SignalDoc.csv"].open(encoding="utf-8-sig", newline="") as handle:
+        records = [
+            record
+            for record in csv.DictReader(handle)
+            if record["Cat.Signal"] == "Predictor"
+            and record["Predictability in OP"] == "1_clear"
+        ]
+    records.sort(key=lambda record: record["Acronym"])
+    names = [record["Acronym"] for record in records]
+    if not names or len(names) != len(set(names)):
+        raise ValueError("OSAP: missing or duplicate clear predictor documentation")
+    columns = [
+        {
+            **column(
+                name,
+                "percent/month",
+                "Published long–short return; OSAP clear predictor",
+            ),
+            "required": False,
+        }
+        for name in names
+    ]
+    common = {
+        "source": f"Open Source Asset Pricing, {OSAP_RELEASE}",
+        "url": OSAP_PAGE,
+        "citation": OSAP_CITATION,
+        "retrieved": date.fromtimestamp(
+            paths["SignalDoc.csv"].stat().st_mtime
+        ).isoformat(),
+        "release": OSAP_RELEASE,
+    }
+    documentation = {
+        "id": "osap-signals",
+        "title": "Open Source Asset Pricing clear predictor documentation",
+        **common,
+        "signals": [
+            {
+                "acronym": record["Acronym"],
+                "authors": record["Authors"],
+                "publicationYear": int(record["Year"]),
+                "journal": record["Journal"],
+                "sampleStartYear": int(record["SampleStartYear"]),
+                "sampleEndYear": int(record["SampleEndYear"]),
+                "category": record["Cat.Signal"],
+                "predictability": record["Predictability in OP"],
+            }
+            for record in records
+        ],
+    }
+    datasets = []
+    variants = [
+        ("osap-ls-monthly", "original-paper portfolios", "PredictorLSretWide.csv"),
+        (
+            "osap-ls-vw-monthly",
+            "value-weighted original-paper portfolios",
+            "PredictorAltPorts_LiqScreen_VWforce.zip",
+        ),
+        (
+            "osap-ls-exmicro-monthly",
+            "original-paper portfolios, ME > NYSE 20th percentile",
+            "PredictorAltPorts_LiqScreen_ME_gt_NYSE20pct.zip",
+        ),
+    ]
+    for identifier, title, filename in variants:
+        path = paths[filename]
+        if path.suffix == ".zip":
+            with ZipFile(path) as archive:
+                member = filename.removesuffix(".zip") + ".csv"
+                # Read OSAP's published LS rows, rather than subtracting portfolio legs.
+                with archive.open(member) as handle:
+                    text = handle.read().decode("utf-8-sig")
+            observations: dict[str, dict[str, float | None]] = {}
+            for record in csv.DictReader(StringIO(text)):
+                if record["port"] != "LS" or record["signalname"] not in names:
+                    continue
+                stamp = record["date"][:7] + "-01"
+                values = observations.setdefault(stamp, {})
+                if record["signalname"] in values:
+                    raise ValueError(f"{identifier}: duplicate signal/month")
+                values[record["signalname"]] = numeric(record["ret"])
+            if {name for values in observations.values() for name in values} != set(
+                names
+            ):
+                raise ValueError(f"{identifier}: missing clear predictors")
+            rows = [
+                [stamp, *[values.get(name) for name in names]]
+                for stamp, values in sorted(observations.items())
+            ]
+        else:
+            with path.open(encoding="utf-8-sig", newline="") as handle:
+                reader = csv.DictReader(handle)
+                if not set(names).issubset(reader.fieldnames or []):
+                    raise ValueError(f"{identifier}: missing clear predictors")
+                rows = [
+                    [
+                        record["date"][:7] + "-01",
+                        *[numeric(record[name]) for name in names],
+                    ]
+                    for record in reader
+                ]
+        item = series(
+            identifier,
+            f"OSAP {title}",
+            common["source"],
+            OSAP_PAGE,
+            OSAP_CITATION,
+            "monthly",
+            columns,
+            rows,
+            [path, paths["SignalDoc.csv"]],
+        )
+        if len(json_content(item).encode()) > 1_500_000:
+            item["rows"] = [row for row in rows if row[0] >= "1963-01-01"]
+        LOG.info(
+            "%s: %s–%s, %s signals, %s bytes",
+            identifier,
+            item["rows"][0][0],
+            item["rows"][-1][0],
+            len(names),
+            len(json_content(item).encode()),
+        )
+        datasets.append(item)
+    if any(len(json_content(item).encode()) > 1_500_000 for item in datasets):
+        LOG.info(
+            "OSAP exceeds 1.5 MB after 1963 cut; retaining original-paper returns only"
+        )
+        datasets = datasets[:1]
+    return [*datasets, documentation]
+
+
 def build_all(refresh: bool) -> list[dict]:
     datasets = [
         french(
@@ -599,6 +760,7 @@ def build_all(refresh: bool) -> list[dict]:
     if any(later - earlier != 1 for earlier, later in pairwise(quarters)):
         raise ValueError("fred-cay-quarterly: gap in quarterly observations")
     datasets.append(cay)
+    datasets.extend(osap(refresh))
     return datasets
 
 
@@ -620,13 +782,12 @@ def main() -> None:
     outputs = [
         (
             OUTPUT / f"{item['id']}.json",
-            json.dumps(item, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
-            + "\n",
+            json_content(item),
         )
         for item in datasets
     ]
     for path, content in outputs:
-        if len(content.encode()) >= 1_000_000:
+        if len(content.encode()) >= 1_000_000 and path.name != "osap-ls-monthly.json":
             raise ValueError(f"{path.name}: exceeds 1 MB")
     for path, content in outputs:
         temporary = path.with_suffix(".json.tmp")
