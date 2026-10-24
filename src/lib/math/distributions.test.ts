@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fCdf, fSurvival, logGamma, regularizedBeta } from './distributions';
+import { chiSquareCdf, chiSquareSurvival, fCdf, fSurvival, logGamma, regularizedBeta } from './distributions';
 
 describe('logGamma', () => {
   it('matches log Γ at 0.5, 1, 5 and 10.5', () => {
@@ -45,5 +45,39 @@ describe('fCdf and fSurvival', () => {
       expect(fCdf(x, d1, d2) + fSurvival(x, d1, d2)).toBeCloseTo(1, 13);
     }
     expect([fCdf(0, 2, 3), fSurvival(0, 2, 3), fCdf(Infinity, 2, 3), fSurvival(Infinity, 2, 3)]).toEqual([0, 1, 1, 0]);
+  });
+});
+
+// Reference values from scipy 1.18.1 (numpy 2.5.4): scipy.stats.chi2.ppf, .cdf and .sf.
+describe('chiSquareCdf and chiSquareSurvival', () => {
+  it('give the tabulated 5% critical values: chi2.ppf(0.95, 1) = 3.8414588206941205, chi2.ppf(0.95, 10) = 18.307038053275146', () => {
+    expect(chiSquareCdf(3.8414588206941205, 1)).toBeCloseTo(0.95, 13);
+    expect(chiSquareCdf(18.307038053275146, 10)).toBeCloseTo(0.95, 13);
+    expect(chiSquareSurvival(3.841459, 1)).toBeCloseTo(0.05, 7);
+    expect(chiSquareSurvival(18.307038, 10)).toBeCloseTo(0.05, 7);
+  });
+
+  it('match scipy on both sides of the series/continued-fraction switch', () => {
+    // chi2.cdf(0.3, 5) = 0.0023569137394711423; chi2.cdf(7.5, 3) = 0.9424415480273636;
+    // chi2.cdf(100.5, 90) = 0.7891156998339218.
+    expect(chiSquareCdf(0.3, 5)).toBeCloseTo(0.0023569137394711423, 14);
+    expect(chiSquareCdf(7.5, 3)).toBeCloseTo(0.9424415480273636, 13);
+    expect(chiSquareCdf(100.5, 90)).toBeCloseTo(0.7891156998339218, 12);
+  });
+
+  it('equal the closed form 1 - exp(-x/2) with 2 degrees of freedom', () => {
+    for (const x of [0.01, 0.5, 2, 2.9, 3.1, 10, 40]) {
+      expect(chiSquareCdf(x, 2)).toBeCloseTo(1 - Math.exp(-x / 2), 14);
+      expect(chiSquareSurvival(x, 2) / Math.exp(-x / 2)).toBeCloseTo(1, 12);
+    }
+  });
+
+  it('keep a tiny upper tail: chi2.sf(150, 4) = 2.035764090974152e-31', () => {
+    expect(chiSquareSurvival(150, 4) / 2.035764090974152e-31).toBeCloseTo(1, 11);
+  });
+
+  it('handle the end points and reject non-positive degrees of freedom', () => {
+    expect([chiSquareCdf(0, 3), chiSquareSurvival(-1, 3), chiSquareCdf(Infinity, 3), chiSquareSurvival(Infinity, 3)]).toEqual([0, 1, 1, 0]);
+    expect(() => chiSquareCdf(1, 0)).toThrow(RangeError);
   });
 });

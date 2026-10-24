@@ -112,7 +112,7 @@ function white(scores: number[][], hc1: boolean): number[][] {
  * (d_t d_{t-l}' + d_{t-l} d_t'), where d_t = (X'X)^(-1) x_t.
  * Newey–West: w_l = 1-l/(L+1). Hansen–Hodrick: w_l = 1.
  */
-function serialCovariance(scores: number[][], lags: number, bartlett: boolean): number[][] {
+export function serialCovariance(scores: number[][], lags: number, bartlett: boolean): number[][] {
   const covariance = white(scores, false);
   const K = scores[0].length;
   for (let lag = 1; lag <= lags; lag++) {
