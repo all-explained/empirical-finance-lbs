@@ -1,0 +1,228 @@
+---
+title: "Anomalies and the factor zoo"
+part: 5
+chapter: 21
+difficulty: 2
+prerequisites: [19, 20]
+summary: "Hundreds of published variables predict stock returns; this chapter counts how many survive a stricter line, a later sample or a different portfolio, and uses spanning regressions to ask which few factors explain the rest."
+---
+
+import ZooChart from '../../components/plots/ZooChart';
+import SpanningTest from '../../components/plots/SpanningTest';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> 165 discoveries, and then what?
+
+Size, value and momentum, the subjects of Chapter 19, *Size and value*, and Chapter 20, *Momentum*, are three
+variables that predict stock returns. They are not alone. Academic journals have published hundreds of such variables. Harvey, Liu & Zhu (2016,
+p. 8) catalogue 316 factors. Hou, Xue & Zhang (2020, p. 2020) rebuild 452 anomalies. Cochrane (2011, p. 1047) calls
+the result a "zoo".
+
+Our data come from the Open Source Asset Pricing project (Chen and Zimmermann 2022). It rebuilds the long–short
+portfolio of each published predictor from the paper's own recipe. We use the 165 predictors that it rates as
+clearly significant in the original paper. They were published from 1973 to 2016. In each paper's own sample, 158
+of the 165 have a $t$-statistic above 1.96. In the months after that sample, only 66 do.
+
+Take one famous case: the past year's return, the momentum predictor of Jegadeesh & Titman (1993). In the
+paper's sample, from 1964 to 1989, the long–short portfolio earned 16.09% a year, with a $t$-statistic of 4.48 over 312 months. In the
+420 months after 1989, it earned 9.21% a year, with a $t$-statistic of 1.82. So which of the 165 discoveries are
+real? And how many factors do you actually need? This chapter gives two tools for those questions: an honest count,
+and a spanning test.
+
+## <span class="section-tag">Intuition</span> Count the points above the line
+
+Start with a definition. A **predictor** is a variable you know today, like book-to-market or past return, that
+sorts stocks by their future average return. Buy the stocks at the top of the sort and sell those at the bottom.
+The result is a **long–short portfolio**. It costs nothing to set up, so its average return is a reward for
+something. A predictor is an **anomaly** when that reward is not explained by a benchmark model, such as the
+CAPM of [Chapter 7](/empirical-finance-lbs/chapters/07-mean-variance-and-the-capm/). An anomaly is always an
+anomaly *relative to a model*.
+
+A simplification is in play here. The widget tests the raw mean return of each long–short portfolio, not its
+alpha against a model. The two differ by the part of the mean that the model's factors explain.
+
+Each point below is one predictor. It sits at the year its paper was published, at the height of its
+$t$-statistic. The solid line is a significance line that you can drag. A point above it is filled. A point below it
+is hollow. The dashed line marks $t = 3$.
+
+<ZooChart client:visible />
+
+<p class="try-this"><strong>Try this:</strong> drag the line from 1.96 up to 3.00. In the original samples, the count
+above it falls from 158 to 107. Now switch the window to "After the sample". At 3.00, 31 of the 165 remain. Move the
+line back to 1.96: 66 remain.</p>
+
+Three things can shrink a discovery.
+
+1. **Luck.** Many researchers try many variables. A few will pass any line by chance, and those are the ones that
+   get published. The project behind our data adds a second filter: it keeps only predictors that worked in the
+   paper. So the in-sample panel is a set of survivors by design.
+2. **The portfolio.** Many published portfolios weigh every stock equally, so tiny stocks count as much as giants.
+   Hou, Xue & Zhang (2020, p. 2020) call stocks below the 20th size percentile of NYSE stocks *microcaps*. In their
+   data, microcaps are 60.7% of the stocks but only 3.2% of the market value. When they weigh stocks by value and
+   set the sort's cutoffs with NYSE stocks only, 65% of their 452 anomalies fall below 1.96. With all stocks in
+   the cutoffs and equal weights, 43.1% fail.
+3. **Time.** After a paper appears, traders can act on it. And a pattern that was luck does not repeat. Either way,
+   the reward is smaller after the sample.
+
+Our data cannot show the second point directly. The value-weighted and no-microcap versions of these portfolios
+exist, but this site does not include them (see `docs/DATA.md`). So the widget's "Portfolio construction" control
+has one option, the original papers' recipe. The readout rows that compare constructions therefore compare that
+recipe with itself.
+
+<Callout type="key">A predictor is an anomaly only relative to a model. Published $t$-statistics overstate the
+evidence, because the predictors that we see are the ones that passed.</Callout>
+
+## <span class="section-tag">Formalisation</span> Many $t$-statistics, and one regression
+
+### The $t$-statistic of one predictor
+
+Write $\Ret{R_{t}}$ for the return of a long–short portfolio in month $t$, for $t = 1, \dots, T$. Its sample mean is
+$\bar R = \tfrac1T \sum_t R_t$. Assume that the months are independent, with mean $\mu$ and variance $\sigma^2$.
+Then four steps give the test.
+
+1. The variance of a sum of independent terms is the sum of their variances: $\operatorname{Var}(\sum_t R_t) = T\sigma^2$.
+2. Divide by $T^2$: $\operatorname{Var}(\bar R) = \sigma^2/T$, so the standard error of $\bar R$ is $\sigma/\sqrt T$.
+3. Replace $\sigma$ by the sample standard deviation $s$, as in
+   [Chapter 3](/empirical-finance-lbs/chapters/03-regression-and-standard-errors/).
+4. Under the null hypothesis $\mu = 0$, the ratio
+
+$$
+t = \frac{\bar R}{s/\sqrt T}
+$$
+
+is close to a standard normal when $T$ is large. You reject at the 5% level when $|t| > 1.96$.
+
+### Many tests at once
+
+A single test at 1.96 is wrong 5% of the time when $\mu = 0$. Now suppose that none of the 316 factors of Harvey,
+Liu & Zhu had a true reward. You would still expect $0.05 \times 316 = 15.8$ of them to pass by luck. And if only
+the passes get published, every published $t$-statistic is above 1.96, true reward or not. Harvey, Liu & Zhu (2016,
+p. 23) report that most of the published $t$-statistics they collect are above 1.96.
+
+A higher line makes luck rarer. Under the null, $|t| > 3$ has a probability of 0.27%, so you would expect only 0.85
+of the 316 to pass. This is why Harvey, Liu & Zhu (2016, p. 5) argue that a new factor needs $t > 3$.
+
+But a higher line is a blunt fix. It also throws away real predictors that have short samples. A predictor whose
+true annual Sharpe ratio is 0.5 has an expected $t$-statistic of $0.5 \times \sqrt{T/12}$. With 240 months, that is
+2.24. It passes 1.96 with a probability of 61%, but it passes 3 with a probability of only 22%. A higher line trades
+false discoveries for missed ones. It does not tell you which predictors are real.
+
+### The spanning regression
+
+The second question is different. Suppose that a predictor is real. Do you need a new factor for it, or do the
+factors you already have explain it? Cochrane (2011, p. 1060) asks this of the zoo: which variables carry
+independent information about average returns, and which are subsumed by others?
+
+Take a candidate factor $\Factor{f_{\text{new},t}}$ that is an excess return, and the $K$ factors $\Factor{f_t}$ of a
+model. Regress one on the others over time:
+
+$$
+\Factor{f_{\text{new},t}} = \Err{\alpha} + \beta'\Factor{f_t} + \Err{\varepsilon_t}.
+$$
+
+This is the time-series regression of
+[Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/), with the new factor as the one test
+asset. The new factor adds to the model only if $\alpha \ne 0$. Here is why, in three steps.
+
+1. Hedge the new factor: buy it and sell $\beta$ of each old factor. The hedged return is
+   $f_{\text{new},t} - \beta'f_t = \alpha + \varepsilon_t$. Its mean is $\alpha$, and OLS makes $\varepsilon_t$
+   uncorrelated with $f_t$ in sample.
+2. Chapter 16 showed that adding test assets to the factors raises the highest squared Sharpe ratio by
+   $\hat\alpha'\hat\Sigma_\varepsilon^{-1}\hat\alpha$. With one new asset, this is a single number:
+
+$$
+SR^2(f, f_{\text{new}}) = SR^2(f) + \left(\frac{\Err{\hat\alpha}}{\hat\sigma_\varepsilon}\right)^2.
+$$
+
+3. So the best Sharpe ratio rises if and only if $\hat\alpha \ne 0$. When $\alpha = 0$, the new factor is a mix of
+   the old ones plus noise that earns nothing. The old factors already reach the tangency portfolio, and the new one
+   is **spanned**.
+
+The fit of the regression does not decide this. A factor with a high $R^2$ and a nonzero $\alpha$ adds to the
+model. A factor with a low $R^2$ and $\alpha = 0$ does not: it is noise that the model does not need. You test
+$\alpha = 0$ with its $t$-statistic. With several new factors at once, you use the GRS test of Chapter 16.
+
+## <span class="section-tag">Playground</span> Which factors earn their place?
+
+Pick one of six factors: the five of Fama and French's five-factor model (Mkt-RF, SMB, HML, RMW and CMA) or
+momentum (Mom). The widget regresses it on the other five. Each point is a month. The x-axis is the part of the
+factor's return that the other five explain, $\hat\beta'f_t$. The y-axis is the factor's return. On the dashed line,
+the two are equal. The large point is the mean month, and its vertical gap from the line is $\hat\alpha$.
+
+<SpanningTest client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start with HML over 1963–2026. Its alpha is 0.85% a year, with a
+$t$-statistic of 0.89 and an $R^2$ of 0.513. The other five span it. Now switch to 1963–1993: the alpha is 3.40% a
+year, with a $t$-statistic of 2.94. Then switch to 1994–2026: the alpha is −1.48% a year, with a $t$-statistic of
+−1.01.</p>
+
+<p class="try-this"><strong>Try this too:</strong> pick Mom over 1963–2026. Its $R^2$ is only 0.091, but its alpha
+is 8.83% a year, with a $t$-statistic of 4.85. Then pick SMB: its alpha is 2.28% a year, with a $t$-statistic of
+1.80.</p>
+
+### What the spanning test can and cannot say
+
+HML shows the main limit. A factor can be spanned in one sample and not in another. Over its first 366 months, HML
+earned more than the other five could explain. Over the next 392, it did not. The full-sample verdict mixes the two.
+Before you drop a factor from a model, ask whether the verdict holds in each half of the data.
+
+Mom shows the opposite case. Little of its monthly return comes from the other five, and its reward is far from
+zero. You cannot build momentum from the other five.
+
+SMB is the borderline case. Its $t$-statistic of 1.80 is below 1.96, so at 5% it is spanned. But "not rejected"
+is not "proved to be zero". The 95% confidence interval for its alpha runs from −0.21% to 4.76% a year.
+
+Two more limits. The answer depends on the base: a factor spanned by these five may not be spanned by a different
+set. And the $t$-statistics here assume independent months. The readout also shows White's version, which allows
+the variance to change over time. For these factors the two are close.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A spanning regression of a new factor on a model's factors gives $\hat\alpha = 0$ exactly and $R^2 = 0.10$. Should you add the factor to the model?"
+  options={["No: with zero alpha it does not raise the highest Sharpe ratio", "Yes: a low $R^2$ means it carries new information", "Yes, if its own mean return is positive", "It depends on the $R^2$ of the other factors"]}
+  answer={0}
+  explanation="Only $\alpha$ matters. With $\alpha = 0$, the new factor is a mix of the old ones plus noise that earns nothing, so it adds risk without adding reward. A low $R^2$ only says that most of that noise is unexplained."
+/>
+
+<Quiz
+  client:visible
+  question="Researchers test 200 variables that have no true reward, each at $|t| > 1.96$. About how many pass?"
+  options={["About 10", "About 2", "None", "About 100"]}
+  answer={0}
+  explanation="Each test has a 5% chance of a false pass when the true mean is zero, so you expect $0.05 \times 200 = 10$ passes. If only those are published, the published record looks strong."
+/>
+
+<Quiz
+  client:visible
+  question="You raise the significance line from 1.96 to 3. What is the cost?"
+  options={["You miss more real predictors, especially those with short samples", "None: a higher line only removes false discoveries", "You accept more false discoveries", "The $t$-statistics themselves get smaller"]}
+  answer={0}
+  explanation="A higher line makes luck rarer, but it also needs more evidence from real predictors. A predictor with a true annual Sharpe ratio of 0.5 and 20 years of data passes 3 only about 22% of the time."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- A predictor sorts stocks into a long–short portfolio. It is an anomaly when a benchmark model cannot explain the
+  portfolio's average return.
+- Of 165 predictors with clear results in their papers, 158 pass $|t| > 1.96$ in the paper's sample and 66 after it.
+  Selection, small stocks and publication all shrink the published evidence.
+- A higher line such as $t > 3$ cuts false discoveries, but it also cuts real predictors with short samples.
+- The spanning regression $f_{\text{new},t} = \alpha + \beta'f_t + \varepsilon_t$ asks whether a factor raises the
+  highest Sharpe ratio. Only $\alpha \ne 0$ adds to the model; $R^2$ does not decide it.
+- A verdict can change with the sample: HML is not spanned in 1963–1993, but it is spanned after 1993.
+
+Part VII returns to the zoo with sharper tools, in Chapter 28, *A skeptical look at asset pricing tests*,
+Chapter 29, *Multiple testing*, and Chapter 30, *Shrinking the cross-section*.
+
+**Next up:** Chapter 22, *Conditional factor models*, lets betas and risk premia change over time.
+
+### Further reading
+
+- Cochrane (2011)
+- Harvey, Liu & Zhu (2016)
+- Hou, Xue & Zhang (2020)
+- Jegadeesh & Titman (1993)
+- Chen & Zimmermann (2022), for the Open Source Asset Pricing data
