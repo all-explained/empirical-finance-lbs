@@ -122,6 +122,32 @@ Use these symbols everywhere. If a chapter needs a new symbol, add it to this ta
 | $\Delta d_{t+1}$ | — | Log dividend growth $d_{t+1} - d_t$ |
 | $N_{CF}$, $N_{DR}$ | — | Cash-flow and discount-rate news. $N$ with a subscript is news; $N$ alone is the number of assets |
 
+### Part III: out-of-sample tests, $cay$ and option bounds (Chapters 13–15)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $R^2_{OS}$ | — | Out-of-sample $R^2$ (Chapter 13): one minus the model's sum of squared forecast errors over the mean's, on the same $T_{OS}$ dates. It can be negative |
+| $T_{OS}$ | — | Number of out-of-sample forecast dates |
+| $\mathit{CSED}_\tau$ | — | Cumulative squared-error difference up to date $\tau$: the mean's squared errors minus the model's. At the last date it is $\mathit{SSE}_{\bar r}\,R^2_{OS}$ |
+| $\mathit{cw}_t$, $\mathit{CW}$ | — | Clark–West adjusted loss difference at $t$, and the one-sided $t$-statistic on its mean |
+| $\bar u$ | — | Realised mean–variance utility of a portfolio built from forecasts, $\operatorname{mean}(w_t r^e_{t+1}) - \tfrac{\gamma}{2}\operatorname{Var}(w_t r^e_{t+1})$. Here $w_t$ is a portfolio weight |
+| $cay_t$ | `\Signal` | Consumption–wealth ratio (Chapter 14): $c_t - \theta_n n_t - \theta_y y_t - \text{const}$. The name keeps the letters of Lettau & Ludvigson (2001) |
+| $W_t$, $w_t$ | — | Total wealth (asset wealth plus human capital) and its log, in Chapter 14 only. This $w_t$ is not a portfolio weight $w$; the chapter says so in words. $R_{w,t}$, $r_{w,t}$ are the return on total wealth |
+| $n_t$ | — | Log asset wealth, the households' net worth (Chapter 14). The paper writes $a_t$; we use $n_t$ because $a$ is a predictive intercept. Not the maturity $n$, which is always a superscript in parentheses |
+| $h_t$, $z_t$ | — | Log human capital, $h_t = \text{const} + y_t + z_t$, and its stationary gap $z_t$ from log labour income $y_t$ |
+| $\omega$ | — | Average share of asset wealth in total wealth, $w_t \approx \omega n_t + (1 - \omega) h_t$. In Chapter 6, $\omega$ is a rotation angle |
+| $\rho_w$ | — | Linearisation constant of the budget constraint, $\rho_w = 1 - e^{\overline{c - w}}$: the usual share of wealth that is not consumed. Compare the Campbell–Shiller $\rho$ |
+| $\theta_n$, $\theta_y$; $\theta$ | — | Cointegrating weights on $n_t$ and $y_t$, estimated by dynamic OLS, and the single weight $\theta$ of the cointegration demo (Chapter 14). Never $\beta$, which is only an exposure. Part VI reuses $\theta$ for the GMM parameter vector |
+| $\pi^*(s)$ | `\Prob` | Risk-neutral probability of state $s$ (Chapter 15), $\pi^*(s) = \pi(s)\,M(s)\,(1 + R^f_t)$. The Prob colour token colours it, as it colours $\pi(s)$ |
+| $\mathbb{E}^*_t$, $\operatorname{Var}^*_t$ | — | Expectation and variance at $t$ with the risk-neutral probabilities $\pi^*$ |
+| $\tau$ | — | Life of the options in years (Chapter 15). In Chapter 13, $\tau$ is the end date of $\mathit{CSED}_\tau$ |
+| $F_t$ | — | Forward price of the index, $F_t = P_t(1 + R^f_t)$ |
+| $K$ | — | Strike price of an option in Chapter 15, not the number of factors. The chapter says so in words |
+| $\mathrm{call}_t(K)$, $\mathrm{put}_t(K)$ | — | Prices at $t$ of a call and of a put on the index with strike $K$ |
+| $\mathrm{SVIX}_t$ | — | Martin's index: $\mathrm{SVIX}^2_t$ is the risk-neutral variance of $(1 + R_{t+1})/(1 + R^f_t)$, scaled to a year by $1/\tau$ |
+| $\mathrm{VIX}_t$ | — | The CBOE volatility index: the same options weighted by $1/K^2$, so $\mathrm{VIX}^2_t = \tfrac{2}{\tau}L^*_t$ of the same gross return ratio |
+| $L(X)$, $L_t$, $L^*_t$ | — | Entropy of a positive variable, $L(X) = \log\mathbb{E}[X] - \mathbb{E}[\log X]$, with real and with risk-neutral probabilities at $t$ |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |

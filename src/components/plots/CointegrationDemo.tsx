@@ -14,7 +14,7 @@ const num = (v: number, digits = 2) => `${v < 0 ? '−' : ''}${Math.abs(v).toFix
 
 /**
  * Chapter 14: two seeded trending series x_t and y_t = 0.6 x_t + u_t, and the combination
- * y_t − w x_t. The combination stops trending only near the true weight 0.6.
+ * y_t − θ x_t. The combination stops trending only near the true weight 0.6.
  */
 export default function CointegrationDemo({ initialWeight = 0 }: { initialWeight?: number }) {
   const [w, setW] = useState(initialWeight);
@@ -77,7 +77,7 @@ export default function CointegrationDemo({ initialWeight = 0 }: { initialWeight
       plot={plot}
       controls={
         <>
-          <Slider label="Weight $w$" value={w} min={0} max={1.2} step={0.05} onChange={setW} format={(v) => v.toFixed(2)} color="var(--c-signal)" />
+          <Slider label="Weight $\theta$" value={w} min={0} max={1.2} step={0.05} onChange={setW} format={(v) => v.toFixed(2)} color="var(--c-signal)" />
           <Button onClick={() => setSeed((s) => s + 1)}>New draw</Button>
         </>
       }
@@ -86,10 +86,10 @@ export default function CointegrationDemo({ initialWeight = 0 }: { initialWeight
           <p style={{ margin: '0 0 0.5rem' }}>
             <span style={{ color: 'var(--text-muted)' }}>– – x</span> ·{' '}
             <span style={{ color: 'var(--c-data)' }}>— y</span> ·{' '}
-            <span style={{ color: 'var(--c-signal)' }}><RichText>{'— $y_t - w\\,x_t$'}</RichText></span>
+            <span style={{ color: 'var(--c-signal)' }}><RichText>{'— $y_t - \\theta\\,x_t$'}</RichText></span>
           </p>
           <dl className="readout-grid">
-            <dt><RichText>{'Persistence of $y_t - w\\,x_t$'}</RichText></dt>
+            <dt><RichText>{'Persistence of $y_t - \\theta\\,x_t$'}</RichText></dt>
             <dd style={{ color: 'var(--c-signal)' }}>{num(persistence, 3)}</dd>
             <dt>True weight</dt>
             <dd>{PAIR.beta.toFixed(2)}</dd>
@@ -100,7 +100,7 @@ export default function CointegrationDemo({ initialWeight = 0 }: { initialWeight
           </dl>
         </>
       }
-      caption={`Simulated (seeded): ${PAIR.T} periods. $x_t$ is a random walk with normal shocks of size 1; $y_t = ${PAIR.beta}\\,x_t + u_t$, where the gap $u_t$ is an AR(1) with persistence ${PAIR.phi} and shocks of size 1. Persistence is the OLS slope of $y_{t+1} - w\\,x_{t+1}$ on $y_t - w\\,x_t$: near 1 the combination trends, well below 1 it keeps returning to its mean. The dynamic OLS estimate regresses $y_t$ on $x_t$ and on $\\Delta x_t$ with ${PAIR_LEADS} leads and ${PAIR_LEADS} lags.`}
+      caption={`Simulated (seeded): ${PAIR.T} periods. $x_t$ is a random walk with normal shocks of size 1; $y_t = ${PAIR.beta}\\,x_t + u_t$, where the gap $u_t$ is an AR(1) with persistence ${PAIR.phi} and shocks of size 1. Persistence is the OLS slope of $y_{t+1} - \\theta\\,x_{t+1}$ on $y_t - \\theta\\,x_t$: near 1 the combination trends, well below 1 it keeps returning to its mean. The dynamic OLS estimate regresses $y_t$ on $x_t$ and on $\\Delta x_t$ with ${PAIR_LEADS} leads and ${PAIR_LEADS} lags.`}
     />
   );
 }
