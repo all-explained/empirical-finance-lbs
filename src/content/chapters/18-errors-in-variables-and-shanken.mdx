@@ -14,7 +14,8 @@ import { Quiz } from '../../components/ui/Quiz';
 ## <span class="section-tag">Hook</span> The betas are estimates too
 
 A two-pass test prices a factor model in two steps. The **first pass** runs one time-series regression for each
-test asset and gives its betas $\hat\beta_i$. The **second pass** regresses the assets' mean excess returns
+test asset, as in [Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/), and gives its betas
+$\hat\beta_i$. The **second pass** regresses the assets' mean excess returns
 across assets on those betas. Its slopes are the risk premia $\hat\lambda$: the extra mean return per unit of
 beta. Chapter 17, "Cross-sectional regressions and Fama–MacBeth", builds this method in full.
 
