@@ -2,10 +2,11 @@
 id: TASK-091
 title: 'Chapter 27: Identification: weak and useless factors'
 milestone: M-8
-state: approved
+state: cancelled
 depends_on: [TASK-087]
 delivery: pr
 route: {platform: claude, model: opus, effort: high}
+reason: 'duplicate of TASK-093..100: proposal TASK-034 was applied twice'
 ---
 
 ## Why
