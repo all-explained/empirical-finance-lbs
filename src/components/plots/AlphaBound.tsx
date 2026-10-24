@@ -76,7 +76,7 @@ export default function AlphaBound({ initialSigmaLambda = 0.06 }: { initialSigma
       plot={plot}
       controls={
         <Slider
-          label="$\sigma(\lambda_t)$, volatility of the market premium"
+          label="$\sigma(\lambda_t)$, volatility of the expected market premium"
           value={sigmaLambda} min={0} max={0.2} step={0.005} onChange={setSigmaLambda}
           format={(v) => `${pct(v)} a year`} color="var(--c-model)"
         />
@@ -87,19 +87,19 @@ export default function AlphaBound({ initialSigmaLambda = 0.06 }: { initialSigma
             <p style={{ margin: '0 0 0.5rem' }}>
               <span style={{ color: 'var(--c-data)' }}>■ solid bar: actual CAPM alpha</span> ·{' '}
               <span style={{ color: 'var(--c-model)' }}>┄ dashed bar: largest alpha from beta timing</span> ·{' '}
-              <span style={{ color: 'var(--c-data)' }}>● dot: average conditional alpha, 95% bar</span>
+              <span style={{ color: 'var(--c-data)' }}>● dot: average conditional alpha, 95% bar</span> · all in % a year
             </p>
             <dl className="readout-grid">
               {view.map((r) => (
                 <Fragment key={r.value}>
-                  <dt><RichText>{`${r.value}: bound $\\sigma(\\hat\\beta_{i,q})\\,\\sigma(\\lambda_t)$`}</RichText></dt>
-                  <dd style={{ color: 'var(--c-model)' }}>{r.quarters.sigmaBeta.toFixed(2)} × {pct(sigmaLambda)} = {pct(r.bound, 2)} ({pct(r.share, 0)} of the actual alpha)</dd>
+                  <dt><RichText>{`${r.value}: bound ${r.quarters.sigmaBeta.toFixed(2)} × $\\sigma(\\lambda_t)$`}</RichText></dt>
+                  <dd style={{ color: 'var(--c-model)' }}>{pct(r.bound, 2)}, {pct(r.share, 0)} of alpha</dd>
                   <dt>{r.value}: actual alpha (s.e.)</dt>
                   <dd style={{ color: 'var(--c-data)' }}>{pct(r.capm.alpha, 2)} ({pct(r.capm.alphaSE, 2)})</dd>
                   <dt><RichText>{`${r.value}: $\\sigma(\\lambda_t)$ the bound needs`}</RichText></dt>
-                  <dd>{pct(r.needed)} a year</dd>
-                  <dt><RichText>{`${r.value}: bound with implied true $\\sigma(\\beta_{i,q})$`}</RichText></dt>
-                  <dd>{r.quarters.sigmaBetaTrue.toFixed(2)} × {pct(sigmaLambda)} = {pct(r.boundTrue, 2)}</dd>
+                  <dd>{pct(r.needed)}</dd>
+                  <dt><RichText>{`${r.value}: bound with true $\\sigma(\\beta_{i,q}) = ${r.quarters.sigmaBetaTrue.toFixed(2)}$`}</RichText></dt>
+                  <dd>{pct(r.boundTrue, 2)}</dd>
                 </Fragment>
               ))}
             </dl>
@@ -108,7 +108,7 @@ export default function AlphaBound({ initialSigmaLambda = 0.06 }: { initialSigma
           <p>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
         )
       }
-      caption={`Data: ff3-monthly and mom-monthly (actual alpha), ff3-daily and mom-daily (betas and conditional alphas), Kenneth French Data Library, ${SAMPLE.first} to ${SAMPLE.last}. Actual alpha: intercept of the factor's monthly return on Mkt-RF, ×12. Bound: σ of the quarterly betas from daily returns times σ(λ_t), the largest alpha a conditional CAPM can create when beta and the premium are perfectly correlated and market volatility is constant (Lewellen and Nagel (2006)). Conditional alpha: average of the quarterly intercepts, ×21×12, with ±1.96 standard errors from the spread of the quarterly alphas.`}
+      caption={`Data: ff3-monthly and mom-monthly (actual alpha), ff3-daily and mom-daily (betas and conditional alphas), Kenneth French Data Library, ${SAMPLE.first} to ${SAMPLE.last}. Actual alpha: intercept of the factor's monthly return on Mkt-RF, ×12. Bound: σ of the quarterly betas from daily returns times the yearly $\\sigma(\\lambda_t)$, the largest alpha a conditional CAPM can create when beta and the premium are perfectly correlated and market volatility is constant (Lewellen and Nagel (2006)). Conditional alpha: average of the quarterly intercepts, ×21×12, with ±1.96 standard errors from the spread of the quarterly alphas.`}
     />
   );
 }

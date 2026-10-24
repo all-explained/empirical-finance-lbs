@@ -101,7 +101,10 @@ Take the unconditional expectation of the conditional CAPM. For any two random v
 $\mathbb{E}[XY] = \mathbb{E}[X]\,\mathbb{E}[Y] + \operatorname{Cov}(X, Y)$. So
 
 $$
-\mathbb{E}[R^e_{i,t}] = \mathbb{E}[\beta_{i,t}\lambda_t] = \bar\beta_i\bar\lambda + \operatorname{Cov}(\beta_{i,t}, \lambda_t).
+\begin{aligned}
+\mathbb{E}[R^e_{i,t}] &= \mathbb{E}[\beta_{i,t}\lambda_t] \\
+&= \bar\beta_i\bar\lambda + \operatorname{Cov}(\beta_{i,t}, \lambda_t).
+\end{aligned}
 $$
 
 Put this into the definition of the alpha:
@@ -140,9 +143,11 @@ term appears because the fixed-beta regression does not recover the average beta
 The unconditional beta is the average beta plus three covariance terms:
 
 $$
-\beta^u_i = \bar\beta_i + \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \lambda_t)
-+ \frac{1}{\sigma^2_M}\operatorname{Cov}\big(\beta_{i,t}, (\lambda_t - \bar\lambda)^2\big)
-+ \frac{1}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \sigma^2_t).
+\begin{aligned}
+\beta^u_i = \bar\beta_i &+ \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \lambda_t) \\
+&+ \frac{1}{\sigma^2_M}\operatorname{Cov}\big(\beta_{i,t}, (\lambda_t - \bar\lambda)^2\big) \\
+&+ \frac{1}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \sigma^2_t).
+\end{aligned}
 $$
 
 ### Step 3: the alpha and its size
@@ -150,26 +155,36 @@ $$
 Put $\beta^u_i$ into Step 1 and collect the terms in $\operatorname{Cov}(\beta_{i,t}, \lambda_t)$:
 
 $$
-\Err{\alpha^u_i} = \Big(1 - \frac{\bar\lambda^2}{\sigma^2_M}\Big)\operatorname{Cov}(\beta_{i,t}, \lambda_t)
-- \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}\big(\beta_{i,t}, (\lambda_t - \bar\lambda)^2\big)
-- \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \sigma^2_t).
+\begin{aligned}
+\Err{\alpha^u_i} = {} &\Big(1 - \frac{\bar\lambda^2}{\sigma^2_M}\Big)\operatorname{Cov}(\beta_{i,t}, \lambda_t) \\
+&- \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}\big(\beta_{i,t}, (\lambda_t - \bar\lambda)^2\big) \\
+&- \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \sigma^2_t).
+\end{aligned}
 $$
 
 Two of these terms are tiny in monthly data. The ratio $\bar\lambda^2/\sigma^2_M$ is the market's squared monthly
-Sharpe ratio. In our sample it is 0.018, and Lewellen & Nagel (2006, p. 294) report 0.011 for 1964–2001. So the
+Sharpe ratio. For Mkt-RF from 1964-01 to 2026-06 it is 0.018. Lewellen & Nagel (2006, p. 294) report 0.011 for the
+CRSP value-weighted index, 1964–2001. So the
 first factor is almost 1. The squared deviation $(\lambda_t - \bar\lambda)^2$ is tiny too. If the monthly premium
 stays between 0% and 1%, the square is at most 0.000025 (p. 294), so its covariance with beta is negligible. That
 leaves
 
 $$
-\Err{\alpha^u_i} \approx \operatorname{Cov}(\beta_{i,t}, \lambda_t) - \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \sigma^2_t).
+\begin{aligned}
+\Err{\alpha^u_i} \approx {} &\operatorname{Cov}(\beta_{i,t}, \lambda_t) \\
+&- \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \sigma^2_t).
+\end{aligned}
 $$
 
 Now hold market volatility constant, so the last term drops. A covariance is a correlation times two standard
 deviations, and a correlation lies between −1 and 1:
 
 $$
-\Err{\alpha^u_i} \approx \operatorname{Cov}(\beta_{i,t}, \lambda_t) = \operatorname{corr}(\beta_{i,t}, \lambda_t)\,\sigma(\beta_{i,t})\,\sigma(\lambda_t) \le \sigma(\beta_{i,t})\,\sigma(\lambda_t).
+\begin{aligned}
+\Err{\alpha^u_i} &\approx \operatorname{Cov}(\beta_{i,t}, \lambda_t) \\
+&= \operatorname{corr}(\beta_{i,t}, \lambda_t)\,\sigma(\beta_{i,t})\,\sigma(\lambda_t) \\
+&\le \sigma(\beta_{i,t})\,\sigma(\lambda_t).
+\end{aligned}
 $$
 
 The bound is reached only when beta and the premium move in perfect step. Constant volatility is also generous.

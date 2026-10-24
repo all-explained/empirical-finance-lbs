@@ -88,8 +88,10 @@ export default function RollingBeta({ initialFactor = 'HML', initialWindow = 36 
               <dd>{quarters.sigmaBetaTrue.toFixed(2)}</dd>
               <dt>Average s.e. of one quarterly beta</dt>
               <dd>{quarters.meanBetaSE.toFixed(2)}</dd>
-              <dt>Lowest and highest quarter</dt>
-              <dd>{num(quarters.beta[lowest])} ({quarters.period[lowest]}), {num(quarters.beta[highest])} ({quarters.period[highest]})</dd>
+              <dt>Lowest quarter</dt>
+              <dd>{num(quarters.beta[lowest])} in {quarters.period[lowest]}</dd>
+              <dt>Highest quarter</dt>
+              <dd>{num(quarters.beta[highest])} in {quarters.period[highest]}</dd>
             </dl>
           </>
         ) : (
