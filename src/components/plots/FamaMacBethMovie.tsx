@@ -83,7 +83,7 @@ export default function FamaMacBethMovie() {
   const years = movie ? movie.dates.map(decimalYear) : [1963.5, 2026.6];
   const runStart = BAND_START - 1;
   const running = movie ? movie.fm.runningMean.map((row) => annualiseMean(row[0])) : [];
-  const half = movie ? movie.runningSE.map((se) => Z * annualiseMean(se)) : [];
+  const half = movie ? movie.runningSE.map((se) => (Number.isNaN(se) ? NaN : Z * annualiseMean(se))) : [];
   const upTo = Math.max(runStart, t);
   const runPoints = (offset: (s: number) => number) => years.slice(runStart, upTo + 1)
     .map((year, k) => [year, clamp(running[runStart + k] + offset(runStart + k), RUN_RANGE)] as [number, number]);
@@ -127,7 +127,7 @@ export default function FamaMacBethMovie() {
         {marketBeta.map((b, i) => (
           <Point key={`p${i}`} x={b} y={frame.returns[i]} color="var(--c-data)" opacity={0.9} svgCircleProps={{ r: 4 }} />
         ))}
-        <Label x={x0} y={yHalf} attach="se" attachDistance={6} size={13} color="var(--text-muted)">{date}</Label>
+        <Label x={x1} y={yHalf} attach="sw" attachDistance={6} size={13} color="var(--text-muted)">{date}</Label>
       </PlotFrame>
       <PlotFrame
         x={[years[0], years.at(-1)!]}
@@ -194,18 +194,18 @@ export default function FamaMacBethMovie() {
               <span style={{ color: 'var(--c-factor)' }}>– – mean market excess return</span>
             </p>
             <dl className="readout-grid">
-              <dt>Month</dt>
-              <dd>{date} ({t + 1} of {T})</dd>
-              <dt>Market excess return</dt>
-              <dd>{pct(panel!.factors[t][0])} this month</dd>
-              <dt><RichText>{isFF3 ? 'Slopes $\\hat\\lambda_t$ (market, SMB, HML)' : 'Market slope $\\hat\\lambda_t$'}</RichText></dt>
-              <dd style={{ color: 'var(--c-model)' }}>{lambda.map((l) => pct(l)).join(', ')} this month</dd>
-              <dt><RichText>{'Intercept $\\hat\\lambda_{0t}$'}</RichText></dt>
-              <dd>{pct(movie.fm.intercept!.monthly[t])} this month</dd>
-              <dt>Running mean of the market slope</dt>
-              <dd style={{ color: 'var(--c-model)' }}>{pct(runMean)} a year{runHalf ? ` ± ${pct(runHalf)} (95%)` : ' (band from month 12)'}</dd>
-              <dt>Whole sample</dt>
-              <dd>{pct(annualiseMean(movie.fm.lambda[0]))} a year, s.e. {pct(annualiseMean(movie.fm.se[0]))}, t = {num(movie.fm.tStats[0])}</dd>
+              <dt>Month {t + 1} of {T}</dt>
+              <dd>{date}</dd>
+              <dt>Market excess return, this month</dt>
+              <dd>{pct(panel!.factors[t][0])}</dd>
+              <dt><RichText>{isFF3 ? 'Slopes $\\hat\\lambda_t$ this month (market, SMB, HML)' : 'Market slope $\\hat\\lambda_t$, this month'}</RichText></dt>
+              <dd style={{ color: 'var(--c-model)' }}>{lambda.map((l) => pct(l)).join(', ')}</dd>
+              <dt><RichText>{'Intercept $\\hat\\lambda_{0t}$, this month'}</RichText></dt>
+              <dd>{pct(movie.fm.intercept!.monthly[t])}</dd>
+              <dt>Running mean of the market slope, a year (95% band)</dt>
+              <dd style={{ color: 'var(--c-model)' }}>{pct(runMean)}{runHalf ? ` ± ${pct(runHalf)}` : ' (band from month 12)'}</dd>
+              <dt>Whole sample, a year (s.e., t)</dt>
+              <dd>{pct(annualiseMean(movie.fm.lambda[0]))} ({pct(annualiseMean(movie.fm.se[0]))}, {num(movie.fm.tStats[0])})</dd>
             </dl>
           </>
         ) : (
