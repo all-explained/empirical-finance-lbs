@@ -1,0 +1,323 @@
+---
+title: "Does the conditional CAPM explain anomalies?"
+part: 5
+chapter: 23
+difficulty: 2
+prerequisites: [22]
+summary: "Measure betas directly from short windows of daily returns, bound the alpha that beta timing can create by σ(β)σ(λ), and find that it leaves most of the value and momentum alphas unexplained."
+---
+
+import RollingBeta from '../../components/plots/RollingBeta';
+import AlphaBound from '../../components/plots/AlphaBound';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Can a moving beta rescue the CAPM?
+
+Take two long–short factors from the Kenneth French Data Library. HML buys stocks with a high book-to-market ratio
+(value) and sells those with a low one (growth). Mom buys the stocks that rose most over the past year and sells
+those that fell most. Over the 750 months from 1964-01 to 2026-06, regress each one's monthly return on the
+market's excess return, as in [Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/). HML has a
+CAPM alpha of 4.56% a year, with a standard error of 1.29%. Mom has an alpha of 8.53% a year, with a standard error
+of 1.83%. Both betas are small and negative: −0.14 for HML and −0.16 for Mom. By the CAPM, both factors should earn
+a little less than nothing. They earn a lot.
+
+There is a well-known way out. The regression above fixes beta for 62 years. But risk changes. Suppose value stocks
+are riskier in bad times, and suppose investors also demand a higher market premium in bad times. Then value has a
+high beta exactly when a high beta is expensive. A regression with one fixed beta averages over good and bad times,
+misses this timing, and reports the reward for it as alpha. The CAPM could hold in every month and still fail in a
+regression over the whole sample. This is the idea of Chapter 22, *Conditional factor models*.
+
+So here is the question of this chapter. Could beta timing be large enough to explain alphas of 4.6% and 8.5% a
+year? You will answer it in two ways: with a bound on the alpha that any beta timing can create, and with a direct
+test that needs no model of the state of the economy.
+
+## <span class="section-tag">Intuition</span> Watch the beta move, then ask how much it can matter
+
+Start with the picture. Below, the line is a rolling beta: a CAPM regression on the last 36 months only, run again
+each month. The dots are a sharper measurement. Each dot is one calendar quarter: a CAPM regression on the roughly
+63 daily returns in that quarter. Nothing ties one quarter to the next, so each dot is free to land anywhere.
+
+<RollingBeta client:visible />
+
+<p class="try-this"><strong>Try this:</strong> keep HML and move the window from 12 to 120 months. The standard
+deviation of the rolling beta falls from 0.31 to 0.19. A long window averages the swings away. Then switch to Mom.
+Its quarterly betas run from −1.97 in 2009-Q2 to 1.46 in 1966-Q2, with a standard deviation of 0.54.</p>
+
+So betas do move, and by a lot. In 2009-Q2, Mom tended to lose about 2% for each 1% that the market gained. Does
+that much movement explain the alphas? Movement alone does not. What matters is **timing**: whether beta is high
+when the market premium is high.
+
+Think of a shop that is open on some days and closed on others. Its average daily sales depend on how often it is
+open, and also on whether it is open on the busy days. The beta is the opening schedule. The market premium is the
+crowd. A fixed-beta regression sees only the average opening and the average crowd. The extra sales from opening on
+busy days look like alpha.
+
+How big can that extra be? It is the covariance of beta with the premium. A covariance is a correlation times two
+standard deviations. A correlation is at most 1, so the extra is at most
+
+$$
+\sigma(\beta)\times\sigma(\lambda),
+$$
+
+the standard deviation of beta times the standard deviation of the market premium. You just measured the first
+factor: about 0.3 for HML and 0.5 for Mom. The second factor is the open question, because nobody observes the
+expected premium. Lewellen & Nagel (2006, p. 290) use 0.5% a month, which is 6% a year. They call that large next
+to an average premium of about the same size. With 6% a year, HML gets at most $0.31 \times 6\% = 1.9\%$ a year.
+That is well short of 4.6%.
+
+<Callout type="key">Beta timing creates alpha only through the covariance of beta with the market premium. That
+covariance is at most σ(β) σ(λ), and for plausible numbers it is far smaller than the value and momentum
+alphas.</Callout>
+
+## <span class="section-tag">Formalisation</span> The unconditional alpha of a conditional CAPM
+
+### The model
+
+Write $\Ret{R^e_{i,t}}$ for the excess return of asset $i$ in month $t$, and $\Ret{R^e_{M,t}}$ for the market's. A
+subscript $t$ on a moment means "conditional on what investors know at the start of month $t$". The **conditional
+CAPM** says that in every month
+
+$$
+\mathbb{E}_{t-1}[\Ret{R^e_{i,t}}] = \beta_{i,t}\,\lambda_t,
+$$
+
+with $\beta_{i,t}$ the conditional beta of asset $i$ and $\lambda_t = \mathbb{E}_{t-1}[R^e_{M,t}]$ the market's
+conditional risk premium. Write $\sigma^2_t$ for the market's conditional variance. A bar marks a mean over time:
+$\bar\beta_i = \mathbb{E}[\beta_{i,t}]$ and $\bar\lambda = \mathbb{E}[\lambda_t]$. By the law of iterated expectations,
+$\bar\lambda$ is also the unconditional premium $\mathbb{E}[R^e_{M,t}]$. Write $\sigma^2_M$ for the unconditional
+variance of the market's excess return.
+
+The **unconditional** CAPM regression of Chapter 16 fits one line over the whole sample. Its slope is
+$\beta^u_i = \operatorname{Cov}(R^e_{i,t}, R^e_{M,t})/\sigma^2_M$, and its intercept is the unconditional alpha,
+
+$$
+\Err{\alpha^u_i} = \mathbb{E}[R^e_{i,t}] - \beta^u_i\,\bar\lambda.
+$$
+
+### Step 1: the mean return
+
+Take the unconditional expectation of the conditional CAPM. For any two random variables,
+$\mathbb{E}[XY] = \mathbb{E}[X]\,\mathbb{E}[Y] + \operatorname{Cov}(X, Y)$. So
+
+$$
+\begin{aligned}
+\mathbb{E}[R^e_{i,t}] &= \mathbb{E}[\beta_{i,t}\lambda_t] \\
+&= \bar\beta_i\bar\lambda + \operatorname{Cov}(\beta_{i,t}, \lambda_t).
+\end{aligned}
+$$
+
+Put this into the definition of the alpha:
+
+$$
+\Err{\alpha^u_i} = \bar\lambda\,(\bar\beta_i - \beta^u_i) + \operatorname{Cov}(\beta_{i,t}, \lambda_t).
+$$
+
+This is Eq. (1) of Lewellen & Nagel (2006, p. 293). The second term is the timing reward from the hook. The first
+term appears because the fixed-beta regression does not recover the average beta.
+
+### Step 2: the unconditional beta
+
+<details>
+<summary>The algebra for the unconditional beta, step by step</summary>
+
+1. Split the market return into its premium and a surprise: $R^e_{M,t} = \lambda_t + \varepsilon_{M,t}$, with
+   $\mathbb{E}_{t-1}[\varepsilon_{M,t}] = 0$ and $\mathbb{E}_{t-1}[\varepsilon_{M,t}^2] = \sigma^2_t$.
+2. Under the conditional CAPM, $R^e_{i,t} = \beta_{i,t}\lambda_t + \beta_{i,t}\varepsilon_{M,t} + u_{i,t}$, with
+   $\mathbb{E}_{t-1}[u_{i,t}] = 0$ and $\mathbb{E}_{t-1}[u_{i,t}\varepsilon_{M,t}] = 0$: the conditional alpha is zero, and $u_{i,t}$ is
+   the part of the return that the conditional beta does not explain.
+3. Multiply the two returns and take $\mathbb{E}_{t-1}$. The terms with one $\varepsilon_{M,t}$ or one $u_{i,t}$ vanish, so
+   $\mathbb{E}_{t-1}[R^e_{i,t}R^e_{M,t}] = \beta_{i,t}\lambda_t^2 + \beta_{i,t}\sigma^2_t$.
+4. So $\operatorname{Cov}(R^e_{i,t}, R^e_{M,t}) = \mathbb{E}[\beta_{i,t}\lambda_t^2] + \mathbb{E}[\beta_{i,t}\sigma^2_t] - \bar\lambda\,\mathbb{E}[\beta_{i,t}\lambda_t]$.
+5. Write $\lambda_t = \bar\lambda + \tilde\lambda_t$, so $\lambda_t^2 = \bar\lambda^2 + 2\bar\lambda\tilde\lambda_t + \tilde\lambda_t^2$. Then
+   $\mathbb{E}[\beta_{i,t}\lambda_t^2] = \bar\beta_i\bar\lambda^2 + 2\bar\lambda\operatorname{Cov}(\beta_{i,t}, \lambda_t) + \bar\beta_i\operatorname{Var}(\lambda_t) + \operatorname{Cov}(\beta_{i,t}, \tilde\lambda_t^2)$.
+6. Also $\mathbb{E}[\beta_{i,t}\sigma^2_t] = \bar\beta_i\,\mathbb{E}[\sigma^2_t] + \operatorname{Cov}(\beta_{i,t}, \sigma^2_t)$, and
+   $\bar\lambda\,\mathbb{E}[\beta_{i,t}\lambda_t] = \bar\beta_i\bar\lambda^2 + \bar\lambda\operatorname{Cov}(\beta_{i,t}, \lambda_t)$.
+7. Add steps 5 and 6. The terms $\bar\beta_i\bar\lambda^2$ cancel. By the law of total variance,
+   $\operatorname{Var}(\lambda_t) + \mathbb{E}[\sigma^2_t] = \sigma^2_M$. So
+   $\operatorname{Cov}(R^e_{i,t}, R^e_{M,t}) = \bar\beta_i\sigma^2_M + \bar\lambda\operatorname{Cov}(\beta_{i,t}, \lambda_t) + \operatorname{Cov}(\beta_{i,t}, \tilde\lambda_t^2) + \operatorname{Cov}(\beta_{i,t}, \sigma^2_t)$.
+8. Divide by $\sigma^2_M$ to get the result below.
+
+</details>
+
+The unconditional beta is the average beta plus three covariance terms:
+
+$$
+\begin{aligned}
+\beta^u_i = \bar\beta_i &+ \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \lambda_t) \\
+&+ \frac{1}{\sigma^2_M}\operatorname{Cov}\big(\beta_{i,t}, (\lambda_t - \bar\lambda)^2\big) \\
+&+ \frac{1}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \sigma^2_t).
+\end{aligned}
+$$
+
+### Step 3: the alpha and its size
+
+Put $\beta^u_i$ into Step 1 and collect the terms in $\operatorname{Cov}(\beta_{i,t}, \lambda_t)$:
+
+$$
+\begin{aligned}
+\Err{\alpha^u_i} = {} &\Big(1 - \frac{\bar\lambda^2}{\sigma^2_M}\Big)\operatorname{Cov}(\beta_{i,t}, \lambda_t) \\
+&- \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}\big(\beta_{i,t}, (\lambda_t - \bar\lambda)^2\big) \\
+&- \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \sigma^2_t).
+\end{aligned}
+$$
+
+Two of these terms are tiny in monthly data. The ratio $\bar\lambda^2/\sigma^2_M$ is the market's squared monthly
+Sharpe ratio. For Mkt-RF from 1964-01 to 2026-06 it is 0.018. Lewellen & Nagel (2006, p. 294) report 0.011 for the
+CRSP value-weighted index, 1964–2001. So the
+first factor is almost 1. The squared deviation $(\lambda_t - \bar\lambda)^2$ is tiny too. If the monthly premium
+stays between 0% and 1%, the square is at most 0.000025 (p. 294), so its covariance with beta is negligible. That
+leaves
+
+$$
+\begin{aligned}
+\Err{\alpha^u_i} \approx {} &\operatorname{Cov}(\beta_{i,t}, \lambda_t) \\
+&- \frac{\bar\lambda}{\sigma^2_M}\operatorname{Cov}(\beta_{i,t}, \sigma^2_t).
+\end{aligned}
+$$
+
+Now hold market volatility constant, so the last term drops. A covariance is a correlation times two standard
+deviations, and a correlation lies between −1 and 1:
+
+$$
+\begin{aligned}
+\Err{\alpha^u_i} &\approx \operatorname{Cov}(\beta_{i,t}, \lambda_t) \\
+&= \operatorname{corr}(\beta_{i,t}, \lambda_t)\,\sigma(\beta_{i,t})\,\sigma(\lambda_t) \\
+&\le \sigma(\beta_{i,t})\,\sigma(\lambda_t).
+\end{aligned}
+$$
+
+The bound is reached only when beta and the premium move in perfect step. Constant volatility is also generous.
+If volatility rises when the premium rises, as many models predict, a beta that tracks the premium also tracks
+volatility. The last term then pulls the alpha down (Lewellen & Nagel, 2006, p. 296).
+
+### Measuring beta without a model of the state
+
+The bound needs $\sigma(\beta_{i,t})$. One way to measure beta is to model it as a function of a state variable
+that you choose, such as the dividend yield. That works only if you picked the right state variable. Investors
+may watch things you do not.
+
+Lewellen & Nagel (2006, pp. 296–297) avoid the choice. Assume only that beta is roughly constant within a short
+window $q$, such as a calendar quarter. Then run one regression per window on daily data:
+
+$$
+\Ret{R^e_{i,t}} = \Err{\alpha_{i,q}} + \beta_{i,q}\,\Ret{R^e_{M,t}} + \Err{\varepsilon_{i,t}}, \qquad t \in q.
+$$
+
+The quarter's OLS estimates $\hat\alpha_{i,q}$ and $\hat\beta_{i,q}$ measure that quarter's conditional alpha and
+beta. No state variable enters. Beta may jump from one quarter to the next in any way. One detail: some stocks trade
+late in the day or not at all, so their daily prices react to market news with a delay. Our quarterly regressions
+therefore add the market's return of the day before and the average of the three days before that, and add up the
+three slopes into one beta (Lewellen & Nagel, 2006, Eq. 7, p. 298). The rolling line in the widget is the
+monthly-data version: one regression per window of months, moved forward a month at a time.
+
+Short windows have a cost. A quarter has only about 63 days, so each $\hat\beta_{i,q}$ is noisy. The average
+standard error of one quarterly beta is 0.14 for HML and 0.17 for Mom. Write $\hat\beta_{i,q} = \beta_{i,q} + e_q$,
+with sampling error $e_q$ unrelated to the true beta. Then
+
+$$
+\operatorname{Var}(\hat\beta_{i,q}) = \operatorname{Var}(\beta_{i,q}) + \operatorname{Var}(e_q).
+$$
+
+So $\sigma(\hat\beta_{i,q})$ **overstates** the true variation. The average squared standard error estimates
+$\operatorname{Var}(e_q)$. Subtract it and take the square root to get the implied $\sigma(\beta_{i,q})$
+(Lewellen & Nagel, 2006, p. 303). For HML, $\sigma(\hat\beta_{i,q}) = 0.31$ and the implied value is 0.27. For
+Mom, they are 0.54 and 0.51. The paper reports about 0.25 and 0.60 for similar portfolios in 1964–2001 (p. 291).
+
+### A direct test
+
+Short windows also give a test of the conditional CAPM. If it holds, every conditional alpha is zero, so their
+average is zero. Average the $Q$ quarterly alphas and use their spread for the standard error, as Fama–MacBeth
+does in [Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/):
+
+$$
+\bar{\hat\alpha}_i = \frac1Q\sum_{q=1}^{Q}\Err{\hat\alpha_{i,q}}, \qquad
+\mathrm{se}(\bar{\hat\alpha}_i) = \frac{s(\hat\alpha_{i,q})}{\sqrt Q}.
+$$
+
+A daily alpha times 21 trading days is a monthly alpha (Lewellen & Nagel, 2006, p. 299), and times 12 again is a
+yearly one. Over our 250 quarters, the average conditional alpha of HML is 3.89% a year, with $t = 2.72$. For Mom
+it is 10.10% a year, with $t = 6.18$. Both are close to the unconditional alphas of 4.56% and 8.53%. Letting beta
+move freely each quarter barely changes the answer.
+
+## <span class="section-tag">Playground</span> Make the premium as volatile as you dare
+
+The widget sets the bound next to the facts, in percent a year. A monthly premium and its standard deviation both
+scale by 12, so the yearly bound is $\sigma(\hat\beta_{i,q})$ times the yearly $\sigma(\lambda_t)$. It uses the
+estimated $\sigma(\hat\beta_{i,q})$, which is too large. That makes the bound more generous still.
+
+<AlphaBound client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start at 6% a year, the paper's largest value. The bound is 1.88%
+for HML and 3.27% for Mom. That covers at most 41% and 38% of the actual alphas. Even with perfect timing, more
+than half of each alpha is left unexplained.</p>
+
+<p class="try-this"><strong>Try this too:</strong> raise $\sigma(\lambda_t)$ until the dashed bar reaches the solid
+one. HML needs 14.6% a year and Mom needs 15.7%. Our average premium is 7.16% a year. With a standard deviation of
+15%, a band of two standard deviations runs from −23% to +37% a year. The expected premium would often be negative.
+That is hard to believe for an expected return.</p>
+
+### What the bound does and does not show
+
+The bound is an argument about **magnitudes**. It says how large the timing term could be for values of
+$\sigma(\beta)$ and $\sigma(\lambda)$ that you are willing to accept. It is not a formal test of every conditional
+model, for three reasons.
+
+- The expected premium $\lambda_t$ is never observed, so $\sigma(\lambda_t)$ is a judgement. If you believe the
+  premium swings by 15% a year, the bound no longer bites.
+- The bound drops two terms and assumes constant volatility. The dropped terms are small in monthly data, and
+  time-varying volatility makes the alpha smaller, not larger. Both points rest on the algebra above, not on our
+  data.
+- The direct test assumes that beta is stable within a quarter. Swings inside the quarter, timed with the premium,
+  would escape it. Lewellen & Nagel (2006, p. 302) argue, with simulations, that such swings would need to be far
+  larger than the swings across quarters.
+
+Our numbers come from the French factors, 1964-01 to 2026-06. The paper's numbers come from its own NYSE and Amex
+portfolios, 1964–2001. Its quarterly method gives an average conditional alpha of 0.50% a month for value minus
+growth and 1.33% a month for winners minus losers (Table 3, p. 301). The two samples differ, but they agree on the
+message.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="An asset's conditional beta has $\sigma(\beta_{i,t}) = 0.4$. The market premium has $\sigma(\lambda_t) = 4\%$ a year, and market volatility is constant. What is the largest unconditional alpha that the conditional CAPM can create?"
+  options={["1.6% a year", "4% a year", "0.4% a year", "10% a year"]}
+  answer={0}
+  explanation="The alpha is about $\operatorname{Cov}(\beta_{i,t}, \lambda_t) \le \sigma(\beta_{i,t})\,\sigma(\lambda_t) = 0.4 \times 4\% = 1.6\%$ a year. It reaches that only if beta and the premium are perfectly correlated."
+/>
+
+<Quiz
+  client:visible
+  question="Why does the standard deviation of quarterly beta estimates, $\sigma(\hat\beta_{i,q})$, overstate how much the true beta moves?"
+  options={["Each estimate adds sampling error, and its variance adds to the variance of the true beta", "The Dimson lags bias each beta upwards", "Daily returns are more volatile than monthly returns", "It does not; the two are equal on average"]}
+  answer={0}
+  explanation="With $\hat\beta_{i,q} = \beta_{i,q} + e_q$ and $e_q$ unrelated to the true beta, $\operatorname{Var}(\hat\beta_{i,q}) = \operatorname{Var}(\beta_{i,q}) + \operatorname{Var}(e_q)$. Subtracting the average squared standard error removes the noise."
+/>
+
+<Quiz
+  client:visible
+  question="The average of 250 quarterly CAPM alphas of Mom is 10.1% a year, with $t = 6.18$. What does this show?"
+  options={["The conditional CAPM fails for Mom, as long as beta is stable within each quarter", "Mom's beta does not move over time", "The market premium is constant", "Mom's unconditional alpha comes from beta timing"]}
+  answer={0}
+  explanation="If the conditional CAPM held, every quarterly alpha would have mean zero, so their average would be near zero. The test needs no state variable, only a beta that is stable inside each quarter."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- If the CAPM holds period by period, the unconditional alpha is about $\operatorname{Cov}(\beta_{i,t}, \lambda_t)$,
+  the reward for beta timing.
+- A covariance is at most $\sigma(\beta_{i,t})\,\sigma(\lambda_t)$. With a generous 6% a year for $\sigma(\lambda_t)$,
+  the bound covers at most 41% of the HML alpha and 38% of the Mom alpha, 1964-01 to 2026-06.
+- Short-window regressions on daily data measure conditional betas with no model of the state. They are noisy, so
+  $\sigma(\hat\beta_{i,q})$ overstates the true variation.
+- The average conditional alpha is a direct test. For HML and Mom it stays large and close to the unconditional
+  alpha.
+- The bound is an argument about magnitudes, not a formal test of every conditional model.
+
+**Next up:** Part VI, *GMM and tests of asset pricing models* (chapters 24 to 27), builds the general tool for
+testing models like this one, starting with Chapter 24, *The generalized method of moments*.
+
+### Further reading
+
+- Lewellen & Nagel (2006)
