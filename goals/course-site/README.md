@@ -116,6 +116,12 @@ flowchart TD
   end
   subgraph M_6["M-6 · Part IV: Cross-sectional tests"]
     TASK_032["TASK-032 Plan: decompose M-6"]
+    TASK_061["TASK-061 Library: the F distribution, time-series factor regressions and GRS"]
+    TASK_062["TASK-062 Library: two-pass regressions, Fama–MacBeth and the Shanken correction"]
+    TASK_063["TASK-063 Chapter 16: Time-series tests and the GRS statistic"]
+    TASK_064["TASK-064 Chapter 17: Cross-sectional regressions and Fama–MacBeth"]
+    TASK_065["TASK-065 Chapter 18: Errors in variables and the Shanken correction"]
+    TASK_066["TASK-066 Orchestrator reads Part IV and signs it off"]
   end
   subgraph M_7["M-7 · Part V: Factors, anomalies and conditional models"]
     TASK_033["TASK-033 Plan: decompose M-7"]
@@ -195,6 +201,7 @@ flowchart TD
   TASK_031 --> TASK_032
   TASK_057 --> TASK_032
   TASK_032 --> TASK_033
+  TASK_063 --> TASK_033
   TASK_033 --> TASK_034
   TASK_034 --> TASK_035
   TASK_035 --> TASK_036
@@ -222,6 +229,13 @@ flowchart TD
   TASK_057 --> TASK_060
   TASK_058 --> TASK_060
   TASK_059 --> TASK_060
+  TASK_061 --> TASK_062
+  TASK_061 --> TASK_063
+  TASK_062 --> TASK_064
+  TASK_062 --> TASK_065
+  TASK_063 --> TASK_066
+  TASK_064 --> TASK_066
+  TASK_065 --> TASK_066
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
