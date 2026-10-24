@@ -23,13 +23,15 @@ const compact = (v: number) => (v >= 1e3 ? `$${v / 1e3}k` : v >= 1 ? `$${v}` : `
  * Chapters 19 and 20: the six value-weighted portfolios of a 2×3 sort (size by book-to-market, or size by
  * past return), the legs of the chosen factor, and $1 in T-bills plus the rebuilt factor against the
  * published one. kind 'size-value' rebuilds SMB and HML (ff6-size-bm-monthly vs ff3-monthly); kind
- * 'size-momentum' rebuilds UMD (ff6-size-mom-monthly vs Mom of mom-monthly).
+ * 'size-momentum' rebuilds WML (ff6-size-mom-monthly vs Mom of mom-monthly).
  */
 export default function FactorBuilder({ kind = 'size-value' }: { kind?: SortKind }) {
   const { data, failed } = useSeriesData(SORT_SERIES[kind]);
   const view = useMemo(() => (data ? sortView(kind, data as SortData) : null), [data, kind]);
   const [pick, setPick] = useState(0);
   const factor = view?.factors[pick];
+  // The library keys the momentum factor by its code name; on screen it is WML, as in the chapter's formula.
+  const name = kind === 'size-momentum' ? 'WML' : factor?.name;
 
   const x = view ? [yearOf(view.dates[0]), ...view.dates.map((d) => yearOf(d) + 1 / 12)] : [];
   const [lo, hi] = factor ? extent([...factor.growth.rebuilt, ...factor.growth.published].map(Math.log10)) : [0, 1];
@@ -54,7 +56,7 @@ export default function FactorBuilder({ kind = 'size-value' }: { kind?: SortKind
       <Polyline points={points(factor.growth.rebuilt)} color="var(--c-factor)" weight={6} fillOpacity={0} strokeOpacity={0.35} />
       <Polyline points={points(factor.growth.published)} color="var(--c-factor)" weight={1.5} fillOpacity={0} strokeStyle="dashed" />
       <Label x={x.at(-1)!} y={Math.log10(end.published)} attach="nw" attachDistance={8} size={12} color="var(--c-factor)">
-        {`${factor.name} rebuilt (wide) and ${factor.published} published (dashed)`}
+        {`${name} rebuilt (wide) and ${factor.published} published (dashed)`}
       </Label>
     </PlotFrame>
   ) : (
@@ -64,7 +66,7 @@ export default function FactorBuilder({ kind = 'size-value' }: { kind?: SortKind
   const grid = view && factor ? (
     <table className="sort-grid" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 4, marginBottom: '0.75rem', fontSize: '0.85rem', tableLayout: 'fixed' }}>
       <caption style={{ textAlign: 'left', marginBottom: 4, color: 'var(--text-muted)' }}>
-        Mean return of each portfolio, % a year, and its weight in {factor.name}
+        Mean return of each portfolio, % a year, and its weight in {name}
       </caption>
       <thead>
         <tr>
@@ -106,7 +108,7 @@ export default function FactorBuilder({ kind = 'size-value' }: { kind?: SortKind
       title={kind === 'size-value' ? 'Build SMB and HML from six portfolios' : 'Build the momentum factor from six portfolios'}
       ariaLabel={
         view && factor && end
-          ? `Six portfolios sorted on size and ${SORT_NAME[kind]}, ${view.dates[0].slice(0, 7)} to ${view.dates.at(-1)!.slice(0, 7)}. ${factor.name} buys the cells marked plus and sells the cells marked minus. One dollar in T-bills plus the rebuilt ${factor.name} grows to ${money(end.rebuilt, 0)}; with the published ${factor.published} it grows to ${money(end.published, 0)}. The largest gap in one month is ${(factor.gap.value * 100).toFixed(2)} percentage points, in ${factor.gap.date.slice(0, 7)}.`
+          ? `Six portfolios sorted on size and ${SORT_NAME[kind]}, ${view.dates[0].slice(0, 7)} to ${view.dates.at(-1)!.slice(0, 7)}. ${name} buys the cells marked plus and sells the cells marked minus. One dollar in T-bills plus the rebuilt ${name} grows to ${money(end.rebuilt, 0)}; with the published ${factor.published} it grows to ${money(end.published, 0)}. The largest gap in one month is ${(factor.gap.value * 100).toFixed(2)} percentage points, in ${factor.gap.date.slice(0, 7)}.`
           : 'Six portfolios of a 2×3 sort and a factor rebuilt from them. The data is loading.'
       }
       plotHeight={HEIGHT}
@@ -127,9 +129,9 @@ export default function FactorBuilder({ kind = 'size-value' }: { kind?: SortKind
             {grid}
             <p style={{ margin: '0 0 0.5rem' }}>Solid cell: bought (+). Dashed cell: sold (−). 0: left out.</p>
             <dl className="readout-grid">
-              <dt>Mean of {factor.name} rebuilt</dt>
+              <dt>Mean of {name} rebuilt</dt>
               <dd style={{ color: 'var(--c-factor)' }}>{pct(factor.mean.rebuilt, 2)} a year (published {pct(factor.mean.published, 2)})</dd>
-              <dt>$1 in T-bills + {factor.name} rebuilt</dt>
+              <dt>$1 in T-bills + {name} rebuilt</dt>
               <dd>{money(end.rebuilt, 0)}</dd>
               <dt>$1 in T-bills + {factor.published} published</dt>
               <dd>{money(end.published, 0)}</dd>
@@ -141,7 +143,7 @@ export default function FactorBuilder({ kind = 'size-value' }: { kind?: SortKind
           <p>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
         )
       }
-      caption={`Data: ${kind === 'size-value' ? 'ff6-size-bm-monthly and ff3-monthly' : 'ff6-size-mom-monthly, mom-monthly and ff3-monthly'} (Kenneth French Data Library), ${FIRST[kind]} to ${view ? view.dates.at(-1)!.slice(0, 7) : '2026-08'}. Six value-weighted portfolios: stocks split at the median size, then into thirds on ${SORT_NAME[kind]}. ${kind === 'size-value' ? 'SMB = ⅓(small row) − ⅓(big row); HML = ½(small value + big value) − ½(small growth + big growth).' : 'UMD = ½(small winners + big winners) − ½(small losers + big losers).'} Lines compound RF + factor monthly. Means are monthly means × 12, before costs.`}
+      caption={`Data: ${kind === 'size-value' ? 'ff6-size-bm-monthly and ff3-monthly' : 'ff6-size-mom-monthly, mom-monthly and ff3-monthly'} (Kenneth French Data Library), ${FIRST[kind]} to ${view ? view.dates.at(-1)!.slice(0, 7) : '2026-08'}. Six value-weighted portfolios: stocks split at the median size, then at the 30th and 70th NYSE percentiles of ${SORT_NAME[kind]}. ${kind === 'size-value' ? 'SMB = ⅓(small row) − ⅓(big row); HML = ½(small value + big value) − ½(small growth + big growth).' : 'WML = ½(small winners + big winners) − ½(small losers + big losers).'} Lines compound RF + factor monthly. Means are monthly means × 12, before costs.`}
     />
   );
 }
