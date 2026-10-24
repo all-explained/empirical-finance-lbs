@@ -1,6 +1,6 @@
 # Public data
 
-These eleven datasets are small teaching extracts of public source files. They keep source units.
+These fifteen datasets are small teaching extracts of public source files. They keep source units.
 Public access does not imply an open licence. The site's code and content licences do not cover third-party data.
 
 1. Install Node dependencies: `npm ci`.
@@ -10,7 +10,7 @@ Public access does not imply an open licence. The site's code and content licenc
 5. Check the results: `npm test && npm run build`.
 
 The script also needs `curl`, included with macOS. It runs from the repository root.
-Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all eleven outputs.
+Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all fifteen outputs.
 A fresh checkout downloads all sources without API keys. A failed download exits with an error.
 Remove its raw cache file, or use `--refresh`, to try a source again.
 The script validates all datasets and their sizes before replacing any JSON file.
@@ -19,6 +19,7 @@ Python dependencies, including indirect dependencies, are pinned in `scripts/dat
 ## Sources, terms and citations
 
 Coverage below describes the checked-in extract retrieved on 2026-10-22 (`fred-cay-quarterly`: 2026-10-23).
+The four French 2×3 and daily extracts were retrieved on 2026-10-24.
 Dates identify observation periods, not publication dates. Historical values can change after a source revision.
 The source links provide the files or their download pages. Terms links give the available source notices.
 
@@ -27,6 +28,10 @@ The source links provide the files or their download pages. Terms links give the
 | `ff3-monthly` | [French three-factor ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_CSV.zip) | Public academic download; © Eugene F. Fama and Kenneth R. French. No explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Fama and French (1993); Kenneth French Data Library. | 1926-07–2026-08 |
 | `ff5-monthly` | [French five-factor ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_5_Factors_2x3_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Fama and French (2015); Kenneth French Data Library. | 1963-07–2026-08 |
 | `mom-monthly` | [French momentum ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Momentum_Factor_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Carhart (1997); Kenneth French Data Library, momentum factor. | 1927-01–2026-08 |
+| `ff6-size-bm-monthly` | [French six size/value portfolios ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/6_Portfolios_2x3_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Fama and French (1993); Kenneth French Data Library. | 1926-07–2026-08 |
+| `ff6-size-mom-monthly` | [French six size/momentum portfolios ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/6_Portfolios_ME_Prior_12_2_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Carhart (1997); Kenneth French Data Library. | 1927-01–2026-09 |
+| `ff3-daily` | [French daily three-factor ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Fama and French (1993); Kenneth French Data Library. | 1963-07-01–2026-08-31 |
+| `mom-daily` | [French daily momentum ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Momentum_Factor_daily_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Carhart (1997); Kenneth French Data Library, momentum factor. | 1963-07-01–2026-08-31 |
 | `ff25-size-bm-monthly` | [French 25-portfolio ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/25_Portfolios_5x5_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Fama and French (1993); Kenneth French Data Library. | 1926-07–2026-08 |
 | `shiller-monthly` | [Shiller XLS](http://www.econ.yale.edu/~shiller/data/ie_data.xls) | Public academic download; no explicit redistribution licence stated on the [source page](http://www.econ.yale.edu/~shiller/data.htm). Workbook disclaims accuracy and investment advice. | Shiller (2015), *Irrational Exuberance*, third edition; updated online data. | 1881-01–2023-06 |
 | `goyal-welch-annual` | [Goyal source page](https://sites.google.com/view/agoyal145), [2025 workbook export](https://docs.google.com/spreadsheets/d/1qwpl2R_DNujpU5YUkk8lacP1tTeMb9iJ/export?format=xlsx) | Public research download; no explicit redistribution licence stated. Source notes that `ltr`/`corpr` use Bloomberg indices from 2022. | Welch and Goyal (2008); Amit Goyal's update through 2025. | 1871–2025; optional columns have gaps |
@@ -59,11 +64,24 @@ Column zero is `date`, an ISO `YYYY-MM-DD` string. Other cells are numbers, or `
 Required columns cannot contain missing values. Dates are sorted and unique.
 No gaps are filled, no returns are calculated, and no source units are converted.
 
-- French: use the first monthly table only. Portfolio returns are value weighted.
+- French: use the first table only (monthly or daily). Portfolio returns are value weighted.
   `ME1-BM1` means the smallest size group and lowest book-to-market group.
   Size varies from 1 to 5, then book-to-market varies from 1 to 5 within each size.
-  Returns and factors are **percent per month**, including RF. Divide by 100 for decimal returns.
+  Returns and factors are **percent per period** (month or trading day), including RF. Divide by 100 for decimal returns.
   Drop source missing-value markers `-99.99` and `-999`. Preserve source precision: two or four decimals.
+- French 2×3 sorts and daily files: retain the first value-weighted portfolio table.
+  Replace spaces in the six source headers with hyphens, preserving their order.
+  Size/value columns are `SMALL-LoBM`, `ME1-BM2`, `SMALL-HiBM`, `BIG-LoBM`, `ME2-BM2`, `BIG-HiBM`.
+  Size/momentum columns are `SMALL-LoPRIOR`, `ME1-PRIOR2`, `SMALL-HiPRIOR`, `BIG-LoPRIOR`, `ME2-PRIOR2`, `BIG-HiPRIOR`.
+  [Size/value portfolios](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/Data_Library/six_portfolios.html)
+  form at each June end for returns from July through the following June.
+  Size uses the June NYSE median market equity (ME).
+  Book-to-market uses prior-year fiscal-end book equity divided by prior December ME, with NYSE 30th/70th percentile breakpoints.
+  [Size/momentum portfolios](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/Data_Library/det_6_port_form_sz_pr_12_2.html)
+  form each month at the previous month end.
+  Size uses the monthly NYSE median ME; momentum uses returns from months t−12 through t−2, with NYSE 30th/70th percentile breakpoints.
+  Both sorts intersect two size groups with three value or prior-return groups for NYSE, AMEX and NASDAQ stocks.
+  Daily factors retain source trading dates. Both daily extracts start at **1963-07-01 by choice** to limit file size.
 - Shiller: use `Data` sheet columns A/B/C/D/E/G/M. Retain months with all six requested numeric fields.
   CAPE starts in 1881. Earnings and dividends end in June 2023 in the published workbook.
   Parse numeric `YYYY.MM` dates with two month digits; `1881.1` means October.

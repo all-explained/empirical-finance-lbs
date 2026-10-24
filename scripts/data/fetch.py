@@ -135,27 +135,55 @@ def series(
 
 
 def french(
-    filename: str, identifier: str, title: str, names: list[str], refresh: bool
+    filename: str,
+    identifier: str,
+    title: str,
+    names: list[str],
+    refresh: bool,
+    *,
+    frequency: str = "monthly",
+    first_date: str = "0001-01-01",
 ) -> dict:
     path = download(filename + "_CSV.zip", FRENCH + filename + "_CSV.zip", refresh)
     with ZipFile(path) as archive:
         text = archive.read(archive.namelist()[0]).decode("utf-8-sig")
-    records = list(csv.reader(StringIO(text)))
+    records = list(csv.reader(StringIO(text, newline="")))
+    date_pattern = r"\s*\d{8}\s*" if frequency == "daily" else r"\s*\d{6}\s*"
     start = next(
-        i
-        for i, row in enumerate(records)
-        if row and re.fullmatch(r"\s*\d{6}\s*", row[0])
+        i for i, row in enumerate(records) if row and re.fullmatch(date_pattern, row[0])
     )
+    # French portfolio headers use spaces; our column names use hyphens.
+    header = ["-".join(value.split()) for value in records[start - 1][1:]]
+    if filename == "25_Portfolios_5x5":
+        # Preserve the existing 5×5 schema's numbered corner portfolios.
+        corners = {
+            "SMALL-LoBM": "ME1-BM1",
+            "SMALL-HiBM": "ME1-BM5",
+            "BIG-LoBM": "ME5-BM1",
+            "BIG-HiBM": "ME5-BM5",
+        }
+        header = [corners.get(name, name) for name in header]
+    if header != names:
+        raise ValueError(f"{filename}: unexpected header {header}")
     rows = []
     for record in records[start:]:
-        if not record or not re.fullmatch(r"\s*\d{6}\s*", record[0]):
-            break  # First monthly block only: excludes annual and equal-weighted tables.
+        if not record or not re.fullmatch(date_pattern, record[0]):
+            break  # First block only: excludes annual and equal-weighted tables.
         stamp = record[0].strip()
+        observation_date = (
+            date(int(stamp[:4]), int(stamp[4:6]), int(stamp[6:])).isoformat()
+            if frequency == "daily"
+            else date(int(stamp[:4]), int(stamp[4:6]), 1).isoformat()
+        )
         values = [numeric(value) for value in record[1:]]
         if len(values) != len(names):
             raise ValueError(f"{filename}: unexpected columns")
-        if complete(values) and not any(value in (-99.99, -999) for value in values):
-            rows.append([f"{stamp[:4]}-{stamp[4:]}-01", *values])
+        if (
+            observation_date >= first_date
+            and complete(values)
+            and not any(value in (-99.99, -999) for value in values)
+        ):
+            rows.append([observation_date, *values])
     return series(
         identifier,
         title,
@@ -164,10 +192,12 @@ def french(
         "Fama and French (1993), Journal of Financial Economics 33, 3–56; "
         "Fama and French (2015), Journal of Financial Economics 116, 1–22. "
         "Momentum: Carhart (1997), Journal of Finance 52, 57–82.",
-        "monthly",
+        frequency,
         [
             column(
-                name, "percent", "Monthly return; source units (not decimal returns)"
+                name,
+                "percent",
+                f"{frequency.title()} return; source units (not decimal returns)",
             )
             for name in names
         ],
@@ -420,6 +450,45 @@ def build_all(refresh: bool) -> list[dict]:
             "25 size × book-to-market portfolios, value weighted",
             [f"ME{size}-BM{bm}" for size in range(1, 6) for bm in range(1, 6)],
             refresh,
+        ),
+        french(
+            "6_Portfolios_2x3",
+            "ff6-size-bm-monthly",
+            "6 size × book-to-market portfolios, value weighted",
+            ["SMALL-LoBM", "ME1-BM2", "SMALL-HiBM", "BIG-LoBM", "ME2-BM2", "BIG-HiBM"],
+            refresh,
+        ),
+        french(
+            "6_Portfolios_ME_Prior_12_2",
+            "ff6-size-mom-monthly",
+            "6 size × momentum portfolios, value weighted",
+            [
+                "SMALL-LoPRIOR",
+                "ME1-PRIOR2",
+                "SMALL-HiPRIOR",
+                "BIG-LoPRIOR",
+                "ME2-PRIOR2",
+                "BIG-HiPRIOR",
+            ],
+            refresh,
+        ),
+        french(
+            "F-F_Research_Data_Factors_daily",
+            "ff3-daily",
+            "Fama–French three factors, daily",
+            ["Mkt-RF", "SMB", "HML", "RF"],
+            refresh,
+            frequency="daily",
+            first_date="1963-07-01",
+        ),
+        french(
+            "F-F_Momentum_Factor_daily",
+            "mom-daily",
+            "Momentum factor, daily",
+            ["Mom"],
+            refresh,
+            frequency="daily",
+            first_date="1963-07-01",
         ),
         shiller(refresh),
     ]
