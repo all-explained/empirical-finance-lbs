@@ -96,24 +96,24 @@ would mix a size effect with a value effect.
 
 The averages fix that. Look at SMB. Its long side holds equal parts of small growth, small neutral and small value.
 Its short side holds equal parts of big growth, big neutral and big value. Write each leg's return as a size part
-plus a B/M part, $R_{\text{SH},t} = a_{\text{S},t} + c_{\text{H},t} + e_{\text{SH},t}$ and so on. Then the B/M parts
-appear once on each side:
+$s$ plus a B/M part $v$ (for value), $R_{\text{SH},t} = s_{\text{S},t} + v_{\text{H},t} + e_{\text{SH},t}$ and so on.
+Then the B/M parts appear once on each side:
 
 $$
 \begin{aligned}
-\Factor{\text{SMB}_t} &= (a_{\text{S},t} - a_{\text{B},t}) \\
-&\quad + \tfrac13\big[(c_{\text{L},t} + c_{\text{M},t} + c_{\text{H},t}) - (c_{\text{L},t} + c_{\text{M},t} + c_{\text{H},t})\big] + \text{(leftovers)},
+\Factor{\text{SMB}_t} &= (s_{\text{S},t} - s_{\text{B},t}) \\
+&\quad + \tfrac13\big[(v_{\text{L},t} + v_{\text{M},t} + v_{\text{H},t}) - (v_{\text{L},t} + v_{\text{M},t} + v_{\text{H},t})\big] + \text{(leftovers)},
 \end{aligned}
 $$
 
 and the bracket is zero. In the same way, HML holds one small and one big portfolio on each side, so the size parts
-$a_{\text{S},t}$ and $a_{\text{B},t}$ cancel:
+$s_{\text{S},t}$ and $s_{\text{B},t}$ cancel:
 
 $$
 \begin{aligned}
-\Factor{\text{HML}_t} &= \tfrac12\big[(a_{\text{S},t} + c_{\text{H},t}) + (a_{\text{B},t} + c_{\text{H},t})\big] \\
-&\quad - \tfrac12\big[(a_{\text{S},t} + c_{\text{L},t}) + (a_{\text{B},t} + c_{\text{L},t})\big] + \text{(leftovers)} \\
-&= (c_{\text{H},t} - c_{\text{L},t}) + \text{(leftovers)}.
+\Factor{\text{HML}_t} &= \tfrac12\big[(s_{\text{S},t} + v_{\text{H},t}) + (s_{\text{B},t} + v_{\text{H},t})\big] \\
+&\quad - \tfrac12\big[(s_{\text{S},t} + v_{\text{L},t}) + (s_{\text{B},t} + v_{\text{L},t})\big] + \text{(leftovers)} \\
+&= (v_{\text{H},t} - v_{\text{L},t}) + \text{(leftovers)}.
 \end{aligned}
 $$
 

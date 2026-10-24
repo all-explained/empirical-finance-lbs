@@ -148,6 +148,23 @@ Use these symbols everywhere. If a chapter needs a new symbol, add it to this ta
 | $\mathrm{VIX}_t$ | — | The CBOE volatility index: the same options weighted by $1/K^2$, so $\mathrm{VIX}^2_t = \tfrac{2}{\tau}L^*_t$ of the same gross return ratio |
 | $L(X)$, $L_t$, $L^*_t$ | — | Entropy of a positive variable, $L(X) = \log\mathbb{E}[X] - \mathbb{E}[\log X]$, with real and with risk-neutral probabilities at $t$ |
 
+### Part V: factors, anomalies and conditional models (Chapters 19–23)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $\text{MKT}_t$; $R_{m,t}$, $R^e_{m,t}$ | `\Factor`; `\Ret` | Market factor, the market's excess return $\text{MKT}_t = R_{m,t} - R^f_t$. The French data call it Mkt-RF. The market's subscript is a lower-case $m$, never $M$, which is the SDF |
+| $\text{SMB}_t$, $\text{HML}_t$ | `\Factor` | Size factor (small minus big) and value factor (high minus low book-to-market), long–short portfolios from the 2×3 sorts of Chapter 19. Each is already an excess return |
+| $\text{RMW}_t$, $\text{CMA}_t$ | `\Factor` | Profitability factor (robust minus weak) and investment factor (conservative minus aggressive) of the five-factor model (Chapter 19) |
+| $\text{WML}_t$ | `\Factor` | Momentum factor, winners minus losers (Chapter 20). Formulas write WML. The French data publish it as Mom, and the code calls the rebuilt series UMD (up minus down). All three name one factor |
+| $s_{\text{S},t}$, $v_{\text{H},t}$ | — | Size part and B/M part of a 2×3 portfolio's return, $R_{\text{SH},t} = s_{\text{S},t} + v_{\text{H},t} + e_{\text{SH},t}$, in Chapter 19 only. This $v$ always carries a sort letter, so it is not a shock $v_t$ |
+| $I_{B,t-1}$ | — | Bear-market indicator (Chapter 20): 1 if the market's cumulative excess return over the 24 months up to $t-1$ is negative, otherwise 0. It is known at $t-1$ |
+| $z_t$ | `\Signal` | State variable of a conditional model (Chapters 22–23), known at $t$. Model coefficients move with it ($\eta_t = \eta_0 + \eta_1 z_t$), and $z_t R^e_{i,t+1}$ is a managed portfolio. A predictor $x_t$ forecasts a return; $z_t$ scales a model's coefficients or its test assets. In Chapter 14, $z_t$ is the human-capital gap |
+| $\beta_{it}$, $\beta_{iq}$ | — | Conditional beta of asset $i$, known at $t$, for the return from $t$ to $t+1$: $\mathbb{E}_t[R^e_{i,t+1}] = \beta_{it}\lambda_t$. No comma between $i$ and $t$. A beta without a date is constant. $\beta_{iq}$ is the beta of asset $i$ inside a short window $q$, such as a quarter (Chapter 23); this $q$ is a window, not a significance level |
+| $\lambda_t$ | — | Conditional market risk premium, $\lambda_t = \mathbb{E}_t[R^e_{m,t+1}]$, known at $t$ (Chapters 22–23). $\bar\lambda = \mathbb{E}[\lambda_t]$ is the unconditional premium |
+| $\alpha^u_i$, $\beta^u_i$ | `\Err` | Unconditional alpha and beta: intercept and slope of one constant-beta regression over the whole sample, when the true model is conditional. Only the alpha takes the macro |
+| $\sigma_{\beta\lambda}$ | — | Covariance of beta and the premium, $\operatorname{Cov}(\beta_t, \lambda_t)$, in the simulated world of Chapter 22. Not $c$, which is log consumption |
+| $\eta_t$; $\eta_0$, $\eta_1$ | — | Intercept of a conditional linear SDF, $M_{t+1} = \eta_t + b_t f_{t+1}$, and its constant and slope on $z_t$ (Chapter 22). Not $a$, which is a predictive intercept, nor $\delta$, the time-discount factor. In Chapter 7, $\eta_1$ and $\eta_2$ are Lagrange multipliers |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |

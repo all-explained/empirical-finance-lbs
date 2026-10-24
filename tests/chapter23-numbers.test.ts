@@ -46,7 +46,7 @@ describe('chapter 23 prose numbers', () => {
   test('formalisation: squared Sharpe ratio, beta noise, implied beta volatility, conditional alphas', () => {
     const from = data.ff3.rows.findIndex(([date]) => date === SAMPLE.start);
     const market = getColumn(data.ff3, 'Mkt-RF').slice(from, from + 750).map((v) => (v as number) / 100);
-    // λ̄²/σ²_M: the market's squared monthly Sharpe ratio.
+    // λ̄²/σ²_m: the market's squared monthly Sharpe ratio.
     expect(fixed(arithmeticMean(market) ** 2 / sampleVariance(market), 3)).toBe('0.018');
     expect(0.005 ** 2).toBeCloseTo(0.000025, 15);
     expect([fixed(hml.q.meanBetaSE, 2), fixed(mo.q.meanBetaSE, 2)]).toEqual(['0.14', '0.17']);
