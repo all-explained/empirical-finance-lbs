@@ -154,6 +154,14 @@ flowchart TD
     TASK_090["TASK-090 Chapter 26: GMM for asset pricing models"]
     TASK_091["TASK-091 Chapter 27: Identification: weak and useless factors"]
     TASK_092["TASK-092 Orchestrator reads Part VI and signs it off"]
+    TASK_093["TASK-093 Library: GMM estimation, the J test and the chi-square distribution"]
+    TASK_094["TASK-094 Library: linear SDF models by GMM and the Hansen–Jagannathan distance"]
+    TASK_095["TASK-095 Library: useless factors, the rank test and GRS-FAR confidence sets"]
+    TASK_096["TASK-096 Chapter 24: The generalized method of moments"]
+    TASK_097["TASK-097 Chapter 25: Efficient and feasible GMM"]
+    TASK_098["TASK-098 Chapter 26: GMM for asset pricing models"]
+    TASK_099["TASK-099 Chapter 27: Identification: weak and useless factors"]
+    TASK_100["TASK-100 Orchestrator reads Part VI and signs it off"]
   end
   subgraph M_9["M-9 · Part VII: The factor zoo and shrinkage"]
     TASK_035["TASK-035 Plan: decompose M-9"]
@@ -232,6 +240,7 @@ flowchart TD
   TASK_073 --> TASK_034
   TASK_034 --> TASK_035
   TASK_088 --> TASK_035
+  TASK_096 --> TASK_035
   TASK_035 --> TASK_036
   TASK_036 --> TASK_037
   TASK_037 --> TASK_038
@@ -291,6 +300,16 @@ flowchart TD
   TASK_089 --> TASK_092
   TASK_090 --> TASK_092
   TASK_091 --> TASK_092
+  TASK_093 --> TASK_094
+  TASK_093 --> TASK_095
+  TASK_093 --> TASK_096
+  TASK_093 --> TASK_097
+  TASK_094 --> TASK_098
+  TASK_095 --> TASK_099
+  TASK_096 --> TASK_100
+  TASK_097 --> TASK_100
+  TASK_098 --> TASK_100
+  TASK_099 --> TASK_100
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
