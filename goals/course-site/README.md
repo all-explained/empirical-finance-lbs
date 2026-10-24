@@ -122,6 +122,7 @@ flowchart TD
     TASK_064["TASK-064 Chapter 17: Cross-sectional regressions and Fama–MacBeth"]
     TASK_065["TASK-065 Chapter 18: Errors in variables and the Shanken correction"]
     TASK_066["TASK-066 Orchestrator reads Part IV and signs it off"]
+    TASK_079["TASK-079 Part IV fixes from the read-through"]
   end
   subgraph M_7["M-7 · Part V: Factors, anomalies and conditional models"]
     TASK_033["TASK-033 Plan: decompose M-7"]

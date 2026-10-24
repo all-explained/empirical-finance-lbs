@@ -40,6 +40,10 @@ export const seriesColumns = {
   'ff3-monthly': ['Mkt-RF', 'SMB', 'HML', 'RF'],
   'ff5-monthly': ['Mkt-RF', 'SMB', 'HML', 'RMW', 'CMA', 'RF'],
   'mom-monthly': ['Mom'],
+  'ff6-size-bm-monthly': ['SMALL-LoBM', 'ME1-BM2', 'SMALL-HiBM', 'BIG-LoBM', 'ME2-BM2', 'BIG-HiBM'],
+  'ff6-size-mom-monthly': ['SMALL-LoPRIOR', 'ME1-PRIOR2', 'SMALL-HiPRIOR', 'BIG-LoPRIOR', 'ME2-PRIOR2', 'BIG-HiPRIOR'],
+  'ff3-daily': ['Mkt-RF', 'SMB', 'HML', 'RF'],
+  'mom-daily': ['Mom'],
   'ff25-size-bm-monthly': [
     'ME1-BM1', 'ME1-BM2', 'ME1-BM3', 'ME1-BM4', 'ME1-BM5',
     'ME2-BM1', 'ME2-BM2', 'ME2-BM3', 'ME2-BM4', 'ME2-BM5',
@@ -81,7 +85,7 @@ export interface Series<I extends SeriesId = SeriesId> {
   readonly url: string;
   readonly citation: string;
   readonly retrieved: string;
-  readonly frequency: 'monthly' | 'quarterly' | 'annual';
+  readonly frequency: 'daily' | 'monthly' | 'quarterly' | 'annual';
   readonly columns: readonly {
     readonly name: 'date' | ColumnName<I>;
     readonly unit: string;
