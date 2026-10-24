@@ -1,0 +1,281 @@
+---
+title: "Conditional factor models"
+part: 5
+chapter: 22
+difficulty: 2
+prerequisites: [8, 14, 17]
+summary: "A factor model can hold every period and still fail on average; scaled factors and managed portfolios turn a conditional model into an unconditional one you can test."
+---
+
+import ConditionalBeta from '../../components/plots/ConditionalBeta';
+import ScaledFactors from '../../components/plots/ScaledFactors';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Same model, new fit
+
+Take the 25 portfolios sorted on size and book-to-market, in quarterly data from 1963-Q3 to 1998-Q3: 141
+quarters. Ask the consumption CAPM of
+[Chapter 8](/empirical-finance-lbs/chapters/08-euler-equation-and-sdf/) to explain their average excess returns.
+Run the two-pass regression of
+[Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/), with consumption
+growth as the only factor. The cross-sectional $R^2$ is 0.07. The model explains almost none of the spread.
+
+Now change one thing. Let the model's coefficients move with one number dated at the start of each quarter:
+the consumption–wealth ratio $cay$. The same 25 portfolios, the same quarters and the same consumption
+data now give an $R^2$ of 0.55. Lettau & Ludvigson (2001, JPE) ran this experiment over the same 141 quarters
+(p. 1255) and reported a jump from 0.16 to 0.70 (table 3, p. 1260).
+
+Why should a model that moves over time fit *average* returns better? And is a model that holds period by period
+the same as a model that holds on average? This chapter shows that it is not, and how to test the first kind
+with the tools you already have.
+
+## <span class="section-tag">Intuition</span> A beta that rises in bad times
+
+Start with a toy world where the CAPM holds every period. There are two kinds of periods, good and bad, and each
+happens half the time. In good times the market risk premium is 4% and a stock has a beta of 0.5. In bad times the
+premium is 8% and the beta is 1.5. Each period, the stock's expected excess return is beta times premium: 2% in
+good times and 12% in bad times. On average, it earns 7%.
+
+Now look only at averages. The average beta is 1 and the average premium is 6%. Their product is 6%, not 7%. The
+missing 1% comes from timing: the stock has its high beta exactly when risk pays the most. An econometrician who
+fits one constant beta sees a stock that earns more than its average beta explains, and calls the gap an alpha.
+Jagannathan & Wang (1996) give a story for such a stock: in bad times, firms with weak balance sheets and high
+leverage get riskier, just when the market premium is high (staff report, p. 6).
+
+The widget below simulates this world over 600 months. A state variable $z_t$, known at the start of each month,
+moves slowly. The beta $\beta_t$ (top) and the premium $\lambda_t$ (bottom) both move with it. The shaded months
+are the bad times, when the premium is above its mean. Every month, the expected excess return of the stock is
+exactly $\beta_t\lambda_t$. The conditional CAPM is true by construction.
+
+<ConditionalBeta client:visible />
+
+<p class="try-this"><strong>Try this:</strong> leave the default seed. The average of $\beta_t\lambda_t$ is 6.99% a
+year. It splits into $\bar\beta\,\bar\lambda = 5.28\%$ plus a covariance of 1.72%. Now set beta's move to 0. The
+covariance is zero, and the unconditional alpha falls from 1.38% to −0.07%. Set it to −0.40: the covariance is
+−1.72% and the alpha turns negative, −1.51%.</p>
+
+Look at the readout at the default settings. The unconditional alpha is 1.38% a year, but its standard error is
+1.72%, so its $t$-statistic is only 0.80. Fifty years of data do not reveal it. The conditional alpha, which uses
+the true $\beta_t$, is −0.18% ± 1.50%: no pricing error, as it should be. Both facts matter. A conditional model
+can leave a real unconditional alpha, and that alpha can be too small to see.
+
+<Callout type="key">A factor model can hold every period and still leave an alpha on average. The alpha is the
+covariance between the asset's beta and the price of risk.</Callout>
+
+## <span class="section-tag">Formalisation</span> From period by period to on average
+
+### The conditional CAPM
+
+Write $\mathbb{E}_t[\cdot]$ for an expectation given what you know at $t$. The conditional CAPM says that for every
+asset $i$ and every period,
+
+$$
+\mathbb{E}_t[\Ret{R^e_{i,t+1}}] = \beta_{it}\,\lambda_t, \qquad
+\beta_{it} = \frac{\operatorname{Cov}_t(R^e_{i,t+1}, R^e_{m,t+1})}{\operatorname{Var}_t(R^e_{m,t+1})}, \qquad
+\lambda_t = \mathbb{E}_t[\Ret{R^e_{m,t+1}}].
+$$
+
+Both the beta and the premium carry the date $t$: they are known at $t$, and they can change from one period to the
+next. In this chapter $\beta_{it}$ is a conditional beta. A beta without a date, such as $\beta_i$, is a constant.
+
+### What the model says about averages
+
+You estimate with averages over time, so take the unconditional expectation of both sides. Three steps.
+
+1. The law of iterated expectations says that the average of conditional expectations is the unconditional
+   expectation: $\mathbb{E}\big[\mathbb{E}_t[R^e_{i,t+1}]\big] = \mathbb{E}[R^e_{i,t+1}]$. So
+   $\mathbb{E}[R^e_i] = \mathbb{E}[\beta_{it}\lambda_t]$.
+2. For any two random variables, $\operatorname{Cov}(X, Y) = \mathbb{E}[XY] - \mathbb{E}[X]\,\mathbb{E}[Y]$.
+3. Put $X = \beta_{it}$ and $Y = \lambda_t$, and rearrange:
+
+$$
+\mathbb{E}[\Ret{R^e_i}] = \mathbb{E}[\beta_{it}]\,\mathbb{E}[\lambda_t] + \operatorname{Cov}(\beta_{it}, \lambda_t).
+$$
+
+The first term looks like the CAPM with the average beta. The second term is new. It is positive for an asset
+whose beta is high when the premium is high, and negative for an asset whose beta is low then. The readout of the
+widget checks this identity in sample, with each average dividing by $T$. Jagannathan & Wang (1996) start from the
+same split (staff report, p. 6, eq. 4).
+
+### Why a constant-beta regression shows an alpha
+
+The unconditional regression of [Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/) fits
+$R^e_{i,t+1} = \alpha^u_i + \beta^u_i R^e_{m,t+1} + \varepsilon_{i,t+1}$. Its slope $\beta^u_i$ is the
+unconditional covariance over the unconditional variance. That is not the average of $\beta_{it}$. In the widget's
+world, $\beta_t = \beta_0 + s_\beta z_t$ and $\lambda_t = \lambda_0 + s_\lambda z_t$, where $s_\beta$ and
+$s_\lambda$ are how much the beta and the premium move per standard deviation $\sigma_z$ of the state. The market
+excess return is $\lambda_t$ plus a shock with standard deviation $\sigma_m$, and the state is normal and
+independent of the shocks. Write $c = s_\beta s_\lambda\sigma_z^2 = \operatorname{Cov}(\beta_t, \lambda_t)$ and
+$V = \operatorname{Var}(R^e_m) = s_\lambda^2\sigma_z^2 + \sigma_m^2$. Then:
+
+1. $\mathbb{E}[R^e_m] = \lambda_0$, and from the split above, $\mathbb{E}[R^e_i] = \beta_0\lambda_0 + c$.
+2. $\mathbb{E}[R^e_i R^e_m] = \mathbb{E}[\beta_t (R^e_m)^2]$, because the asset's own shock is independent of the
+   market. Given $z_t$, $\mathbb{E}_t[(R^e_m)^2] = \lambda_t^2 + \sigma_m^2$. Expand
+   $\mathbb{E}[(\beta_0 + s_\beta z_t)((\lambda_0 + s_\lambda z_t)^2 + \sigma_m^2)]$. A normal $z_t$ with mean zero
+   has $\mathbb{E}[z_t^3] = 0$, so this is $\beta_0(\lambda_0^2 + V) + 2c\lambda_0$.
+3. $\operatorname{Cov}(R^e_i, R^e_m) = \beta_0(\lambda_0^2 + V) + 2c\lambda_0 - (\beta_0\lambda_0 + c)\lambda_0
+   = \beta_0 V + c\lambda_0$. So $\beta^u = \beta_0 + c\lambda_0/V$.
+4. $\alpha^u = \mathbb{E}[R^e_i] - \beta^u\,\mathbb{E}[R^e_m] = \beta_0\lambda_0 + c - \beta_0\lambda_0 -
+   c\lambda_0^2/V$, which gives
+
+$$
+\Err{\alpha^u} = \operatorname{Cov}(\beta_t, \lambda_t)\left(1 - \frac{\mathbb{E}[R^e_m]^2}{\operatorname{Var}(R^e_m)}\right).
+$$
+
+The bracket is close to 1, because the squared monthly mean of the market is tiny next to its variance. So the
+unconditional alpha is almost exactly the covariance term. With the defaults, $s_\beta = 0.4$ and
+$s_\lambda = 4.8\%$ a year, the covariance is $0.4 \times 4.8\% = 1.92\%$ a year and the population alpha is 1.90%.
+The alpha is zero when either $s_\beta$ or $s_\lambda$ is zero: the beta must move, and it must move with the
+premium. One sample of 600 months estimated 1.38% with a standard error of 1.72%. To get a $t$-statistic of 2 on an
+alpha of 1.90% with that noise, you would need about 160 years of data.
+
+### Scaled factors
+
+You rarely see $\beta_{it}$ or $\lambda_t$. The stochastic discount factor of
+[Chapter 8](/empirical-finance-lbs/chapters/08-euler-equation-and-sdf/) gives a way around this. For an excess
+return, $\mathbb{E}_t[M_{t+1}(1 + R_{t+1})] = 1$ and $\mathbb{E}_t[M_{t+1}(1 + R^f_t)] = 1$; subtract them to get
+$\mathbb{E}_t[\SDF{M_{t+1}}\,\Ret{R^e_{i,t+1}}] = 0$. A conditional linear factor model says
+$M_{t+1} = a_t + b_t f_{t+1}$, with coefficients that are known at $t$ but can change. Model the coefficients as
+linear in a variable $\Signal{z_t}$ known at $t$: $a_t = a_0 + a_1 z_t$ and $b_t = b_0 + b_1 z_t$. Multiply out:
+
+$$
+\begin{aligned}
+\SDF{M_{t+1}} &= (a_0 + a_1 \Signal{z_t}) + (b_0 + b_1 \Signal{z_t})\,\Factor{f_{t+1}} \\
+&= a_0 + a_1\,\Signal{z_t} + b_0\,\Factor{f_{t+1}} + b_1\,\Signal{z_t}\Factor{f_{t+1}}.
+\end{aligned}
+$$
+
+The second line has four constant coefficients, $a_0$, $a_1$, $b_0$ and $b_1$, on the "factors" $1$, $z_t$,
+$f_{t+1}$ and $z_t f_{t+1}$. Take the unconditional expectation of $\mathbb{E}_t[M_{t+1}R^e_{i,t+1}] = 0$: by the
+law of iterated expectations, $\mathbb{E}[M_{t+1}R^e_{i,t+1}] = 0$. Nothing in $M_{t+1}$ changes over time except
+the factors. So the conditional one-factor model is an *unconditional* three-factor model, with factors $z_t$,
+$f_{t+1}$ and $z_t f_{t+1}$. Lettau & Ludvigson (2001, JPE) write the model this way (eq. 2, p. 1246). You can test
+it with the time-series and cross-sectional tools of Chapters 16 and 17, which need constant coefficients.
+
+The product $z_t f_{t+1}$ is the **scaled factor**: the factor, multiplied by the lagged state. In the scaled
+consumption CAPM, $f_{t+1}$ is consumption growth $\Delta c_{t+1}$ and $z_t$ is $cay_t$. That ratio (the topic of
+Chapter 14, *The consumption–wealth ratio*) is the gap between log consumption and a weighted sum of log asset
+wealth and log labour income. It is high when consumption is high compared with wealth and income. Lettau &
+Ludvigson (2001, JPE) chose it because it forecasts excess stock returns (p. 1243, p. 1251).
+
+Two cautions. The step from conditional to unconditional is exact only if the coefficients really are linear in
+$z_t$. And it holds only for the $z_t$ you chose. A model that is true given everything investors know need not
+be true given only $z_t$.
+
+### Managed portfolios
+
+The same idea works on the assets. $z_t$ is known at $t$, so you can take it out of a conditional expectation:
+
+$$
+\mathbb{E}_t[\SDF{M_{t+1}}\,\Signal{z_t}\Ret{R^e_{i,t+1}}] = \Signal{z_t}\;\mathbb{E}_t[\SDF{M_{t+1}}\Ret{R^e_{i,t+1}}] = 0.
+$$
+
+Average over time: $\mathbb{E}[M_{t+1}\,z_t R^e_{i,t+1}] = 0$. The product $z_t R^e_{i,t+1}$ is the excess return of
+a **managed portfolio**: at each $t$, hold $z_t$ dollars of asset $i$, financed at the risk-free rate. A correct
+conditional model must price these returns too. So the full set of test assets is
+
+$$
+\Ret{R^e_{t+1}} \otimes (1, \Signal{z_t}) = \big(R^e_{1,t+1},\; z_t R^e_{1,t+1},\; \dots,\; R^e_{N,t+1},\; z_t R^e_{N,t+1}\big),
+$$
+
+where $\otimes$ (the Kronecker product) pairs each return with each entry of $(1, z_t)$. Scaled factors change the
+model. Managed portfolios change the test. A full test of a conditional model uses both.
+
+## <span class="section-tag">Playground</span> Four models on the 25 portfolios
+
+The widget fits four models to the 25 portfolios in quarterly data, with the two-pass method and a constant. Each
+dot is one portfolio. Across is the model's fitted mean excess return; up is the actual mean. The solid line is a
+perfect fit, and the thin lines are the pricing errors. The scaled consumption CAPM uses $\Delta c_{t+1}$,
+$cay_t$ and $cay_t\,\Delta c_{t+1}$ as factors.
+
+<ScaledFactors client:visible />
+
+<p class="try-this"><strong>Try this:</strong> step through the four models in the first sample. The $R^2$ is 0.02
+for the CAPM, 0.07 for the consumption CAPM, 0.55 for the scaled consumption CAPM and 0.82 for Fama–French 3. The
+mean absolute pricing error falls from 2.37% a year for the CAPM to 1.67% for the scaled model and 0.92% for FF3.
+Lettau & Ludvigson (2001, JPE) report 0.01 and 0.80 for the CAPM and FF3 (table 1, p. 1256), and 0.16 and 0.70 for
+the two consumption models (table 3, p. 1260).</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch to the sample that runs to 2026-Q2, 252 quarters. The
+CAPM's $R^2$ is 0.01 and FF3's is 0.69. The scaled model holds at 0.61, but the plain consumption CAPM rises to
+0.36, so scaling adds less than before.</p>
+
+Our numbers are not the paper's. Our consumption series keeps clothing and shoes, which the paper removes (p. 1254). We build
+$cay$ from today's public data, which the statistical agencies have revised since 2001, and we estimate its weights on 1952 to 2026, not on
+the paper's sample. And we compound monthly
+French returns into quarters. The ranking of the models is the same.
+
+### What the fit does and does not show
+
+Look at the readout for the scaled model in the first sample. Its constant is 14.3% a year, while the actual
+averages run from 3.5% to 14.2%. Lettau & Ludvigson (2001, JPE) read the constant as the expected return of a
+zero-beta portfolio, which need not be zero (p. 1247). Still, a zero-beta asset that beats every test portfolio
+is hard to believe. The betas explain the differences between the portfolios, not their level. Here are three more
+limits.
+
+**The choice of $z_t$ is free.** Theory says that the coefficients of $M_{t+1}$ move with what investors know. It
+does not say which variable to use. Each candidate gives new factors, and with 25 points and four coefficients a
+search over many candidates will find one that fits by luck. A fair test fixes $z_t$ before it looks at the
+cross-section.
+
+**Full-sample $cay$ uses future data.** The weights inside $cay$ come from one regression on every quarter from
+1952 to 2026. So the value of $cay$ in 1970 depends on data from after 1970, which no investor had. This is the
+look-ahead problem of [Chapter 13](/empirical-finance-lbs/chapters/13-out-of-sample-predictability/). Here it
+flatters the state variable, not a forecast.
+
+**A high $R^2$ on these portfolios is a low bar.** The 25 portfolios line up along one or two dimensions, so a
+model with three slopes can fit them well (Chapter 17 makes the same point). Managed portfolios show how easy it is
+to raise the $R^2$. Add the 25 managed portfolios $cay_t R^e_{i,t+1}$, with $cay_t$ standardised, next to the 25
+plain ones, and fit the plain CAPM to all 50. Its $R^2$ jumps from 0.02 to 0.62. Nothing about the CAPM got better.
+The plain portfolios have market betas from 0.79 to 1.61, and the managed ones from −0.60 to −0.15. A single line
+through two clouds fits well, even when it misses the pattern inside each cloud.
+
+The $R^2$ in the widget has no standard error. It describes the fit; it does not test the model. Lettau & Ludvigson
+(2001, JPE) say the same of their cross-sectional $R^2$ (p. 1254).
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A conditional CAPM holds. A stock's average beta is 1.2, the average market premium is 5% a year, and $\operatorname{Cov}(\beta_{it}, \lambda_t) = 0.5\%$ a year. What is its average excess return?"
+  options={["6.5% a year", "6.0% a year", "5.5% a year", "5.0% a year"]}
+  answer={0}
+  explanation="$\mathbb{E}[R^e_i] = \mathbb{E}[\beta_{it}]\,\mathbb{E}[\lambda_t] + \operatorname{Cov}(\beta_{it}, \lambda_t) = 1.2 \times 5\% + 0.5\% = 6.5\%$. A constant-beta model would miss the 0.5%."
+/>
+
+<Quiz
+  client:visible
+  question="You let the SDF coefficients move with $z_t$: $M_{t+1} = (a_0 + a_1 z_t) + (b_0 + b_1 z_t) f_{t+1}$. Which factors does the unconditional model have?"
+  options={["$z_t$, $f_{t+1}$ and $z_t f_{t+1}$", "$f_{t+1}$ only", "$z_t$ and $f_{t+1}$ only", "$z_{t+1}$ and $f_{t+1}$"]}
+  answer={0}
+  explanation="Multiply out: $M_{t+1} = a_0 + a_1 z_t + b_0 f_{t+1} + b_1 z_t f_{t+1}$. The coefficients are constant, and the variable parts are $z_t$, $f_{t+1}$ and the scaled factor $z_t f_{t+1}$."
+/>
+
+<Quiz
+  client:visible
+  question="Why must a correct conditional model also price the managed portfolio $z_t R^e_{i,t+1}$?"
+  options={["Because $z_t$ is known at $t$, so $\mathbb{E}_t[M_{t+1} z_t R^e_{i,t+1}] = z_t\,\mathbb{E}_t[M_{t+1}R^e_{i,t+1}] = 0$", "Because $z_t$ is uncorrelated with returns", "Because managed portfolios have higher Sharpe ratios", "It need not: only plain portfolios are test assets"]}
+  answer={0}
+  explanation="A number known at $t$ comes out of the conditional expectation. Averaging over time then gives $\mathbb{E}[M_{t+1} z_t R^e_{i,t+1}] = 0$, an unconditional moment the model must meet."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- A conditional model, $\mathbb{E}_t[R^e_{i,t+1}] = \beta_{it}\lambda_t$, holds period by period. On average it
+  gives $\mathbb{E}[R^e_i] = \mathbb{E}[\beta_{it}]\,\mathbb{E}[\lambda_t] + \operatorname{Cov}(\beta_{it}, \lambda_t)$.
+- A constant-beta regression reads the covariance term as an alpha. In a seeded world where the conditional CAPM
+  is true, that alpha is real but can be too small to detect in 50 years.
+- SDF coefficients linear in $z_t$ turn a conditional model into an unconditional one with factors $z_t$,
+  $f_{t+1}$ and $z_t f_{t+1}$. Managed portfolios $R^e_{t+1} \otimes (1, z_t)$ are the matching test assets.
+- On the 25 portfolios, scaling the consumption CAPM by $cay$ raises the $R^2$ from 0.07 to 0.55 over 1963-Q3 to
+  1998-Q3. The choice of $z_t$, the look-ahead in $cay$ and the low bar of the $R^2$ all limit what that shows.
+
+**Next up:** Chapter 23, *Does the conditional CAPM explain anomalies?*, asks how large the covariance term can be,
+and whether it is large enough to explain value and momentum.
+
+### Further reading
+
+- Jagannathan & Wang (1996)
+- Lettau & Ludvigson (2001, JPE)
+- Cochrane (2005), Ch. 8
