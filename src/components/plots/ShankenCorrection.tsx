@@ -82,7 +82,7 @@ export default function ShankenCorrection({ initialSharpe = 0.4, initialT = 600 
         yLabel="first-pass estimate"
       >
         <Line.Segment point1={[0.4, 0.4]} point2={[1.6, 1.6]} color="var(--text)" weight={1.5} style="dashed" />
-        <Label x={1.6} y={1.6} attach="sw" attachDistance={6} size={12} color="var(--text)">estimate = truth</Label>
+        <Label x={1.6} y={yLo} attach="nw" attachDistance={6} size={12} color="var(--text)">dashed: estimate = truth</Label>
         {view.w.betaHat.map((b, i) => (
           <Line.Segment key={`e${i}`} point1={[TRUE_BETA[i], TRUE_BETA[i]]} point2={[TRUE_BETA[i], b]} color="var(--c-error)" weight={1.5} />
         ))}
@@ -90,7 +90,7 @@ export default function ShankenCorrection({ initialSharpe = 0.4, initialT = 600 
       </PlotFrame>
       <PlotFrame
         x={[x0 - pad, x1 + pad]}
-        y={[0, SHOWN + 1]}
+        y={[0, SHOWN + 1.6]}
         height={CI_HEIGHT}
         xTicks={niceTicks(x0 - pad, x1 + pad, 6)}
         yTicks={[]}
@@ -98,8 +98,8 @@ export default function ShankenCorrection({ initialSharpe = 0.4, initialT = 600 
         xLabel="premium λ, % a year"
         yLabel={`first ${SHOWN} samples`}
       >
-        <Line.Segment point1={[truth, 0]} point2={[truth, SHOWN + 0.6]} color="var(--text)" weight={1.5} style="dashed" />
-        <Label x={truth} y={SHOWN + 0.6} attach="e" attachDistance={4} size={12} color="var(--text)">true λ</Label>
+        <Line.Segment point1={[truth, 0]} point2={[truth, SHOWN + 1]} color="var(--text)" weight={1.5} style="dashed" />
+        <Label x={truth} y={SHOWN + 1} attach="e" attachDistance={4} size={12} color="var(--text)">true λ</Label>
         {view.intervals.map((iv, r) => {
           const y = SHOWN - r;
           return (
@@ -155,11 +155,11 @@ export default function ShankenCorrection({ initialSharpe = 0.4, initialT = 600 
               <dt><RichText>{"$c = \\lambda'\\Sigma_f^{-1}\\lambda$ (monthly)"}</RichText></dt>
               <dd>{num(view.w.c)}</dd>
               <dt>Naive standard error, average</dt>
-              <dd>{pctYear(view.w.meanNaiveSE)} a year</dd>
+              <dd>{pctYear(view.w.meanNaiveSE, 3)} a year</dd>
               <dt>Corrected standard error, average</dt>
-              <dd style={{ color: 'var(--c-model)' }}>{pctYear(view.w.meanCorrectedSE)} a year</dd>
+              <dd style={{ color: 'var(--c-model)' }}>{pctYear(view.w.meanCorrectedSE, 3)} a year</dd>
               <dt><RichText>{'True spread of $\\hat\\lambda$ across samples'}</RichText></dt>
-              <dd>{pctYear(view.w.sdLambdaHat)} a year</dd>
+              <dd>{pctYear(view.w.sdLambdaHat, 3)} a year</dd>
               <dt>Intervals that contain the true λ (target 95%)</dt>
               <dd>naive {share(view.w.naiveCoverage)}, corrected {share(view.w.correctedCoverage)}</dd>
               <dt><RichText>{`Average $\\hat\\lambda$ (truth ${pctYear(LAMBDA)})`}</RichText></dt>
