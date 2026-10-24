@@ -3,30 +3,32 @@
 ## Acceptance
 
 - [x] `npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.
-  Evidence: on the rebased branch, after `npm ci`, `npm test`: 48 test files and 522 tests passed. `npm run build`:
+  Evidence: after merging `origin/main` (`0a3d024`) and `npm ci`, `npm test`: 52 test files and 546 tests passed,
+  `tests/chapter20-numbers.test.ts` included. `npm run build`:
   "Result: 0 errors, 0 warnings, 1 hint" (the hint is an unused import in `src/lib/finance/news.ts`, not in this task's files).
 - [x] `npm run screenshots -- 19-size-and-value` passes in both themes at desktop and phone size, and the images were inspected.
-  Evidence: four `✓ chapters_19-size-and-value-{dark,light}-{desktop,phone}.png`. I read the desktop crops of both widgets
-  and the quizzes, and extra Playwright captures of each widget at 1280px and 360px in both themes, in a changed
-  state (SortGrid on Alpha + FF5; FactorBuilder on HML from 2007-01). Two phone problems were found and fixed: the
-  SortGrid axis title was cut off at 360px, and the FactorBuilder readout wrapped into a narrow column.
+  Evidence: four `✓ chapters_19-size-and-value-{dark,light}-{desktop,phone}.png` after the merge. I read Playwright
+  crops of both widgets at 1280px and 360px in both themes, with FactorBuilder switched to HML: the legs, the
+  0.01-point gap the prose cites and the SortGrid cells all render. On phones, main's FactorBuilder readout wraps
+  into a narrow value column; it is readable, and it is the same widget chapter 20 uses, so I left it.
 - [x] `npm run clickthrough -- 19-size-and-value` passes and reports every widget of the chapter.
   Evidence: "TWENTY-FIVE PORTFOLIOS SORTED ON SIZE AND VALUE · 5 actions at 1280px, 5 actions at 360px" (Colour by:
-  Mean excess return, Alpha; Model: CAPM, FF3, FF5) and "FROM SIX PORTFOLIOS TO ONE FACTOR · 7 actions at 1280px,
-  7 actions at 360px" (Factor: SMB, HML; select Sample).
+  Mean excess return, Alpha; Model: CAPM, FF3, FF5) and "BUILD SMB AND HML FROM SIX PORTFOLIOS · 2 actions at 1280px,
+  2 actions at 360px" (Factor: SMB, HML).
 - [x] The six `section-tag` headings are in template order.
   Evidence: `grep -n 'section-tag'` gives lines 15 Hook, 32 Intuition, 69 Formalisation, 172 Playground,
-  214 Check yourself, 240 Recap & next up.
+  213 Check yourself, 239 Recap & next up.
 - [x] No hex colour in the chapter or its widgets.
-  Evidence: the spec's command prints "no hex colours". The same grep on `factorModelSample.ts` finds nothing.
+  Evidence: the spec's command prints "no hex colours". The same grep on `FactorBuilder.tsx`, `factorModelSample.ts`
+  and `sizeValueSample.ts` finds nothing.
 - [x] The widgets use real data from `ff25-size-bm-monthly`, `ff3-monthly`, `ff5-monthly` and `ff6-size-bm-monthly`.
   Evidence: `SortGrid` loads `ff3-monthly` and `ff25-size-bm-monthly` through `useFactorData` of `factorTestSample.ts`,
   and `ff5-monthly` with `loadSeries`; it computes through `modelPanel`, `timeSeriesRegressions` and `grs`.
-  `FactorBuilder` loads `ff6-size-bm-monthly` and `ff3-monthly` (published SMB and HML) and rebuilds the factors with
-  `sortFactors`. Captions name the dataset IDs and the sample.
+  `FactorBuilder` (main's, from TASK-074, `kind="size-value"`) loads `ff6-size-bm-monthly` and `ff3-monthly`
+  (published SMB and HML) and rebuilds the factors with `sortFactors` through `sortView`. Captions name the dataset IDs and the sample.
 - [x] The outcome holds a voice review and a table of every number in the prose with its test.
   Evidence: the sections "Voice review" and "Numbers in the prose" below.
-- [x] The prose is 2,403 words, inside 1,500–3,000. Command (the one of chapters 9, 10, 13 and 16):
+- [x] The prose is 2,417 words, inside 1,500–3,000. Command (the one of chapters 9, 10, 13 and 16):
   `awk 'NR>8' src/content/chapters/19-size-and-value.mdx | grep -v '^import ' | awk '/^\$\$/{m=!m; next} !m' | wc -w`
 - [x] `git ls-files | grep -ciE '\.pdf$|^source/'` prints 0 (exit 1, accepted under DEC-002).
 
@@ -69,9 +71,10 @@ to 2026-08 (758 months); means and alphas are monthly ×12. Quiz numbers repeat 
 | FF3 GRS 3.64, $p = 8.3 \times 10^{-9}$ | Formalisation, Playground | `formalisation: factor means…` |
 | FF5: small growth −3.30% ($t$ = −3.23), RMW loading −0.50, average 1.05%, 7 of 25 | Formalisation | `formalisation: FF5` |
 | FF5 GRS 3.23, $p = 2.6 \times 10^{-7}$ | Formalisation, Playground | `formalisation: FF5` |
-| Largest gap rebuilt vs published 0.005 points (HML and SMB, all months) | Playground | `playground` |
-| HML 5.40% (1926-07 to 1963-06), 5.10% (1963-07 to 1990-12) | Playground, quiz, Recap ("over 5%") | `playground` |
-| HML 2.32% ($t$ = 1.23) from 1991-01; −1.30% ($t$ = −0.50), 236 months, from 2007-01 | Playground, quiz, Recap | `playground` |
+| 1926-07 to 2026-08 (all months of the six portfolios) | Playground | `playground` |
+| Largest gap rebuilt vs published 0.01 points, as the readout rounds it (HML and SMB) | Playground | `playground` |
+| Rebuilt HML 5.40% (1926-07 to 1963-06), 5.10% (1963-07 to 1990-12) | Playground, quiz, Recap ("over 5%") | `playground` |
+| Rebuilt HML 2.32% ($t$ = 1.23) from 1991-01; −1.30% ($t$ = −0.50), 236 months, from 2007-01 | Playground, quiz, Recap | `playground` |
 | 5% critical value "about 1.5" (1.52 for FF3 and FF5) | Playground | `playground` |
 
 Not from our data: the breakpoints (NYSE median; 30th and 70th percentiles; NYSE quintiles), the June formation
@@ -81,23 +84,30 @@ pages listed below; "1963–1990" and the flat beta relation from Fama & French 
 ## Summary
 
 **What.** `src/content/chapters/19-size-and-value.mdx` (Part 5, chapter 19, difficulty 2, prerequisites 16 and 17),
-the widgets `SortGrid.tsx` and `FactorBuilder.tsx`, the shared helper `factorModelSample.ts`, and
-`tests/chapter19-numbers.test.ts`.
+the widget `SortGrid.tsx` with its helper `sizeValueSample.ts`, and `tests/chapter19-numbers.test.ts`. The chapter
+renders main's `FactorBuilder.tsx` (TASK-074) and does not change it.
 
 **How.**
-- `factorModelSample.ts` holds `gridView` (built on `modelPanel`, `timeSeriesRegressions`, `grs`), `buildView`
-  (built on `sortFactors` and `growthPath`), and the hooks `useModelData` (reuses `useFactorData` of
-  `factorTestSample.ts`, adds `ff5-monthly`) and `useSortData`. The numbers test and the widgets call the same functions.
+- `sizeValueSample.ts` holds `gridView` (built on `modelPanel`, `timeSeriesRegressions`, `grs`) and the hook
+  `useModelData` (reuses `useFactorData` of `factorTestSample.ts`, adds `ff5-monthly`). The numbers test and
+  `SortGrid` call the same functions. The playground numbers come from `sortView` of main's `factorModelSample.ts`,
+  the function `FactorBuilder` uses.
 - `SortGrid`: 5×5 grid, `Segmented` for mean excess return or alpha and for CAPM, FF3 or FF5, on the common sample
   from 1963-07. Every cell carries its signed number; alphas with $|t| > 1.96$ add `*` and a border, so colour is
   never the only cue. The diverging scale uses `--c-return` (positive) and `--c-error` (negative) by opacity, with a
   gradient legend. The readout gives GRS, its 5% critical value, the p-value and the average absolute alpha.
-- `FactorBuilder`: the six legs as a 2×3 grid (long legs: filled with a solid border and "long +½/+⅓"; short legs:
-  dashed border and "short −½/−⅓"), and $1 compounded in the rebuilt factor (solid) and the published one (dashed) on a
-  log scale. A `Select` picks the sample, so the reader sees the value premium change by period. The readout gives the
-  mean, its $t$-statistic and the largest monthly gap. `kind="size-momentum"` loads `ff6-size-mom-monthly` and
-  `mom-monthly` and offers UMD; I checked that it computes (1927-01 to 2026-08, 1,196 months), but no chapter renders
-  it yet.
+- `FactorBuilder`: main's widget from TASK-074 with `kind="size-value"`. It shows the six legs as a 2×3 grid with
+  the long legs solid and the short legs dashed, and \$1 in T-bills plus the rebuilt factor against the published
+  one on a log scale. The readout gives both means, both end values and the largest monthly gap.
+
+**Merge with main (resume).** TASK-074 merged its own `FactorBuilder.tsx` and `factorModelSample.ts` first, which made
+an add/add conflict with this branch. I took main's two files unchanged, so chapter 20 and
+`tests/chapter20-numbers.test.ts` are untouched and pass. This branch's grid code (`GridModel`, `GRID_MODELS`,
+`GRID_START`, `gridView`, `useModelData`) moved to the new `sizeValueSample.ts`. This branch's own `FactorBuilder`,
+with its `Select` for the sample, was dropped: main's widget covers the 2×3 grid, the legs and the gap. The value
+premium by period is now a prose paragraph after the widget, with the same numbers, tested on main's `sortView`.
+The "Try this" now says "pick HML" (main's widget opens on SMB) and cites the gap as 0.01 points, as main's readout
+rounds it (it was 0.005 at three decimals).
 
 **Readings.** Fama & French (1992) and Cochrane (2011) were read with `pdftotext -layout`. The Cochrane PDF in
 `source/papers/` is the *Journal of Finance* version (vol. 66, pp. 1047 onwards), not the NBER working paper the spec
@@ -120,15 +130,14 @@ cites the model as "Fama and French, 2014"; the chapter uses (2015) as `docs/CUR
 - No new colour token. The diverging scale pairs `--c-return` and `--c-error`; §4 has no diverging pair, so a
   candidate is to name one there.
 
-**Deviations.** None from the scope. The spec's hex-colour command also lists files that exist only on `origin/main`
-when the branch is behind it; after the rebase it runs clean.
+**Deviations.** The chapter reuses main's `FactorBuilder`, so the sample selector is gone and the value premium by
+period is shown in prose, not in a widget. Re-add a sample `Select` as its own widget if the owner wants it.
 
-**Verified revision.** `88af889` (chapter, widgets, helper and test), rebased on `origin/main` at `0782309`; this
-outcome-only commit follows it. One run of `npm test` in the same session had six 5-second timeouts in other
-chapters' heavy tests (chapters 11 and 14, `cay.test.ts`) while the machine's load average was about 41; the rerun
-passed all 522 tests. Not checked: GitHub Actions (not read, by rule).
+**Verified revision.** The merge commit of `origin/main` at `0a3d024` into this branch, with `npm ci`, `npm test`,
+`npm run build`, both page scripts and the greps above run on it in one session; this outcome-only commit follows
+it. Not checked: GitHub Actions (not read, by rule).
 
 **Proposed follow-ups.**
 - Add $\text{SMB}$, $\text{HML}$, $\text{RMW}$, $\text{CMA}$ and a diverging colour pair to `docs/STYLE_GUIDE.md`.
-- Refresh the French monthly files on one day (issue #57); until then `FactorBuilder` with `kind="size-momentum"`
-  shows a 0.10-point gap in 2026-08.
+- Refresh the French monthly files on one day (issue #57).
+- Main's `FactorBuilder` readout wraps into a narrow column at 360px; a stacked layout on phones would read better.
