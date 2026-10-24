@@ -1,0 +1,269 @@
+---
+title: "Momentum"
+part: 5
+chapter: 20
+difficulty: 2
+prerequisites: [19]
+summary: "Buy last year's winners and sell last year's losers: the strategy beats the three-factor model by a wide margin, and it pays for that with rare, violent crashes after bear markets."
+---
+
+import CompoundingPath from '../../components/plots/CompoundingPath';
+import CrashZoom from '../../components/plots/CrashZoom';
+import FactorBuilder from '../../components/plots/FactorBuilder';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> A rule that beats the model, until it doesn't
+
+Here is a trading rule you could follow with nothing but past prices. At the start of each month, rank stocks by
+how much they rose over the past year. Buy the top group, the **winners**. Sell short the bottom group, the
+**losers**. Hold for one month, then rank again.
+
+The Kenneth French Data Library publishes the return of this rule as a factor called Mom. From 1927-01 to
+2026-08, 1,196 months, it earned 7.35% a year on average, with a volatility of 16.3% a year. The market earned
+8.31% a year over T-bills, with a volatility of 18.4%. So the two have the same Sharpe ratio, 0.45 a year. That
+already is a puzzle: Mom has negative betas on the market and on value, so the three-factor model predicts that it
+should *lose* money. Its alpha against that model is 11.2% a year, with a $t$-statistic of 7.77.
+
+Now look at the worst month. In 1932-08, Mom lost 52.6% in one month. The market rose 37.1% in the same month. In
+2009-04 Mom lost 34.4% while the market rose 10.2%. Why does a rule with such a large alpha fall apart exactly
+when the market recovers? And how much of its good record is luck of the sample? This chapter builds the factor,
+measures its alpha, and then explains its crashes.
+
+## <span class="section-tag">Intuition</span> Two paths to the same Sharpe ratio
+
+The widget from [Chapter 1](/empirical-finance-lbs/chapters/01-returns/) now has a third line. It invests one
+dollar in T-bills and adds the momentum position on top: each month the dollar earns the T-bill rate plus Mom.
+Momentum is a long–short position, so it needs no money of its own. The T-bills are the collateral.
+
+<CompoundingPath client:visible momentum initialStart={1927} />
+
+<p class="try-this"><strong>Try this:</strong> keep the log scale and the start in 1927. The market dollar ends
+at \$17,985 and the momentum dollar at \$8,231. Look at the early 1930s: the momentum line drops by more than
+half in two summer months. Then move the start to 1945. From there the momentum line climbs steadily until 2009,
+and then it goes flat.</p>
+
+The two lines have the same Sharpe ratio over the full sample, but they get there in different ways. The market
+has bad years spread across the century. Momentum climbs smoothly for long stretches and then falls off a cliff.
+One number shows the difference: **skewness**, which measures whether the big surprises are on the upside or the
+downside (a negative value means the big ones are losses). For monthly market excess returns it is 0.15, close to
+zero. For Mom it is −3.02. Most months are calm, and a few months are disasters.
+
+This changes what the Sharpe ratio means. A Sharpe ratio from a sample is honest only if the sample contains the
+rare bad months in their true proportion. Take the 768 months from 1945-01 to 2008-12. Momentum's Sharpe ratio
+there is 0.82 a year, almost twice the full-sample value, and its skewness is only −0.60. That sample misses the
+crashes of the 1930s and of 2009. From 2009-01 to 2026-08, the average return of Mom is −0.84% a year.
+
+Why should a rule as simple as "buy winners" work at all? Cochrane (2011, p. 1062–1063) puts it in terms of
+prediction. A tiny serial correlation in individual stock returns, too small to notice in a regression, is enough.
+Last year's winners rose a lot. If a small part of that move carries on into next year, a portfolio of winners has
+a large expected return. So momentum is return predictability, as in Part II, but across stocks rather than over
+time.
+
+<Callout type="key">Momentum earns a large average return that the three-factor model cannot explain. It earns it
+with negative skewness: long calm stretches and rare, very large losses. A sample without those losses makes the
+strategy look far better than it is.</Callout>
+
+## <span class="section-tag">Formalisation</span> Signal, factor, alpha and the crash beta
+
+### The formation signal
+
+Write $\Ret{R_{i,s}}$ for the simple return of stock $i$ in month $s$. To choose the position for month $t$, the
+rule compounds the returns from month $t-12$ to month $t-2$:
+
+$$
+\Ret{R_{i,t-12 \to t-2}} = \prod_{s=t-12}^{t-2} (1 + R_{i,s}) - 1.
+$$
+
+The sign $\prod$ multiplies the terms, here $(1 + R_{i,t-12})(1 + R_{i,t-11}) \cdots (1 + R_{i,t-2})$. That is 11
+monthly returns. Month $t-1$, the most recent one, is left out on purpose. Here is an example. A stock
+gains 2% in each of months $t-12$ to $t-2$, and then loses 5% in month $t-1$. Its signal is
+$1.02^{11} - 1 = 24.3\%$. The loss of the last month plays no part.
+
+Why skip the last month? At a one-month horizon, stock returns tend to partly reverse, not continue: a stock that
+jumped last month tends to give some of it back. Part of that is a measurement effect. A price recorded at the
+bid one month and at the ask the next shows a return that no one could earn. If the signal included month $t-1$,
+the winners would carry this reversal with them, and the strategy would be weaker. Our data cannot show the size
+of the effect, because the published portfolios already skip the month. Horizon matters at the other end too.
+Fama & French (1992, p. 451) find that a stock's past *three-year* return has no power to explain average
+returns in their sample. Momentum lives at the one-year horizon.
+
+### The factor from a 2×3 sort
+
+Sorting stocks on the signal alone could let size creep in: the winner and loser groups could hold more small
+stocks than the middle group does. So the factor uses two sorts, as SMB and HML do in Chapter 19, *Size and value*. Each month, stocks are split at
+the median size into small (S) and big (B). Each half is then split on the signal into losers (L, the bottom
+30%), a middle group (M), and winners (W, the top 30%), with NYSE breakpoints, as the data library describes.
+That gives six value-weighted portfolios. The factor is
+
+$$
+\begin{aligned}
+\Factor{WML_t} = {} &\tfrac12\big(R_{SW,t} + R_{BW,t}\big) \\
+&- \tfrac12\big(R_{SL,t} + R_{BL,t}\big).
+\end{aligned}
+$$
+
+The name stands for winners minus losers. The data library calls it Mom, and the library code calls the rebuilt
+version UMD (up minus down). They are the same thing. Both legs hold equal weights in small and big stocks, so
+the factor is a bet on past returns, with size averaged out. The middle group plays no part.
+
+<FactorBuilder client:visible kind="size-momentum" />
+
+<p class="try-this"><strong>Try this:</strong> read the grid. Winners earn more than losers in both rows: 18.8%
+against 10.0% a year among small stocks, and 14.6% against 8.7% among big ones. Half the sum of the winners minus
+half the sum of the losers gives the 7.35% of the hook. Then compare the two lines. The rebuilt factor ends at
+\$8,239 and the published one at \$8,231. The largest gap in any month is 0.10 percentage points, in 2026-08, the
+last month of the data.</p>
+
+### The three-factor alpha
+
+Is momentum just a mix of known factors? Regress it on the three Fama–French factors $\Factor{f_t}$ (Mkt-RF, SMB
+and HML), exactly as each test portfolio was regressed in
+[Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/):
+
+$$
+\Factor{WML_t} = \Err{\alpha} + \beta'\Factor{f_t} + \Err{\varepsilon_t}.
+$$
+
+Take means of both sides. The residuals average zero in sample, so
+
+$$
+\overline{WML} = \Err{\hat\alpha} + \hat\beta'\bar f.
+$$
+
+The model's prediction for momentum's mean is $\hat\beta'\bar f$, and the alpha is what is left. From 1927-01 to
+2026-08 the betas are −0.22 on the market, −0.06 on SMB and −0.46 on HML. All three point the wrong way. The
+predicted mean is −3.89% a year, but the actual mean is 7.35%, so $\hat\alpha = 7.35\% - (-3.89\%) = 11.2\%$ a
+year, with a $t$-statistic of 7.77 (8.13 with White standard errors, from
+[Chapter 3](/empirical-finance-lbs/chapters/03-regression-and-standard-errors/)). The three factors explain only 23%
+of momentum's monthly variance. From 1963-07, the sample of Chapter 16, the alpha is 9.80% a year, with a
+$t$-statistic of 5.47.
+
+Cochrane (2011, p. 1060) lists momentum first among the strategies whose average returns do not line up with
+market, size and value betas. He also points to a second puzzle (p. 1075). If momentum were only a slow reaction
+of each stock to its own news, why would all winners rise and fall together, as if exposed to one common risk?
+That common movement is what lets us treat momentum as a factor. Adding Mom to the three factors gives the
+four-factor model named after Carhart (1997). Chapter 21 asks how to decide when a new factor really adds
+something.
+
+### A separate beta in bear markets
+
+The full-sample market beta of momentum is small. But it is not constant. Define a bear-market indicator from the
+market excess return over the 24 months before month $t$:
+
+$$
+I_{B,t-1} = \begin{cases} 1 & \text{if } \prod_{s=t-24}^{t-1} (1 + R^e_{m,s}) < 1, \\ 0 & \text{otherwise.} \end{cases}
+$$
+
+It is known at the end of month $t-1$. Now let both the intercept and the beta depend on it:
+
+$$
+\begin{aligned}
+\Factor{WML_t} = {} &\Err{\alpha_0} + \Err{\alpha_B}\, I_{B,t-1} \\
+&+ \big(\beta_0 + \beta_B\, I_{B,t-1}\big)\,\Ret{R^e_{m,t}} + \Err{\varepsilon_t}.
+\end{aligned}
+$$
+
+Read it in two steps. In a normal month, $I_{B,t-1} = 0$ and the beta is $\beta_0$. After a bear market,
+$I_{B,t-1} = 1$ and the beta is $\beta_0 + \beta_B$. So $\beta_B$ is the change in beta. In OLS, this is one
+regression of $WML_t$ on a constant, $I_{B,t-1}$, $R^e_{m,t}$ and the product $I_{B,t-1} R^e_{m,t}$. The regression
+carries the names of Daniel & Moskowitz (2016). We apply it to our data with White standard errors. The first 24 months
+only feed the indicator, so the fit runs from 1929-01, 1,172 months, of which 275 follow a bear market.
+
+The estimates are $\hat\beta_0 = 0.04$ (t = 1.18) and $\hat\beta_B = -0.69$ (t = −6.84). In normal months
+momentum has almost no market exposure. After a bear market its beta is $0.04 - 0.69 = -0.64$. The intercepts are
+0.78% a month in normal months (t = 7.05) and 0.40% a month lower after bear markets (t = −1.19), a difference we
+cannot separate from zero.
+
+Why does the beta flip? After two bad years, the losers are the stocks that fell most with the market: the
+high-beta stocks. The winners are the stocks that held up: the low-beta ones. So WML is now short high beta and
+long low beta. Its beta is negative. When the market then rebounds hard, the losers jump the most, and the short
+side destroys the position. Momentum crashes are not random. They are what a negative beta does in a sharp rally.
+
+The regression explains part of a crash, not all of it. In 2009-04, the market excess return was 10.2%, and the
+fitted value of the regression is −6.2%. The actual return was −34.4%. In 1932-08 the fitted value is −23.5%
+against an actual −52.6%. The regression shows *when* the risk is high. It does not capture its full size.
+
+## <span class="section-tag">Playground</span> Zoom in on the crashes
+
+Pick one of momentum's ten worst months. The plot shows one dollar compounded in the market excess return and in
+Mom over the 24 months before it, then through the crash month itself.
+
+<CrashZoom client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start with 1932-08 and then pick 2009-04. In both, the market
+line falls through most of the window, so the bear-market indicator is 1. Then the market jumps in the crash
+month, and momentum collapses. Now pick 2001-01. The market over the 24 months before was down by only 0.1%, just
+enough to switch the indicator on, and the market rose only 3.3% that month. Not every crash is a rebound of the
+same kind.</p>
+
+<p class="try-this"><strong>Try this too:</strong> go through all ten months and look at the indicator. It is 1
+in every one of them. Bear markets come before 275 of 1,172 months, less than a quarter, yet they come before all
+ten of the worst months.</p>
+
+### What the evidence can and cannot show
+
+The alpha of momentum is large and precisely measured. A $t$-statistic near 8 over 1,196 months is hard to explain
+as luck. But three limits apply.
+
+First, the Sharpe ratio depends on the sample. Over the full sample it equals the market's. A study that began in
+1945 and ended in 2008 would report almost twice as much, because the sample left out the crashes. Since 2009 the
+average return has been slightly negative.
+
+Second, the factor returns are before trading costs. The rule trades many stocks every month, and some of the
+losers it sells short may be hard to borrow. Our data has no costs, so we cannot say how much of the alpha
+survives them.
+
+Third, a large alpha with large negative skewness does not have to be a free lunch. An investor who fears
+sudden losses in a market rebound may demand a high average return for holding them. Whether that, or slow
+reaction to news, explains momentum is still debated. The data in this chapter cannot decide between them.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="The formation signal uses the returns of months $t-12$ to $t-2$. Why does it leave out month $t-1$?"
+  options={["One-month returns tend to partly reverse, so including the last month would weaken the strategy", "The data for month $t-1$ is not yet published at the start of month $t$", "Including it would make the signal a 13-month return", "Month $t-1$ is already used to measure size"]}
+  answer={0}
+  explanation="At a one-month horizon, returns tend to give some of their move back, partly because of bid–ask effects. Skipping month $t-1$ keeps that reversal out of the signal."
+/>
+
+<Quiz
+  client:visible
+  question="Over some sample, momentum's mean is 7.35% a year and the three-factor model predicts $\hat\beta'\bar f = -3.89\%$ a year. What is the alpha?"
+  options={["11.2% a year", "7.35% a year", "3.46% a year", "−3.89% a year"]}
+  answer={0}
+  explanation="The mean equals alpha plus the predicted part, so $\hat\alpha = 7.35\% - (-3.89\%) = 11.2\%$. Negative betas make the alpha larger than the mean."
+/>
+
+<Quiz
+  client:visible
+  question="The market has fallen over the past 24 months. Next month it rises 20%. With $\hat\alpha_0 = 0.78\%$, $\hat\alpha_B = -0.40\%$, $\hat\beta_0 = 0.04$ and $\hat\beta_B = -0.69$, what does the bear-market regression predict for WML?"
+  options={["About −12.6%", "About +1.2%", "About −13.8%", "About +0.4%"]}
+  answer={0}
+  explanation="With $I_{B,t-1} = 1$: $0.78\% - 0.40\% + (0.04 - 0.69) \times 20\% = -12.62\%$, about $-12.6\%$. The negative beta after a bear market turns a rally into a loss."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- The momentum signal compounds a stock's returns from month $t-12$ to $t-2$, skipping the last month, where
+  returns tend to reverse.
+- $WML_t$ buys winners and sells losers within small and within big stocks, so size is averaged out. From 1927-01
+  to 2026-08 it earned 7.35% a year.
+- Its betas on the three Fama–French factors are negative, so its three-factor alpha, 11.2% a year
+  (t = 7.77), is larger than its mean.
+- After a bear market, momentum's market beta turns strongly negative, −0.64 against 0.04 in normal months. A
+  sharp rally then becomes a crash: all ten worst months came after a bear market.
+- The Sharpe ratio is 0.45 a year over the full sample and 0.82 from 1945 to 2008. A sample without the crashes
+  overstates the strategy.
+
+**Next up:** Chapter 21, *Anomalies and the factor zoo*, asks how many of the hundreds of published return
+predictors survive, and which few factors span the rest.
+
+### Further reading
+
+- Cochrane (2011)
+- Fama & French (1992)
+- Jegadeesh & Titman (1993)
+- Carhart (1997)
+- Daniel & Moskowitz (2016)

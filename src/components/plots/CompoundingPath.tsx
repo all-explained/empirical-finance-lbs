@@ -14,6 +14,7 @@ import { Segmented, Slider } from '../ui/controls';
 import { RichText } from '../ui/Tex';
 import { WidgetFrame } from '../ui/WidgetFrame';
 import { useTweened } from './animation';
+import { momentumSample } from './factorModelSample';
 import { extent, money, niceTicks } from './format';
 import { Label, PlotFrame } from './PlotFrame';
 
@@ -21,6 +22,7 @@ type Scale = 'linear' | 'log';
 type Mode = 'simple' | 'log';
 const HEIGHT = 340;
 const FIRST_YEAR = 1926;
+const MOM_FIRST_YEAR = 1927; // mom-monthly starts 1927-01
 const LAST_START = 2016; // keep at least ten years in the sample
 
 const monthName = (iso: string) =>
@@ -37,20 +39,24 @@ const compactDollars = (v: number) =>
  * T-bills, from ff3-monthly (market = Mkt-RF + RF). The dashed line compounds
  * the average return of the chosen kind: the average simple return overshoots,
  * the average log return lands on the true final value.
+ * Chapter 20 sets `momentum`: a third line compounds T-bills plus the momentum factor (RF + Mom, mom-monthly).
  */
-export default function CompoundingPath({ initialStart = FIRST_YEAR }: { initialStart?: number }) {
+export default function CompoundingPath({ initialStart = FIRST_YEAR, momentum = false }: { initialStart?: number; momentum?: boolean }) {
+  const firstYear = momentum ? MOM_FIRST_YEAR : FIRST_YEAR;
   const [series, setSeries] = useState<Series<'ff3-monthly'> | null>(null);
+  const [mom, setMom] = useState<Series<'mom-monthly'> | null>(null);
   const [failed, setFailed] = useState(false);
   const [scale, setScale] = useState<Scale>('log');
   const [mode, setMode] = useState<Mode>('simple');
-  const [start, setStart] = useState(initialStart);
+  const [start, setStart] = useState(Math.max(initialStart, firstYear));
 
   useEffect(() => {
     loadSeries('ff3-monthly').then(setSeries, () => setFailed(true));
-  }, []);
+    if (momentum) loadSeries('mom-monthly').then(setMom, () => setFailed(true));
+  }, [momentum]);
 
   const stats = useMemo(() => {
-    if (!series) return null;
+    if (!series || (momentum && !mom)) return null;
     const all = ff3MarketReturns(series);
     const from = all.dates.findIndex((d) => d >= `${start}-01-01`);
     const dates = all.dates.slice(from);
@@ -67,11 +73,18 @@ export default function CompoundingPath({ initialStart = FIRST_YEAR }: { initial
       : growthPath(market.map(() => meanLog), 'log');
     // The path starts with $1 at the start of the first month.
     const x = [yearOf(dates[0]), ...dates.map((d) => yearOf(d) + 1 / 12)];
-    return { dates, meanSimple, meanLog, approx, wealth, bills, average, x };
-  }, [series, start, mode]);
+    let momWealth: number[] | null = null;
+    if (mom) {
+      const m = momentumSample(series, mom);
+      const first = m.dates.indexOf(dates[0]);
+      // Same wealth in simple and log mode: compounding is compounding.
+      momWealth = growthPath(m.mom.slice(first).map((v, t) => v + m.rf[first + t]), 'simple');
+    }
+    return { dates, meanSimple, meanLog, approx, wealth, bills, average, x, momWealth };
+  }, [series, mom, start, mode]);
 
   const tf = (v: number) => (scale === 'log' ? Math.log10(v) : v);
-  const [lo, hi] = stats ? extent([...stats.wealth, ...stats.bills, ...stats.average]) : [1, 10];
+  const [lo, hi] = stats ? extent([...stats.wealth, ...stats.bills, ...stats.average, ...(stats.momWealth ?? [])]) : [1, 10];
   const linearTop = useTweened(hi * 1.05);
   const logTop = useTweened(Math.ceil(Math.log10(hi) + 0.05));
   const logBottom = useTweened(Math.floor(Math.log10(Math.max(lo, 1e-3))));
@@ -88,6 +101,7 @@ export default function CompoundingPath({ initialStart = FIRST_YEAR }: { initial
   const final = stats ? stats.wealth[stats.wealth.length - 1] : 0;
   const billsFinal = stats ? stats.bills[stats.bills.length - 1] : 0;
   const averageFinal = stats ? stats.average[stats.average.length - 1] : 0;
+  const momFinal = stats?.momWealth ? stats.momWealth[stats.momWealth.length - 1] : null;
 
   const plot = stats ? (
     <PlotFrame
@@ -105,7 +119,9 @@ export default function CompoundingPath({ initialStart = FIRST_YEAR }: { initial
       <Polyline points={points(stats.average)} color="var(--c-return)" weight={2} strokeStyle="dashed" fillOpacity={0} strokeOpacity={0.7} />
       <Polyline points={points(stats.bills)} color="var(--c-rf)" weight={2.5} fillOpacity={0} />
       <Polyline points={points(stats.wealth)} color="var(--c-return)" weight={2.5} fillOpacity={0} />
+      {stats.momWealth && <Polyline points={points(stats.momWealth)} color="var(--c-factor)" weight={2.5} fillOpacity={0} />}
       <Label x={xEnd} y={tf(final)} attach="nw" attachDistance={6} size={12} color="var(--c-return)">market</Label>
+      {momFinal !== null && <Label x={xEnd} y={tf(momFinal)} attach="sw" attachDistance={6} size={12} color="var(--c-factor)">momentum</Label>}
       <Label x={xEnd} y={tf(billsFinal)} attach="nw" attachDistance={6} size={12} color="var(--c-rf)">T-bills</Label>
     </PlotFrame>
   ) : (
@@ -115,10 +131,10 @@ export default function CompoundingPath({ initialStart = FIRST_YEAR }: { initial
   const averageName = mode === 'simple' ? 'the average simple return' : 'the average log return';
   return (
     <WidgetFrame
-      title="One dollar in stocks and in T-bills"
+      title={momentum ? 'One dollar in stocks, T-bills and momentum' : 'One dollar in stocks and in T-bills'}
       ariaLabel={
         stats && range
-          ? `From ${monthName(range.start)} to ${monthName(range.end)}, one dollar in the US stock market grows to ${dollars(final)} and one dollar in T-bills grows to ${dollars(billsFinal)}. A dashed line compounds ${averageName} every month and ends at ${dollars(averageFinal)}.`
+          ? `From ${monthName(range.start)} to ${monthName(range.end)}, one dollar in the US stock market grows to ${dollars(final)} and one dollar in T-bills grows to ${dollars(billsFinal)}.${momFinal !== null ? ` One dollar in T-bills plus the momentum factor grows to ${dollars(momFinal)}.` : ''} A dashed line compounds ${averageName} every month and ends at ${dollars(averageFinal)}.`
           : 'Growth of one dollar in the US stock market and in T-bills. The data is loading.'
       }
       plotHeight={HEIGHT}
@@ -133,7 +149,7 @@ export default function CompoundingPath({ initialStart = FIRST_YEAR }: { initial
             { value: 'simple', label: 'simple returns' },
             { value: 'log', label: 'log returns' },
           ]} />
-          <Slider label="Start year" value={start} min={FIRST_YEAR} max={LAST_START} onChange={setStart} />
+          <Slider label="Start year" value={start} min={firstYear} max={LAST_START} onChange={setStart} />
         </>
       }
       readout={
@@ -143,6 +159,12 @@ export default function CompoundingPath({ initialStart = FIRST_YEAR }: { initial
             <dd style={{ color: 'var(--c-return)' }}>{dollars(final)}</dd>
             <dt>$1 in T-bills grows to</dt>
             <dd style={{ color: 'var(--c-rf)' }}>{dollars(billsFinal)}</dd>
+            {momFinal !== null && (
+              <>
+                <dt>$1 in T-bills + momentum grows to</dt>
+                <dd style={{ color: 'var(--c-factor)' }}>{dollars(momFinal)}</dd>
+              </>
+            )}
             <dt><RichText>{'Monthly average simple return $\\Ret{\\bar R}$'}</RichText></dt>
             <dd>{perMonth(stats.meanSimple)}</dd>
             <dt><RichText>{'Monthly average log return $\\Ret{\\bar r}$'}</RichText></dt>
@@ -158,8 +180,8 @@ export default function CompoundingPath({ initialStart = FIRST_YEAR }: { initial
       }
       caption={
         range && full
-          ? `Data: ff3-monthly (Kenneth French Data Library), ${monthName(full.start)} to ${monthName(full.end)}. Market return = Mkt-RF + RF, the value-weighted US stock market including dividends; T-bills = RF, the one-month Treasury bill. This view: ${monthName(range.start)} to ${monthName(range.end)}, ${stats!.dates.length} months. Returns are nominal and before costs and taxes. "A year" = 12 × the monthly figure.`
-          : 'Data: ff3-monthly (Kenneth French Data Library).'
+          ? `Data: ff3-monthly (Kenneth French Data Library), ${monthName(full.start)} to ${monthName(full.end)}. Market return = Mkt-RF + RF, the value-weighted US stock market including dividends; T-bills = RF, the one-month Treasury bill. This view: ${monthName(range.start)} to ${monthName(range.end)}, ${stats!.dates.length} months. ${momentum ? ' Momentum = RF + Mom (mom-monthly, Kenneth French Data Library): T-bills plus the winners-minus-losers factor, rebalanced monthly.' : ''} Returns are nominal and before costs and taxes. "A year" = 12 × the monthly figure.`
+          : `Data: ff3-monthly${momentum ? ' and mom-monthly' : ''} (Kenneth French Data Library).`
       }
     />
   );
