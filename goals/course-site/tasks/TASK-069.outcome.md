@@ -4,7 +4,7 @@
 
 - [x] Every exported function has a test against a reference value, and `npm test` passes.
   Evidence: `src/lib/finance/factors.test.ts` has 21 tests over the seven exported functions (table below).
-  `npm test`: 42 test files and 467 tests passed, exit 0.
+  `npm test`: 43 test files and 478 tests passed, exit 0 (final run on the rebased branch).
 - [x] `npm run build` passes (`astro check` reports 0 errors).
   Evidence: `astro check` "Result (132 files): 0 errors, 0 warnings, 1 hint"; 18 pages built; exit 0.
 - [x] `git status --short` shows only `src/lib/finance/factors.ts`, its test and this task's outcome file.
