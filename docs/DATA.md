@@ -1,6 +1,6 @@
 # Public data
 
-These eleven datasets are small teaching extracts of public source files. They keep source units.
+These datasets are small teaching extracts of public source files. They keep source units.
 Public access does not imply an open licence. The site's code and content licences do not cover third-party data.
 
 1. Install Node dependencies: `npm ci`.
@@ -10,7 +10,7 @@ Public access does not imply an open licence. The site's code and content licenc
 5. Check the results: `npm test && npm run build`.
 
 The script also needs `curl`, included with macOS. It runs from the repository root.
-Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all eleven outputs.
+Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all outputs.
 A fresh checkout downloads all sources without API keys. A failed download exits with an error.
 Remove its raw cache file, or use `--refresh`, to try a source again.
 The script validates all datasets and their sizes before replacing any JSON file.
@@ -35,8 +35,10 @@ The source links provide the files or their download pages. Terms links give the
 | `gsw-zero-coupon` | [Federal Reserve GSW CSV](https://www.federalreserve.gov/data/yield-curve-tables/feds200628.csv) | [Board terms](https://www.federalreserve.gov/disclaimer.htm): public domain unless indicated; cite the Board. Staff research product, subject to revision. | Gürkaynak, Sack and Wright (2007), FEDS 2006-28. | 1985-11-29–2026-09-30, end of completed month |
 | `fred-consumption-quarterly` | [FRED public CSV](https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCNDGC96,PCESVC96,B230RC0Q173SBEA) | U.S. government BEA data; cite BEA and FRED. [BEA policy](https://www.bea.gov/about/policies-and-information), [FRED terms](https://fred.stlouisfed.org/legal/). | U.S. Bureau of Economic Analysis, NIPA; retrieved from FRED, Federal Reserve Bank of St. Louis. | 2007-Q1–2026-Q2 |
 | `fred-cay-quarterly` | [FRED public CSV](https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCND,PCESV,DNDGRG3Q086SBEA,DSERRG3Q086SBEA,TNWBSHNO,COE,A577RC1Q027SBEA,A061RC1Q027SBEA,PCECTPI,B230RC0Q173SBEA) | BEA data and Board Financial Accounts data; public domain unless indicated; cite BEA, the Board and FRED. [BEA policy](https://www.bea.gov/about/policies-and-information), [Board terms](https://www.federalreserve.gov/disclaimer.htm), [FRED terms](https://fred.stlouisfed.org/legal/). | U.S. Bureau of Economic Analysis, NIPA; Board of Governors, Financial Accounts of the United States (Z.1); retrieved from FRED, Federal Reserve Bank of St. Louis. Lettau and Ludvigson (2001). | 1951-Q4–2026-Q2 |
+| `osap-ls-monthly` | [OSAP October 2025 data](https://www.openassetpricing.com/data/), [PredictorLSretWide.csv](https://drive.google.com/file/d/10sOryk_ddjkXagaajTKUk1nwJs2ZLRiI/view) | Public academic download; no explicit data redistribution licence located on the data page or signal browser. Small derived teaching extract under the goal assumption below; cite OSAP. | Chen and Zimmermann (2022), *Open Source Cross-Sectional Asset Pricing*. | 1963-01–2024-12; 165 clear predictors; percent/month |
+| `osap-signals` | [October 2025 SignalDoc.csv](https://drive.google.com/file/d/1rdi0jTPSA6xtn6TpQAMT5WyEczQ1gK59/view), [signal browser](https://openassetpricing.com/SignalDoc-Browser.html) | Same OSAP terms and limited-extract assumption. Journal names retain OSAP abbreviations. | Chen and Zimmermann (2022). | 165 signal records; publication and original sample years |
 
-The French, Shiller and Goyal sources have no explicit redistribution licence located during this task.
+The French, Shiller, Goyal and OSAP sources have no explicit redistribution licence located during this task.
 These limited teaching extracts follow the goal's assumption that small derived public academic datasets may be included.
 They do not grant broader reuse rights. Preserve source attribution and notices when using them.
 
@@ -44,6 +46,7 @@ Full paper citations:
 
 - Fama, E. F., and K. R. French (1993). “Common risk factors in the returns on stocks and bonds.” *Journal of Financial Economics* 33, 3–56.
 - Fama, E. F., and K. R. French (2015). “A five-factor asset pricing model.” *Journal of Financial Economics* 116, 1–22.
+- Chen, A. Y., and T. Zimmermann (2022). “Open Source Cross-Sectional Asset Pricing.” *Critical Finance Review* 11, 207–264.
 - Carhart, M. M. (1997). “On persistence in mutual fund performance.” *Journal of Finance* 52, 57–82.
 - Shiller, R. J. (2015). *Irrational Exuberance*. Third edition. Princeton University Press.
 - Welch, I., and A. Goyal (2008). “A comprehensive look at the empirical performance of equity premium prediction.” *Review of Financial Studies* 21, 1455–1508.
@@ -115,6 +118,56 @@ No gaps are filled, no returns are calculated, and no source units are converted
   - FRED sends these series as a ZIP with one CSV per aggregation type (`quarterly.csv` and
     `quarterly,_end_of_period.csv`). The script joins the CSVs by observation date.
 
+### OSAP returns and signal documentation
+
+The OSAP vintage is **October 2025, v2.0.0**, retrieved on **2026-10-24**.
+The pipeline pins file IDs from that release, rather than the package's latest release.
+The data page's signal-documentation shortcut points to an older copy without the 2025 citation column.
+Use `SignalDoc.csv` inside the October 2025 release folder (linked in the table).
+Raw downloads are cached with the `osap-202510-` prefix:
+
+| Published filename | Google Drive file ID | Use |
+| --- | --- | --- |
+| `SignalDoc.csv` | `1rdi0jTPSA6xtn6TpQAMT5WyEczQ1gK59` | Signal metadata and selection |
+| `PredictorLSretWide.csv` | `10sOryk_ddjkXagaajTKUk1nwJs2ZLRiI` | Original-paper monthly long–short returns |
+| `PredictorAltPorts_LiqScreen_VWforce.zip` | `1KZE3FgBxFPaNOyxoRw63ubZHOlkR9kZW` | Published value-weighting variant; measured, omitted by size rule |
+| `PredictorAltPorts_LiqScreen_ME_gt_NYSE20pct.zip` | `1Q4YatQ3soRU_V7VeACwUn2bnCnmhDUI2` | Published NYSE 20th-percentile size-screen variant; measured, omitted by size rule |
+
+Each ZIP contains a CSV with the same basename. The variants contain OSAP's published `port=LS` returns.
+`VWforce` changes stock weights to value weights. `ME_gt_NYSE20pct` uses `me > me_nyse20`.
+These follow the original-paper settings except for the named change. No variant is built from stock data.
+See the release's [portfolio construction code](https://github.com/OpenSourceAP/CrossSection/blob/v2.0.0/Portfolios/Code/30_PredictorAltPorts.R).
+
+Select only `Cat.Signal=Predictor` and `Predictability in OP=1_clear`: **165 signals**.
+Exclude the 47 `2_likely` predictors, placebos and dropped signals. Sort acronyms alphabetically.
+Keep published returns unchanged in **percent per month**, without rounding or sign changes.
+OSAP multiplies CRSP returns by 100 in its [source processing](https://github.com/OpenSourceAP/CrossSection/blob/v2.0.0/Portfolios/Code/11_ProcessCRSP.R).
+Convert source trading-day dates to the first day of the observation month, matching other monthly series.
+All signal columns use `required: false`; missing histories remain `null`, including gaps after a signal ends.
+The data page notes that option-implied-volatility signals end in December 2022 in this release.
+No means, t-statistics or other return summaries are calculated.
+
+Measure each JSON file at full precision. If it exceeds **1,500,000 bytes**, start at 1963-01.
+The original-paper file still exceeds that limit, so keep only `osap-ls-monthly` and `osap-signals`.
+Both published variants are downloaded and measured on each rebuild, but their JSON files are omitted.
+The original-paper file has an explicit exception to the pipeline's normal 1 MB output check.
+The task outcome records all three measured sizes after the cut.
+
+`osap-signals.json` is metadata, not a dated series. It has `id`, `title`, `source`, `url`,
+`citation`, `retrieved`, `release` and `signals`. Each signal has `acronym`, `authors`,
+`publicationYear`, `journal`, `sampleStartYear`, `sampleEndYear`, `category` and `predictability`.
+Year fields are integers from the original paper metadata. `journal` retains the source abbreviation.
+`category` is OSAP's `Cat.Signal` (`Predictor`); `predictability` retains `1_clear`.
+There is one record per included signal, in the same order as the return columns.
+Use its separate typed loader; it does not pass through `loadSeries`:
+
+```ts
+import { loadOsapSignals } from '../lib/data/osap-signals';
+
+const documentation = await loadOsapSignals();
+const paper = documentation.signals.find(({ acronym }) => acronym === 'BM');
+```
+
 ## Typed loaders and validation
 
 ```ts
@@ -135,3 +188,6 @@ Use full ISO date bounds. A slice ending on `2020-01-01` excludes the GSW observ
 `src/lib/data/series.test.ts` checks each dataset's schema, dates, required values and three raw-source cells.
 Comments identify the original workbook sheet and cell or CSV line and column.
 Tests run offline against checked-in JSON. If a source revises a reference value, inspect the raw file before updating its test.
+
+`src/lib/data/osap-signals.test.ts` checks metadata fields, a raw documentation record,
+and agreement between the documented signals and the return columns.

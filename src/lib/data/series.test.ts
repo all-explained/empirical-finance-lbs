@@ -5,6 +5,9 @@ import { betweenDates, dateRange, getColumn, loadSeries, seriesColumns, type Ser
 // CSV line numbers include preambles/headers. Workbook addresses use Excel notation.
 // Tests preserve source units; rounded workbook/Fed cells use the documented precision.
 const references: Record<SeriesId, readonly (readonly [string, string, number])[]> = {
+  // October 2025 PredictorLSretWide.csv lines 446/AM, 890/BM and 1189/Mom12m.
+  // Raw dates are 1963-01-31, 2000-01-31 and 2024-12-31; store the observation month.
+  'osap-ls-monthly': [['1963-01-01', 'AM', 4.36695811965812], ['2000-01-01', 'BM', 8.00532216312057], ['2024-12-01', 'Mom12m', -22.5286012578235]],
   // F-F_Research_Data_Factors.csv lines 6–8, columns B, C, D respectively.
   'ff3-monthly': [['1926-07-01', 'Mkt-RF', 2.89], ['1926-08-01', 'SMB', -1.44], ['1926-09-01', 'HML', 0.05]],
   // F-F_Research_Data_5_Factors_2x3.csv lines 6–8, columns B, E, F.
@@ -71,6 +74,20 @@ for (const id of Object.keys(seriesColumns) as SeriesId[]) {
 }
 
 describe('typed loader helpers', () => {
+  it('preserves OSAP source units and unavailable signal histories', async () => {
+    const series = await loadSeries('osap-ls-monthly');
+    expect(dateRange(series)).toEqual({ start: '1963-01-01', end: '2024-12-01' });
+    expect(series.rows).toHaveLength(744);
+    expect(series.columns.slice(1)).toHaveLength(165);
+    for (const column of series.columns.slice(1)) {
+      expect(column.required).toBe(false);
+      expect(column.unit).toBe('percent/month');
+    }
+    const accruals = getColumn(series, 'AbnormalAccruals');
+    expect(accruals[0]).toBeNull();
+    expect(accruals.some((value) => value !== null)).toBe(true);
+  });
+
   it('accesses columns and slices an inclusive date range without changing the original', async () => {
     const series = await loadSeries('ff3-monthly');
     const slice = betweenDates(series, '1926-07-01', '1926-08-01');
