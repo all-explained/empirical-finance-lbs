@@ -1,5 +1,13 @@
 # TASK-085 outcome: GMM estimation, the J test and the chi-square distribution
 
+## Blocked: task cancelled as a duplicate
+
+On 2026-10-24 at 22:03 UTC, the owner cancelled TASK-085 on `main` (commit `3aea07d`). The spec now has `state: cancelled`, with the reason "duplicate of TASK-093..100: proposal TASK-034 was applied twice". TASK-093 delivered the same library as PR #77, which merged as `c7fd019`. It adds `src/lib/stats/gmm.ts`, `src/lib/math/optimize.ts`, the chi-square functions, the `serialCovariance` export and the Part VI §3 block.
+
+The cancellation landed after this branch was verified. This PR now duplicates merged code and conflicts with it in every file it touches, so it should not merge. I did not rebase it onto a cancelled spec. The owner or the orchestrator can close PR #76. A later task can reuse anything here that TASK-093 lacks, such as the R-checked chi-square tails, the IV and 2SLS tests, or the outcome's notes on letter clashes.
+
+The checklist below records the state verified before the cancellation, on `98c2f1a` over `origin/main` `c7e441e`.
+
 ## Acceptance
 
 - [x] Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.
