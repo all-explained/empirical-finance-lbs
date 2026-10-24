@@ -11,6 +11,14 @@ const references: Record<SeriesId, readonly (readonly [string, string, number])[
   'ff5-monthly': [['1963-07-01', 'Mkt-RF', -0.39], ['1963-08-01', 'RMW', 0.40], ['1963-09-01', 'CMA', 0.15]],
   // F-F_Momentum_Factor.csv lines 15–17, column B.
   'mom-monthly': [['1927-01-01', 'Mom', 0.57], ['1927-02-01', 'Mom', -1.51], ['1927-03-01', 'Mom', 3.52]],
+  // Transcribed 2026-10-24: 6_Portfolios_2x3.csv first value-weighted block, lines 17/B, 18/D, 19/G.
+  'ff6-size-bm-monthly': [['1926-07-01', 'SMALL-LoBM', 1.0866], ['1926-08-01', 'SMALL-HiBM', 5.4422], ['1926-09-01', 'BIG-HiBM', -0.7906]],
+  // 6_Portfolios_ME_Prior_12_2.csv first value-weighted block, lines 13/B, 14/D, 15/G.
+  'ff6-size-mom-monthly': [['1927-01-01', 'SMALL-LoPRIOR', -0.01], ['1927-02-01', 'SMALL-HiPRIOR', 5.81], ['1927-03-01', 'BIG-HiPRIOR', 2.25]],
+  // F-F_Research_Data_Factors_daily.csv lines 10426/B, 10427/C, 10428/D.
+  'ff3-daily': [['1963-07-01', 'Mkt-RF', -0.67], ['1963-07-02', 'SMB', -0.28], ['1963-07-03', 'HML', -0.10]],
+  // F-F_Momentum_Factor_daily.csv lines 10334–10336, column B.
+  'mom-daily': [['1963-07-01', 'Mom', -0.23], ['1963-07-02', 'Mom', 0.45], ['1963-07-03', 'Mom', 0.39]],
   // 25_Portfolios_5x5.csv value-weighted monthly block, lines 17–19, B, F, Z.
   'ff25-size-bm-monthly': [['1926-07-01', 'ME1-BM1', 3.7806], ['1926-08-01', 'ME1-BM5', 8.5104], ['1926-09-01', 'ME5-BM5', -2.4284]],
   // ie_data.xls Data!B129, E1533, M1838. M1838 raw = 29.939593027231528.
@@ -41,7 +49,7 @@ for (const id of Object.keys(seriesColumns) as SeriesId[]) {
       for (const key of ['title', 'source', 'url', 'citation'] as const) expect(series[key].length).toBeGreaterThan(0);
       expect(series.url).toMatch(/^https?:\/\//);
       expect(series.retrieved).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(series.frequency).toBe(id.endsWith('annual') ? 'annual' : id.endsWith('quarterly') ? 'quarterly' : 'monthly');
+      expect(series.frequency).toBe(id.endsWith('daily') ? 'daily' : id.endsWith('annual') ? 'annual' : id.endsWith('quarterly') ? 'quarterly' : 'monthly');
       expect(series.columns.map(({ name }) => name)).toEqual(['date', ...seriesColumns[id]]);
       for (const column of series.columns) {
         expect(column.unit.length).toBeGreaterThan(0);
@@ -92,5 +100,30 @@ describe('typed loader helpers', () => {
     expect(getColumn(series, 'csp')).toContain(null);
     expect(series.columns.find(({ name }) => name === 'csp')?.required).toBe(false);
     await expect(loadSeries('unknown' as SeriesId)).rejects.toThrow(RangeError);
+  });
+});
+
+describe('French 2×3 sorts and daily factors', () => {
+  it.each(['ff6-size-bm-monthly', 'ff6-size-mom-monthly', 'ff3-daily', 'mom-daily'] as const)(
+    '%s keeps percent units and excludes source missing-value markers', async (id) => {
+      const series = await loadSeries(id);
+      expect(series.columns.slice(1).every(({ unit, required }) => unit === 'percent' && required)).toBe(true);
+      for (const row of series.rows) {
+        expect(row.slice(1)).not.toContain(-99.99);
+        expect(row.slice(1)).not.toContain(-999);
+      }
+    },
+  );
+
+  it.each(['ff3-daily', 'mom-daily'] as const)('%s starts at the chosen cutoff and keeps trading dates', async (id) => {
+    const series = await loadSeries(id);
+    expect(series.rows[0]?.[0]).toBe('1963-07-01');
+    expect(series.rows.slice(0, 4).map(([date]) => date)).toEqual([
+      '1963-07-01', '1963-07-02', '1963-07-03', '1963-07-05',
+    ]);
+    expect(series.rows.every(([date]) => {
+      const day = new Date(date).getUTCDay();
+      return date >= '1963-07-01' && day !== 0 && day !== 6;
+    })).toBe(true);
   });
 });
