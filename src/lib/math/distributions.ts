@@ -1,4 +1,4 @@
-// The gamma and beta special functions and the F distribution, for test p-values.
+// The gamma and beta special functions and the F and chi-square distributions, for test p-values.
 
 // Lanczos coefficients for g = 7, n = 9 (Godfrey's set); relative error below 1e-15 for x > 0.
 const LANCZOS = [
@@ -78,4 +78,73 @@ export function fSurvival(x: number, d1: number, d2: number): number {
   if (x <= 0) return 1;
   if (x === Infinity) return 0;
   return regularizedBeta(d2 / (d2 + d1 * x), d2 / 2, d1 / 2);
+}
+
+// P(a, x) by its power series and Q(a, x) = 1 - P(a, x) by its continued fraction (modified Lentz);
+// Numerical Recipes, section 6.2. The series converges fast for x < a + 1, the fraction otherwise.
+function gammaSeries(a: number, x: number, front: number): number {
+  let term = 1 / a;
+  let sum = term;
+  for (let n = 1; n <= 10000; n++) {
+    term *= x / (a + n);
+    sum += term;
+    if (Math.abs(term) < Math.abs(sum) * 1e-16) return front * sum;
+  }
+  throw new Error('regularizedGamma: series did not converge');
+}
+
+function gammaFraction(a: number, x: number, front: number): number {
+  const tiny = 1e-300;
+  let b = x + 1 - a;
+  let c = 1 / tiny;
+  let d = 1 / b;
+  let h = d;
+  for (let i = 1; i <= 10000; i++) {
+    const an = -i * (i - a);
+    b += 2;
+    d = an * d + b;
+    if (Math.abs(d) < tiny) d = tiny;
+    c = b + an / c;
+    if (Math.abs(c) < tiny) c = tiny;
+    d = 1 / d;
+    const delta = d * c;
+    h *= delta;
+    if (Math.abs(delta - 1) < 1e-15) return front * h;
+  }
+  throw new Error('regularizedGamma: continued fraction did not converge');
+}
+
+/** The regularized incomplete gamma functions P(a, x) and Q(a, x) = 1 - P(a, x), for a > 0 and x > 0.
+ * The smaller one is computed directly, so a tiny tail keeps its digits. */
+function regularizedGamma(a: number, x: number): { lower: number; upper: number } {
+  // e^{-x} x^a / Γ(a) is the leading factor of both expansions.
+  const front = Math.exp(a * Math.log(x) - x - logGamma(a));
+  if (x < a + 1) {
+    const lower = gammaSeries(a, x, front);
+    return { lower, upper: 1 - lower };
+  }
+  const upper = gammaFraction(a, x, front);
+  return { lower: 1 - upper, upper };
+}
+
+function checkChiSquare(df: number): void {
+  if (!(df > 0)) throw new RangeError('chi-square distribution: degrees of freedom must be positive');
+}
+
+/** P(X ≤ x) for X ~ χ²(df): P(df/2, x/2). */
+export function chiSquareCdf(x: number, df: number): number {
+  checkChiSquare(df);
+  if (Number.isNaN(x)) return NaN;
+  if (x <= 0) return 0;
+  if (x === Infinity) return 1;
+  return regularizedGamma(df / 2, x / 2).lower;
+}
+
+/** P(X > x) = Q(df/2, x/2), computed directly so small p-values keep their digits. */
+export function chiSquareSurvival(x: number, df: number): number {
+  checkChiSquare(df);
+  if (Number.isNaN(x)) return NaN;
+  if (x <= 0) return 1;
+  if (x === Infinity) return 0;
+  return regularizedGamma(df / 2, x / 2).upper;
 }

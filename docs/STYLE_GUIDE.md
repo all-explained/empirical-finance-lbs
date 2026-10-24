@@ -165,6 +165,20 @@ Use these symbols everywhere. If a chapter needs a new symbol, add it to this ta
 | $\sigma_{\beta\lambda}$ | — | Covariance of beta and the premium, $\operatorname{Cov}(\beta_t, \lambda_t)$, in the simulated world of Chapter 22. Not $c$, which is log consumption |
 | $\eta_t$; $\eta_0$, $\eta_1$ | — | Intercept of a conditional linear SDF, $M_{t+1} = \eta_t + b_t f_{t+1}$, and its constant and slope on $z_t$ (Chapter 22). Not $a$, which is a predictive intercept, nor $\delta$, the time-discount factor. In Chapter 7, $\eta_1$ and $\eta_2$ are Lagrange multipliers |
 
+### Part VI: GMM, linear SDF models and identification (Chapters 24–27)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $g(x_t, \theta)$, $g_T(\theta)$ | — | Moment function, with $\mathbb{E}[g(x_t, \theta_0)] = 0$, and its sample mean $g_T(\theta) = \tfrac1T \sum_t g(x_t, \theta)$. Not the curriculum's $f(x_t, \theta)$, which would read as the factors $f_t$. With its arguments it never reads as a slope $g$ on characteristics |
+| $D$ | — | Jacobian $D = \partial g_T/\partial\theta'$, an $L \times \dim\theta$ matrix. Not the curriculum's $d$, which is the log dividend $d_t$. $D$ never carries a date, so it does not read as the dividend $D_t$ |
+| $W$ | — | Weighting matrix of the GMM objective $g_T'Wg_T$, $L \times L$. Not $w$, which is portfolio weights. $W_t$ with a date is total wealth, in Chapter 14 only |
+| $S$, $\hat S$ | — | Long-run covariance of the moments, $S = \sum_{j=-\infty}^{\infty}\mathbb{E}[g_t g_{t-j}']$, and its Newey–West estimate, as in Chapter 4. Efficient GMM uses $W = \hat S^{-1}$ and $\operatorname{Var}(\hat\theta) = \tfrac1T(D'S^{-1}D)^{-1}$ |
+| $L$ | — | Number of moment conditions, so $J$ has $L - \dim\theta$ degrees of freedom. Not the curriculum's $r - k$: $r$ is a log return and $k$ indexes factors. Chapter 4's lag length $L$ is $L_{\text{NW}}$ in Part VI. The entropy $L(X)$ always has its argument |
+| $\mathbb{E}_T[\cdot]$ | — | Sample mean over $t = 1, \dots, T$ of a product, $\mathbb{E}_T[R^e\tilde f'] = \tfrac1T\sum_t R^e_t\tilde f_t'$, where a bar would be ambiguous. The capital $T$ keeps it apart from the conditional $\mathbb{E}_t[\cdot]$ |
+| $\tilde f_t$ | `\Factor` | Factors demeaned in sample, $\tilde f_t = f_t - \bar f$, so the linear SDF is $M_{t+1} = 1 - b'\tilde f_{t+1}$ without the unknown $\mathbb{E}f$ |
+| $\delta_{\text{HJ}}$ | — | Hansen–Jagannathan distance, $\delta_{\text{HJ}} = \sqrt{g_T'\,\mathbb{E}_T[RR']^{-1}g_T}$. It always keeps its subscript, so it never reads as the time-discount factor $\delta$ |
+| $\lambda^{\circ}$ | — | Hypothesised value of the risk premium in the GRS-FAR statistic and its confidence set (Chapter 27). Not Kleibergen and Zhan's $\lambda_{f,0}$, which would read as the zero-beta rate $\lambda_0$ of Chapter 17 |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |
@@ -183,7 +197,7 @@ Use these symbols everywhere. If a chapter needs a new symbol, add it to this ta
 | $\pi(s)$ | `\Prob` | Probability of state $s$. Use $\pi$, not $p$, which is a log price |
 | $\Phi(\cdot)$, $\varphi(\cdot)$ | — | Standard normal CDF and PDF, always written with their argument. $N$ is a count, never the normal CDF |
 | $\ell_k$ | — | $k$-th eigenvalue in principal components. Not $\lambda_k$, which is a risk premium |
-| $\theta$ | — | Parameter vector of a GMM estimator, with moments $g_T(\theta)$ and statistic $J$ |
+| $\theta$, $\dim\theta$ | — | Parameter vector of a GMM estimator and its number of entries (Part VI), with moments $g_T(\theta)$ and statistic $J = T\,g_T(\hat\theta)'\hat S^{-1}g_T(\hat\theta)$, which tends to $\chi^2_{L - \dim\theta}$. Chapter 14 uses $\theta$, $\theta_n$, $\theta_y$ for cointegrating weights |
 | $\operatorname{Var}$, $\operatorname{Cov}$, $\operatorname{corr}$ | — | Variance, covariance and correlation |
 
 Conventions:
