@@ -1,0 +1,349 @@
+---
+title: "Errors in variables and the Shanken correction"
+part: 4
+chapter: 18
+difficulty: 2
+prerequisites: [17]
+summary: "The second pass of a two-pass test uses estimated betas, so its usual standard errors are too small, and the Shanken correction fixes them by a factor that is a squared Sharpe ratio."
+---
+
+import ShankenCorrection from '../../components/plots/ShankenCorrection';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> The betas are estimates too
+
+A two-pass test prices a factor model in two steps. The **first pass** runs one time-series regression for each
+test asset and gives its betas $\hat\beta_i$. The **second pass** regresses the assets' mean excess returns
+across assets on those betas. Its slopes are the risk premia $\hat\lambda$: the extra mean return per unit of
+beta. Chapter 17, "Cross-sectional regressions and Fama–MacBeth", builds this method in full.
+
+Here is the snag. The second pass treats the betas as if we knew them. We do not. Each $\hat\beta_i$ comes from a
+regression with its own sampling error. So the usual standard error of $\hat\lambda$ leaves out one source of
+noise. It should be too small.
+
+How much too small? Take the Fama–French three factors (FF3) and the 25 size–book-to-market portfolios on
+ff3-monthly and ff25-size-bm-monthly, from 1963-07 to 2026-08. That is $T = 758$ months. The second pass gives a
+market premium of 6.72% a year. Its standard error is 1.970% a year if you treat the betas as known. With the
+correction of this chapter it is 1.971%. The noise in the betas changes almost nothing.
+
+Now take a made-up world with one factor whose Sharpe ratio is 5 a year. Run the same two passes on 200 seeded
+samples of 600 months. The usual 95% interval for the premium contains the true value in only 83.5% of the
+samples. So here is the question you should have: **when do estimated betas make the standard errors wrong, and
+by how much?** The answer is one number, $c$, and it turns out to be a squared Sharpe ratio.
+
+## <span class="section-tag">Intuition</span> A ruler that bends with the thing it measures
+
+Start with the picture. The widget below builds a world where we know the truth. There is one factor with a
+premium of 6% a year. There are 25 assets with true betas from 0.5 to 1.5. The model holds exactly: each asset's
+expected excess return is its beta times 6%. The widget draws 600 months, runs both passes, and repeats this 200
+times.
+
+The top chart shows the first sample. Each dot is an estimated beta, placed above its true beta. The short vertical
+segment is the estimation error. The bottom chart shows the first 20 samples, one row each. The dot is $\hat\lambda$. The
+dashed bar is the usual, or **naive**, 95% interval, which treats the betas as known. The solid bar is the
+**corrected** interval. A bar that misses the true premium turns red.
+
+<ShankenCorrection client:visible initialSharpe={5} />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens with a factor Sharpe ratio of 5 a year. Look at the
+top chart: the estimated betas are far from the 45-degree line. Over all 200 samples, the naive intervals contain
+the truth 83.5% of the time, not 95%. The corrected intervals reach 93.5%. Now drag the Sharpe ratio down to 0.4,
+not far from the market's 0.47 a year on ff3-monthly since 1963-07. The beta errors shrink, and the two kinds of interval become almost the same.</p>
+
+Why does the Sharpe ratio matter? Think about one asset. Its mean excess return is noisy, because its residual
+$\varepsilon_{i,t}$ does not average out to exactly zero in a finite sample. The naive standard error counts that
+noise.
+
+Its beta is noisy too, and for the same reason. The beta is the slope of the asset's return on the factor. The
+residuals push that slope up or down, and they push it more when the factor moves only a little. A factor with low
+volatility is like a short ruler: small errors in the reading give large errors in the slope.
+
+Now follow the beta error into the second pass. The second pass says that the asset's mean return should be
+$\hat\beta_i\lambda$. An error of size $d$ in the beta looks like an error of $\lambda d$ in the mean return. So the
+beta error matters more when the premium $\lambda$ is large and when the factor's volatility $\sigma_f$ is small.
+Both point to one ratio, $\lambda/\sigma_f$. For a factor that is itself a return, that ratio is its Sharpe ratio.
+
+The two noises are the same size up to that ratio. The beta error adds noise with variance $(\lambda/\sigma_f)^2$
+times the noise of the mean return. That squared ratio is $c$. The corrected standard error simply scales the
+residual part of the variance by $1 + c$.
+
+<Callout type="key">An error in an estimated beta looks like an error in the asset's mean return, scaled by the
+premium. The corrected variance multiplies the residual part by $1 + c$, where $c$ is the factor's squared Sharpe
+ratio.</Callout>
+
+## <span class="section-tag">Formalisation</span> Deriving the corrected variance
+
+### The model and its assumptions
+
+Write $\Ret{R^e_t}$ for the $N$-vector of test-asset excess returns in month $t$, and $\Factor{f_t}$ for the
+$K$-vector of factors. Stack the betas into the $N \times K$ matrix $\beta$, whose row $i$ is $\beta_i'$. The
+time-series model is
+
+$$
+\Ret{R^e_t} = a + \beta\,\Factor{f_t} + \Err{\varepsilon_t}.
+$$
+
+We assume three things. First, the factors are independent over time, with mean $\mathbb{E}f$ and covariance
+$\Sigma_f$. Second, the residuals $\Err{\varepsilon_t}$ are independent over time with mean zero. Third, their
+covariance is $\Sigma_\varepsilon$ in every month, whatever the factors do. That third assumption is called
+**conditional homoskedasticity**. We use all three below, and we return to them at the end.
+
+The factor model says $\mathbb{E}[R^e] = \beta\lambda$. Take the mean of the time-series model:
+$\mathbb{E}[R^e] = a + \beta\,\mathbb{E}f$. So $a = \beta(\lambda - \mathbb{E}f)$, and
+
+$$
+\Ret{R^e_t} = \beta\lambda + \beta(\Factor{f_t} - \mathbb{E}f) + \Err{\varepsilon_t}.
+$$
+
+Average over the $T$ months. With $\bar f$ and $\bar\varepsilon$ the sample means,
+
+$$
+\Data{\bar R^e} = \beta\lambda + \beta(\bar f - \mathbb{E}f) + \Err{\bar\varepsilon}.
+$$
+
+The second pass is an OLS regression of $\bar R^e$ on the betas, without an intercept. With known betas it is
+$\hat\lambda = A\,\bar R^e$, where $A = (\beta'\beta)^{-1}\beta'$. Note that $A\beta = I$.
+
+### Step 1: the error with known betas
+
+Apply $A$ to $\bar R^e$. Since $A\beta = I$,
+
+$$
+\hat\lambda - \lambda = (\bar f - \mathbb{E}f) + A\,\Err{\bar\varepsilon}.
+$$
+
+The two terms are independent, because the residuals are independent of the factors. The variance of a mean of
+$T$ independent draws is the variance of one draw over $T$. So $\operatorname{Var}(\bar f) = \Sigma_f/T$ and
+$\operatorname{Var}(\bar\varepsilon) = \Sigma_\varepsilon/T$, and
+
+$$
+\operatorname{Var}(\hat\lambda) = \frac1T\big[A\Sigma_\varepsilon A' + \Sigma_f\big].
+$$
+
+This is the **naive** variance. The first term is the residual part. The second is the factor part: even with
+perfect betas, the premium is a mean over $T$ months and has the sampling error of $\bar f$.
+
+The Fama–MacBeth standard error, which averages month-by-month slopes, gives the same thing. With fixed betas it
+equals $\tfrac1T A\Sigma A'$, where $\Sigma = \beta\Sigma_f\beta' + \Sigma_\varepsilon$ is the covariance of returns.
+Expand: $A\Sigma A' = A\beta\,\Sigma_f\,\beta'A' + A\Sigma_\varepsilon A' = \Sigma_f + A\Sigma_\varepsilon A'$, because $A\beta = I$.
+
+### Step 2: the error in each first-pass beta
+
+The first pass regresses $R^e_{i,t}$ on a constant and $\Factor{f_t}$. Write $\hat\Sigma_f = \tfrac1T\sum_t (f_t - \bar f)(f_t
+- \bar f)'$. The OLS slope is
+
+$$
+\hat\beta_i = (T\hat\Sigma_f)^{-1}\sum_t (\Factor{f_t} - \bar f)\,R^e_{i,t}.
+$$
+
+Since the deviations $f_t - \bar f$ add up to zero, we can subtract $\bar R^e_i$ from $R^e_{i,t}$ without changing the
+sum. The model gives $R^e_{i,t} - \bar R^e_i = (f_t - \bar f)'\beta_i + \varepsilon_{i,t} - \bar\varepsilon_i$.
+Substitute. The term in $\beta_i$ gives back $\beta_i$, and the term in $\bar\varepsilon_i$ drops out, again because the
+deviations add up to zero. What is left is the error:
+
+$$
+\hat\beta_i - \beta_i = (T\hat\Sigma_f)^{-1}\sum_t (\Factor{f_t} - \bar f)\,\Err{\varepsilon_{i,t}}.
+$$
+
+Stack the rows $(\hat\beta_i - \beta_i)'$ into a matrix, and multiply on the right by $\lambda$:
+
+$$
+(\hat\beta - \beta)\lambda = \frac1T\sum_t \Err{\varepsilon_t}\,w_t,
+\qquad w_t = (\Factor{f_t} - \bar f)'\,\hat\Sigma_f^{-1}\lambda.
+$$
+
+Each $w_t$ is one number per month. It is large when the factor is far from its mean, and it is scaled by
+$\hat\Sigma_f^{-1}\lambda$: the premium measured in units of factor variance.
+
+### Step 3: the error with estimated betas
+
+In practice the second pass uses $\hat\beta$, so $\hat\lambda = \hat A\,\bar R^e$ with $\hat A = (\hat\beta'\hat\beta)^{-1}\hat\beta'$, and
+$\hat A\hat\beta = I$. In the equation for $\bar R^e$, write $\beta = \hat\beta - (\hat\beta - \beta)$ in the first term only:
+
+$$
+\Data{\bar R^e} = \hat\beta\lambda - (\hat\beta - \beta)\lambda + \beta(\bar f - \mathbb{E}f) + \Err{\bar\varepsilon}.
+$$
+
+Apply $\hat A$. The first term gives $\lambda$, so
+
+$$
+\hat\lambda - \lambda = \hat A\beta\,(\bar f - \mathbb{E}f) + \hat A\,\Err{\bar\varepsilon} - \hat A(\hat\beta - \beta)\lambda.
+$$
+
+This is exact. Now we simplify it to first order. Each of the three terms is small, of order $1/\sqrt T$. The
+matrices in front of them differ from their known-beta values by a term of order $1/\sqrt T$: $\hat A = A$ plus a
+small error, and $\hat A\beta = I$ plus a small error. Replacing them changes each term by an amount of order $1/T$,
+which is smaller than the terms we keep. So, in large samples,
+
+$$
+\hat\lambda - \lambda \approx \underbrace{(\bar f - \mathbb{E}f)}_{u_1}
++ \underbrace{A\,\Err{\bar\varepsilon}}_{u_2}
+- \underbrace{\frac1T\sum_t A\,\Err{\varepsilon_t}\,w_t}_{u_3}.
+$$
+
+The first two pieces are those of Step 1. The third is new: it is the beta error of Step 2, passed through $A$.
+
+### Step 4: the three pieces are uncorrelated
+
+Fix the path of the factors. Then $u_1$ and every $w_t$ are fixed numbers, and $u_2$ and $u_3$ are sums of
+residuals with mean zero. A fixed number has no covariance with a mean-zero noise, so $u_1$ is uncorrelated with
+$u_2$ and $u_3$.
+
+For $u_2$ and $u_3$, write $u_2 = \tfrac1T\sum_s A\varepsilon_s$. The residuals of different months are
+independent, so only the terms with $s = t$ survive, and each gives $A\Sigma_\varepsilon A'$:
+
+$$
+\operatorname{Cov}(u_2, u_3) = \frac1{T^2}\sum_t A\Sigma_\varepsilon A'\,w_t
+= \frac1{T^2}A\Sigma_\varepsilon A' \sum_t w_t = 0.
+$$
+
+The sum is zero because $\sum_t w_t = \big(\sum_t (f_t - \bar f)\big)'\hat\Sigma_f^{-1}\lambda$ and the deviations add up to zero.
+
+### Step 5: add up the variances
+
+Uncorrelated pieces have variances that add. We already have $\operatorname{Var}(u_1) = \Sigma_f/T$ and
+$\operatorname{Var}(u_2) = A\Sigma_\varepsilon A'/T$. For $u_3$, the same argument as in Step 4 gives
+
+$$
+\operatorname{Var}(u_3) = \frac1{T^2}\sum_t w_t^2\,A\Sigma_\varepsilon A'.
+$$
+
+The sum of the $w_t^2$ is
+
+$$
+\sum_t w_t^2 = \lambda'\hat\Sigma_f^{-1}\Big[\sum_t (f_t - \bar f)(f_t - \bar f)'\Big]\hat\Sigma_f^{-1}\lambda
+= \lambda'\hat\Sigma_f^{-1}(T\hat\Sigma_f)\hat\Sigma_f^{-1}\lambda = T\,\lambda'\hat\Sigma_f^{-1}\lambda.
+$$
+
+In large samples $\hat\Sigma_f$ is close to $\Sigma_f$. So $\operatorname{Var}(u_3) = c\,A\Sigma_\varepsilon A'/T$, with
+$c = \lambda'\Sigma_f^{-1}\lambda$. Add the three variances:
+
+$$
+\operatorname{Var}(\hat\lambda) = \frac1T\Big[(\beta'\beta)^{-1}\beta'\Sigma_\varepsilon\beta(\beta'\beta)^{-1}\,(1 + c) + \Sigma_f\Big],
+\qquad c = \lambda'\Sigma_f^{-1}\lambda.
+$$
+
+This is the **Shanken correction**. It keeps the factor part and multiplies the residual part by $1 + c$. To use
+it, plug in the estimates $\hat\beta$, $\hat\Sigma_\varepsilon$, $\hat\Sigma_f$ and $\hat\lambda$. For a second pass weighted by
+$\Sigma_\varepsilon^{-1}$ (GLS), the same steps give $(\beta'\Sigma_\varepsilon^{-1}\beta)^{-1}$ in place of the residual sandwich.
+
+### Why $c$ is a squared Sharpe ratio
+
+With one factor, $c = \lambda^2/\sigma_f^2 = (\lambda/\sigma_f)^2$. Suppose the factor is an excess return, like Mkt-RF.
+Then the model must price the factor itself. Its beta on itself is 1, so its premium is its own expected excess
+return: $\lambda = \mathbb{E}f$. So $c = (\mathbb{E}f/\sigma_f)^2$, the squared Sharpe ratio of the factor.
+
+With $K$ traded factors, again $\lambda = \mathbb{E}f$, and $c = \mathbb{E}f'\,\Sigma_f^{-1}\,\mathbb{E}f$. In
+[Chapter 7](/empirical-finance-lbs/chapters/07-mean-variance-and-the-capm/) you saw that $\mu^{e\prime}\Sigma^{-1}\mu^e$ is
+the squared Sharpe ratio of the tangency portfolio. Here the assets are the factors, so $c$ is the highest squared
+Sharpe ratio you can get from any mix of the factors.
+
+For a factor that is not a return, such as consumption growth, $\lambda$ is not the factor's mean. The formula still
+reads $(\lambda/\sigma_f)^2$ with one factor. So a factor with a small volatility and a large estimated premium has a
+large $c$, and a large correction. That is a property of the formula. Which real factors have a large $c$ is a
+question for the data.
+
+One more point about units: $c$ is per period. With monthly data it is the monthly squared Sharpe ratio, which is
+the annual one divided by 12. That is why $c$ is usually small with monthly data.
+
+### When the correction matters
+
+For one premium, the ratio of the corrected variance to the naive variance is $1 + c\,s$. Here $s$ is the share of
+the residual part in the naive variance. So two things must be large for the correction to matter: $c$, and the
+residual part.
+
+On our FF3 data, neither is large. At the estimated premia, $c = 0.0386$. That is a monthly Sharpe ratio of 0.196,
+or 0.68 a year. For the market premium, the residual part is only 2.8% of the naive variance. The rest is the
+factor part: the market itself is so noisy that the sampling error of its mean dominates. Together, the correction
+raises the standard error of the market premium by 0.05%, from 1.970% to 1.971% a year.
+
+In the made-up world of the Intuition, the factor has a Sharpe ratio of 5 a year, so $c = 2.08$ per month. With
+$T = 600$, the average naive standard error is 0.218% a year, and the average corrected one is 0.293%. Across the
+200 samples, $\hat\lambda$ really spreads by 0.279% a year. The corrected standard error is close to the truth. The
+naive one is about a fifth too small.
+
+### What the correction does not fix
+
+The correction is honest about its own limits, and so should you be.
+
+- **It assumes independent months.** If the factors or the residuals are autocorrelated, the variances in Steps 1
+  and 5 are wrong. A later Part on GMM builds standard errors that allow for this.
+- **It assumes conditional homoskedasticity.** Step 4 used the same $\Sigma_\varepsilon$ in every month. If residuals
+  are larger in months when the factor moves a lot, $\sum_t w_t^2\,\varepsilon_t\varepsilon_t'$ is larger on average than
+  the formula says, and so is the true variance.
+- **It fixes the standard error, not the estimate.** Noise in $\hat\beta$ spreads the betas out, so on average
+  $\hat\beta'\hat\beta$ is larger than $\beta'\beta$. That pulls $\hat\lambda$ towards zero. This is the classic
+  **errors-in-variables** bias, also called **attenuation**. In the world with a Sharpe ratio of 5 and $T = 600$,
+  the average $\hat\lambda$ is 5.85% a year against a true 6%. The correction widens the interval, but it does not
+  move its centre.
+- **It is a large-sample result.** Step 3 dropped terms of order $1/T$. In short samples they matter.
+
+<Callout type="warning">The Shanken correction widens the interval around a biased estimate. It assumes
+independent, conditionally homoskedastic months, and it holds to first order in $1/T$.</Callout>
+
+## <span class="section-tag">Playground</span> Make the correction matter
+
+The same widget, now at the default example of the course: a factor Sharpe ratio of 0.4 a year and $T = 600$
+months. The second readout gives the FF3 numbers from the Hook.
+
+<ShankenCorrection client:visible />
+
+<p class="try-this"><strong>Try this:</strong> read the readout first. At a Sharpe ratio of 0.4, $c = 0.013$. The
+naive and corrected intervals both contain the truth in 97.0% of the 200 samples, close to the 95% target. The beta
+errors are too small to see. Now raise the Sharpe ratio to 5. The naive coverage falls to 83.5%, and the corrected
+one stays at 93.5%.</p>
+
+<p class="try-this"><strong>Try this too:</strong> keep the Sharpe ratio at 5 and cut $T$ to 120 months. The naive
+intervals now contain the truth in 62.5% of the samples, and the corrected ones in 78.0%. The average $\hat\lambda$
+drops to 5.27% a year. That is the attenuation bias: the correction cannot remove it, so even the corrected
+intervals miss too often. Press re-roll to check that the pattern is not luck of one seed.</p>
+
+The second prompt shows the main limit. With short samples and noisy betas, the problem is not only the width of
+the interval. It is also where the interval sits.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A traded factor has a monthly Sharpe ratio of 0.2. By how much does the Shanken correction multiply the residual part of the variance of $\hat\lambda$?"
+  options={["$1.04$", "$1.2$", "$1.4$", "$1.02$"]}
+  answer={0}
+  explanation="For a traded factor, $c$ is its squared Sharpe ratio per period: $0.2^2 = 0.04$. The residual part is multiplied by $1 + c = 1.04$. The factor part does not change."
+/>
+
+<Quiz
+  client:visible
+  question="On FF3 and the 25 size–book-to-market portfolios, the correction raises the standard error of the market premium by only 0.05%. Why?"
+  options={["The first-pass betas have no estimation error", "Both $c$ and the residual share of the naive variance are small", "The FF3 factors are not excess returns", "The sample is too short for the correction to apply"]}
+  answer={1}
+  explanation="The variance ratio is $1 + c\,s$. On our data $c = 0.0386$ and, for the market premium, the residual share is $s = 2.8\%$. The factor part, the sampling error of the market's own mean, dominates."
+/>
+
+<Quiz
+  client:visible
+  question="In a short sample with a high factor Sharpe ratio, the corrected 95% intervals still contain the true premium less than 95% of the time. What is the main reason?"
+  options={["The correction uses the wrong sign of $c$", "The estimate $\\hat\\lambda$ is biased towards zero, and the correction does not move it", "The naive standard error is too large", "The factor part $\\Sigma_f/T$ is left out"]}
+  answer={1}
+  explanation="Noisy betas spread out, which pulls the second-pass slope towards zero. The correction widens the interval but keeps its centre at the biased estimate."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- The second pass uses estimated betas. Treating them as known makes the standard errors of $\hat\lambda$ too small.
+- To first order, $\operatorname{Var}(\hat\lambda) = \tfrac1T\big[(\beta'\beta)^{-1}\beta'\Sigma_\varepsilon\beta(\beta'\beta)^{-1}(1 + c) + \Sigma_f\big]$:
+  the residual part is scaled by $1 + c$.
+- $c = \lambda'\Sigma_f^{-1}\lambda$ is a squared Sharpe ratio per period. For traded factors it is the highest squared
+  Sharpe ratio of any mix of the factors.
+- On FF3 monthly data, $c = 0.0386$, and the standard error of the market premium moves from 1.970% to 1.971% a
+  year. A factor with a high Sharpe ratio, or a small volatility and a large premium, makes the correction large.
+- The correction assumes independent, conditionally homoskedastic months, and it does not fix the attenuation
+  bias of $\hat\lambda$.
+
+**Next up:** Part V turns from how to test a factor model to which factors to test, starting with the size and
+value factors behind the 25 portfolios of this Part.
+
+### Further reading
+
+- Cochrane (2005), Ch. 12
+- Shanken (1992)
