@@ -1,0 +1,257 @@
+---
+title: "Size and value"
+part: 5
+chapter: 19
+difficulty: 2
+prerequisites: [16, 17]
+summary: "Small stocks and value stocks earned more than the CAPM allows; build the SMB and HML factors from double sorts, and see what the three- and five-factor models fix and what they leave."
+---
+
+import SortGrid from '../../components/plots/SortGrid';
+import FactorBuilder from '../../components/plots/FactorBuilder';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> More beta, less return
+
+Take the 25 size and book-to-market portfolios of
+[Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/), over the 758 months from 1963-07 to
+2026-08. The portfolio of small growth stocks has a CAPM beta of 1.42. Its mean excess return is 3.96% a year. The
+portfolio of small value stocks has a beta of only 1.06. Its mean excess return is 13.37% a year.
+
+The CAPM says that expected excess return is beta times the market premium. So the portfolio with more beta should
+earn more. Here it earned 9.41 percentage points a year less. If beta does not explain why small value stocks
+earned so much, what does?
+
+Fama & French (1992, p. 427) found that two easy-to-measure numbers, a firm's size and its book-to-market ratio,
+together capture the differences in average stock returns that earlier studies had tied to beta, size, leverage,
+book-to-market and earnings–price ratios. In their 1963–1990 sample, the relation between beta and average return
+was flat (p. 428). This chapter builds the factors that came out of that finding, and then asks how
+much they really explain.
+
+## <span class="section-tag">Intuition</span> A grid of 25 portfolios
+
+Two terms first. **Size** is a firm's market equity: its share price times the number of shares. **Book-to-market**
+(B/M) is the firm's book equity, from its accounts, divided by its market equity. A firm with a high B/M is cheap
+relative to its accounts. Investors call it a **value** stock. A firm with a low B/M is expensive relative to its
+accounts, usually because investors expect it to grow. They call it a **growth** stock.
+
+Each June, the Kenneth French Data Library sorts all NYSE, AMEX and NASDAQ stocks into five size groups and five
+B/M groups. The breakpoints are NYSE quintiles. Each of the 25 intersections is one value-weighted portfolio, held
+from July to the next June. Below, each cell is one portfolio. Small stocks are in the top row, and value stocks are
+in the right column.
+
+<SortGrid client:visible />
+
+<p class="try-this"><strong>Try this:</strong> read the grid with "Mean excess return" on. Move left to right in
+the top row: the mean rises from 3.96% to 13.37% a year. Now do the same in the bottom row, the biggest stocks. It
+rises only from 7.38% to 9.57%. The value effect is strongest among small stocks.</p>
+
+Two patterns stand out. Average over the five size rows, and value stocks beat growth stocks by 4.94 percentage
+points a year. Average over the five B/M columns, and small stocks beat big stocks by 1.98 points. These are the
+**value spread** and the **size spread** of the grid.
+
+Now switch the grid to "Alpha" with the CAPM. Alpha is the part of the mean that beta does not explain, as in
+Chapter 16. The same two corners stand out. Small growth has an alpha of −6.28% a year and small value one of +5.69%.
+The CAPM betas run only from 0.86 to 1.42, so beta times the market premium cannot produce a spread this wide.
+Cochrane (2011, p. 1058) puts it this way: the puzzle is not only that value stocks earn more, but that their betas
+do not rise with their returns.
+
+<Callout type="key">Sorting on size and on book-to-market spreads average returns much more than it spreads market
+betas. That gap is what the CAPM cannot explain.</Callout>
+
+What could explain it? An idea from [Chapter 7](/empirical-finance-lbs/chapters/07-mean-variance-and-the-capm/):
+if a small set of portfolios reaches the highest Sharpe ratio, then the betas on those portfolios explain every
+mean. So try adding portfolios that go long small stocks and short big ones, and long value stocks and short growth
+ones. If small value stocks move together with other small value stocks, their betas on these new portfolios will
+be high, and the betas may explain the means.
+
+## <span class="section-tag">Formalisation</span> Two sorts, two factors, one regression
+
+### The 2×3 sort
+
+The factors use a coarser sort than the grid. Each June, the French library splits stocks into two size groups at
+the median NYSE market equity: small (S) and big (B). Separately, it splits them into three B/M groups at the 30th
+and 70th NYSE percentiles: low (L, growth), middle (M, neutral) and high (H, value). The intersections give six
+value-weighted portfolios: SL, SM, SH, BL, BM and BH. Write $R_{\text{SL},t}$ for the return of SL in month $t$,
+and so on. The factors are (French library, "Description of Fama/French Factors" and "6 Portfolios Formed on Size
+and Book-to-Market"):
+
+$$
+\begin{aligned}
+\Factor{\text{SMB}_t} &= \tfrac13\big(R_{\text{SL},t} + R_{\text{SM},t} + R_{\text{SH},t}\big) - \tfrac13\big(R_{\text{BL},t} + R_{\text{BM},t} + R_{\text{BH},t}\big), \\
+\Factor{\text{HML}_t} &= \tfrac12\big(R_{\text{SH},t} + R_{\text{BH},t}\big) - \tfrac12\big(R_{\text{SL},t} + R_{\text{BL},t}\big).
+\end{aligned}
+$$
+
+SMB is "small minus big" and HML is "high minus low". Each is a long–short portfolio: it costs nothing to set up,
+so its return is already an excess return, like the market's excess return $\text{MKT}_t = R_{m,t} - R^f_t$.
+
+### Why each factor averages over the other sort
+
+Why not just take "small minus big" directly? Because size and B/M are related. Small firms tend to have higher
+B/M than big ones. A plain small-minus-big portfolio would then be partly long value and short growth. Its return
+would mix a size effect with a value effect.
+
+The averages fix that. Look at SMB. Its long side holds equal parts of small growth, small neutral and small value.
+Its short side holds equal parts of big growth, big neutral and big value. Write each leg's return as a size part
+plus a B/M part, $R_{\text{SH},t} = a_{\text{S},t} + c_{\text{H},t} + e_{\text{SH},t}$ and so on. Then the B/M parts
+appear once on each side:
+
+$$
+\begin{aligned}
+\Factor{\text{SMB}_t} &= (a_{\text{S},t} - a_{\text{B},t}) \\
+&\quad + \tfrac13\big[(c_{\text{L},t} + c_{\text{M},t} + c_{\text{H},t}) - (c_{\text{L},t} + c_{\text{M},t} + c_{\text{H},t})\big] + \text{(leftovers)},
+\end{aligned}
+$$
+
+and the bracket is zero. In the same way, HML holds one small and one big portfolio on each side, so the size parts
+$a_{\text{S},t}$ and $a_{\text{B},t}$ cancel:
+
+$$
+\begin{aligned}
+\Factor{\text{HML}_t} &= \tfrac12\big[(a_{\text{S},t} + c_{\text{H},t}) + (a_{\text{B},t} + c_{\text{H},t})\big] \\
+&\quad - \tfrac12\big[(a_{\text{S},t} + c_{\text{L},t}) + (a_{\text{B},t} + c_{\text{L},t})\big] + \text{(leftovers)} \\
+&= (c_{\text{H},t} - c_{\text{L},t}) + \text{(leftovers)}.
+\end{aligned}
+$$
+
+The leftovers are the parts $e$ that this split does not capture, for example if the value effect is larger among
+small stocks. The averages remove the other sort's effect only to the extent that the two effects add up. Even so,
+each factor compares stocks that are alike on the other characteristic. That is why the sort is done two ways at
+once.
+
+### The three-factor regression
+
+Stack the three factors into $\Factor{f_t} = (\text{MKT}_t, \text{SMB}_t, \text{HML}_t)'$. For each test asset,
+run the time-series regression of Chapter 16:
+
+$$
+\begin{aligned}
+\Ret{R^e_{i,t}} &= \Err{\alpha_i} + \beta_{i,\text{MKT}}\,\text{MKT}_t + \beta_{i,\text{SMB}}\,\text{SMB}_t + \beta_{i,\text{HML}}\,\text{HML}_t + \Err{\varepsilon_{i,t}} \\
+&= \Err{\alpha_i} + \beta_i'\Factor{f_t} + \Err{\varepsilon_{i,t}}.
+\end{aligned}
+$$
+
+All three factors are excess returns. So, as in Chapter 16, the model says that every $\alpha_i$ is zero, and
+expected excess returns are
+
+$$
+\mathbb{E}[\Ret{R^e_i}] = \beta_{i,\text{MKT}}\,\mathbb{E}[\text{MKT}] + \beta_{i,\text{SMB}}\,\mathbb{E}[\text{SMB}] + \beta_{i,\text{HML}}\,\mathbb{E}[\text{HML}].
+$$
+
+From 1963-07, the mean of SMB is 1.77% a year ($t = 1.35$) and the mean of HML is 3.53% a year ($t = 2.72$). The
+model now has a way to pay small value stocks more. Their loadings are $\hat\beta_{\text{SMB}} = 1.10$ and
+$\hat\beta_{\text{HML}} = 0.69$. Small growth stocks load $1.40$ on SMB but $-0.26$ on HML, so the model pays them
+less. The market betas of the two are close, 0.95 and 1.11.
+
+Does it work? Switch the grid above to FF3. The average absolute alpha falls from 2.36% to 1.04% a year. Small value
+drops from +5.69% to +2.16%. But small growth is still at −5.58% a year, with $t = -5.06$. Six of the 25 alphas have
+$|t| > 1.96$. The GRS test of Chapter 16 rejects FF3 with a statistic of 3.64 and $p = 8.3 \times 10^{-9}$.
+
+### What RMW and CMA add
+
+The five-factor model (FF5) of Fama & French (2015) adds two more long–short factors, built the same way from 2×3
+sorts (French library, "Description of Fama/French 5 Factors (2x3)"):
+
+- **RMW**, robust minus weak, sorts on **operating profitability**: revenues minus cost of goods sold, interest
+  and selling, general and administrative expenses, divided by book equity.
+  $\text{RMW}_t = \tfrac12(\text{Small Robust} + \text{Big Robust}) - \tfrac12(\text{Small Weak} + \text{Big Weak})$.
+- **CMA**, conservative minus aggressive, sorts on **investment**: the growth of total assets over the last fiscal
+  year. $\text{CMA}_t = \tfrac12(\text{Small Conservative} + \text{Big Conservative}) - \tfrac12(\text{Small Aggressive} + \text{Big Aggressive})$.
+
+In FF5, SMB is the average of three size spreads, one from each of the B/M, profitability and investment sorts.
+So it is not the same series as the SMB of FF3. The regression simply has five factors:
+$\Factor{f_t} = (\text{MKT}_t, \text{SMB}_t, \text{HML}_t, \text{RMW}_t, \text{CMA}_t)'$.
+
+Switch the grid to FF5. The alpha of small growth shrinks to −3.30% a year ($t = -3.23$). Its RMW loading is
+$-0.50$: small growth firms tend to have weak profits, and weak-profit stocks earned less. The average absolute
+alpha is 1.05%, the same as FF3. Seven of the 25 alphas have $|t| > 1.96$. GRS falls to 3.23, but $p = 2.6 \times
+10^{-7}$, so FF5 is still rejected.
+
+## <span class="section-tag">Playground</span> Build the factors yourself
+
+The widget below starts from the six portfolios of the French library. Pick a factor, and the grid marks its long
+legs (solid border, filled) and its short legs (dashed border). The chart compounds \$1 in T-bills plus the factor
+rebuilt by our library (wide line), against the same with the published factor (dashed line).
+
+<FactorBuilder client:visible />
+
+<p class="try-this"><strong>Try this:</strong> pick HML. Over all months from 1926-07, the rebuilt HML and the
+published HML lie on top of each other. The readout puts the largest gap in any month at 0.01 percentage points.
+That is rounding: the published files keep two decimals. The factor is nothing more than the formula above.</p>
+
+Now split the rebuilt HML by period. It averaged 5.40% a year from 1926-07 to 1963-06, and 5.10% from 1963-07 to
+1990-12, the period of Fama & French (1992). From 1991-01 it averaged 2.32% ($t = 1.23$), and from 2007-01 it
+averaged −1.30% ($t = -0.50$). The value premium is not a constant. Its size depends on the sample you pick.
+
+### What the factors can and cannot show
+
+Three limits matter here.
+
+**A factor that prices the portfolios it was built from passes a low bar.** SMB and HML are built by sorting on
+size and B/M. The 25 test portfolios are built the same way. So the factors are bound to move with the portfolios,
+and they will look good on them almost by construction. Cochrane (2011, p. 1060) makes the point that much
+empirical work still uses the 25 Fama–French portfolios to test deeper models, which is a weak test. Chapter 16
+said the same thing from the side of the test: the 25 portfolios are a demanding test for the CAPM and a friendly
+one for FF3. [Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/) showed
+the cross-sectional version of this: with three or four slopes, a high $R^2$ on these portfolios is easy to get.
+
+**Even on this friendly test, the models are rejected.** FF3 and FF5 shrink most alphas. Yet GRS rejects both, at
+3.64 and 3.23 against a 5% critical value of about 1.5. The small growth corner is the main problem.
+
+**The premia depend on the sample.** HML earned more than 5% a year in the samples that made it famous, and less
+than nothing since 2007. A $t$-statistic of $-0.50$ over 236 months cannot tell a zero premium from a positive one,
+so this does not prove the value premium is gone. It does mean that a premium measured over one period is a noisy
+guide to the next.
+
+There is one more reason the factors matter beyond their means. Cochrane (2011, p. 1060) stresses that value
+stocks move together: when one falls, the others tend to fall too. A pattern in means that came with no common
+movement would let a diversified value portfolio earn a high Sharpe ratio with little risk. The common movement is
+what turns a characteristic into a factor.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="Why does SMB average over three book-to-market groups on each side, instead of simply buying small stocks and selling big ones?"
+  options={["Because small stocks tend to be value stocks, so a plain small-minus-big portfolio would also bet on value", "Because averaging raises the factor's mean return", "Because the French library has only six portfolios", "Because it makes SMB uncorrelated with the market"]}
+  answer={0}
+  explanation="Size and B/M are related. Holding equal parts of growth, neutral and value on both sides cancels the B/M part of the return, so SMB measures size among stocks that are alike on B/M."
+/>
+
+<Quiz
+  client:visible
+  question="FF3 prices the 25 size–B/M portfolios with a much smaller average alpha than the CAPM. What is the main reason to be careful about that result?"
+  options={["FF3 has fewer factors than the CAPM", "The alphas are measured in percent a year", "SMB and HML are built from the same sorts as the test portfolios, so the test is a friendly one", "GRS cannot be used with three factors"]}
+  answer={2}
+  explanation="Factors built by sorting on size and B/M will move with portfolios sorted on size and B/M. A model should also be tested on assets sorted on other things. Even here, GRS still rejects FF3."
+/>
+
+<Quiz
+  client:visible
+  question="HML averaged 5.10% a year from 1963-07 to 1990-12 and −1.30% a year from 2007-01 ($t = -0.50$). What can you conclude?"
+  options={["The value premium is gone", "The premium varies with the sample, and the recent sample is too short and noisy to show whether it is zero", "HML was built wrongly after 2007", "The CAPM explains value stocks after 2007"]}
+  answer={1}
+  explanation="A $t$-statistic of −0.50 cannot reject a zero premium, but it cannot reject a positive one either. The lesson is that the size of a premium depends on the period you measure it over."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- From 1963-07, small value stocks earned 13.37% a year in excess of T-bills and small growth stocks 3.96%, with
+  the lower beta on the higher earner. The CAPM leaves alphas of −6.28% and +5.69% on these two corners.
+- SMB and HML come from a 2×3 sort. Each averages over the other sort, so it compares stocks that are alike on the
+  other characteristic.
+- FF3 regresses each portfolio on MKT, SMB and HML. It halves the average absolute alpha, but GRS still rejects it.
+  FF5 adds profitability (RMW) and investment (CMA), helps small growth, and is still rejected.
+- Factors built from the same sorts as the test assets face a low bar. Test them on other assets too.
+- The value premium depends on the sample: over 5% a year before 1991, below zero since 2007.
+
+**Next up:** Chapter 20, *Momentum*, sorts on past returns and builds a factor that the three-factor model cannot
+explain.
+
+### Further reading
+
+- Fama & French (1992)
+- Cochrane (2011)
+- Fama & French (1993) and Fama & French (2015), as described on the Kenneth French Data Library pages
