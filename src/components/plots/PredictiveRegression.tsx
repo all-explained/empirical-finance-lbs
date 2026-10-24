@@ -7,7 +7,7 @@ import { WidgetFrame } from '../ui/WidgetFrame';
 import { useTweened } from './animation';
 import { extent, niceTicks } from './format';
 import { PlotFrame } from './PlotFrame';
-import { DEFAULT_SEED, usePredictiveSample, type Source } from './predictiveSample';
+import { DEFAULT_SEED, usePredictiveSample, type Predictor, type Source } from './predictiveSample';
 
 type Errors = NonNullable<PredictiveOptions['errors']>;
 const HEIGHT = 340;
@@ -21,17 +21,45 @@ const years = (k: number) => `${k} year${k === 1 ? '' : 's'}`;
 const pct = (v: number, digits = 0) => `${v < 0 ? '−' : ''}${Math.abs(v * 100).toFixed(digits)}%`;
 const num = (v: number, digits = 3) => (Number.isFinite(v) ? `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(digits)}` : 'not available');
 
+/** Every predictor-specific string, so dp renders exactly as in chapter 9. */
+const TEXT: Record<Predictor, {
+  title: string; name: string; when: string; xLabel: string; xDigits: number; years: string; data: string; sim: string;
+}> = {
+  dp: {
+    title: "Does today's dividend–price ratio forecast returns?",
+    name: 'log dividend–price ratio',
+    when: 'at the end of each year',
+    xLabel: 'dp at the end of year t',
+    xDigits: 1,
+    years: 'dp years',
+    data: 'Data: goyal-welch-annual (Welch and Goyal (2008), with Amit Goyal\'s update), 1926–2025. $\\Signal{dp_t}$ = log(D12) − log(Index) at the end of year $t$. Return = log(1 + CRSP_SPvw) − log(1 + Rfree), summed over years $t+1$ to $t+k$. Overlapping $k$-year windows; standard errors use $k$ lags.',
+    sim: 'Simulated (seeded): 100 years of an AR(1) $\\Signal{dp_t}$ with the persistence, one-year slope and shock sizes estimated on goyal-welch-annual, 1926–2025, centred on the data\'s mean $\\Signal{dp}$. Return and $\\Signal{dp}$ shocks are independent. Re-roll for a new seed.',
+  },
+  cay: {
+    title: "Does this year's cay forecast returns?",
+    name: 'consumption–wealth–income ratio cay',
+    when: 'of each year',
+    xLabel: 'cay of year t',
+    xDigits: 2,
+    years: 'cay years',
+    data: 'Data: goyal-welch-annual (Welch and Goyal (2008), with Amit Goyal\'s update), 1945–2025. $\\Signal{cay_t}$ = the source column cay, the annual series published by Lettau and Ludvigson, with weights estimated on their full sample. Return = log(1 + CRSP_SPvw) − log(1 + Rfree), summed over years $t+1$ to $t+k$. Overlapping $k$-year windows; standard errors use $k$ lags.',
+    sim: 'Simulated (seeded): 81 years of an AR(1) $\\Signal{cay_t}$ with the persistence, one-year slope and shock sizes estimated on goyal-welch-annual, 1945–2025, centred on the data\'s mean $\\Signal{cay}$. Return and $\\Signal{cay}$ shocks are independent. Re-roll for a new seed.',
+  },
+};
+
 /**
  * Chapter 9: the log dividend–price ratio at the end of a year against the log
  * excess return over the next k years, with the OLS line and its residuals.
+ * Chapter 14 passes predictor="cay" for the published annual cay instead.
  * Real data (goyal-welch-annual) or a seeded simulation calibrated to it.
  */
-export default function PredictiveRegression({ initialHorizon = 1 }: { initialHorizon?: number }) {
+export default function PredictiveRegression({ initialHorizon = 1, predictor = 'dp' }: { initialHorizon?: number; predictor?: Predictor }) {
+  const text = TEXT[predictor];
   const [k, setK] = useState(initialHorizon);
   const [source, setSource] = useState<Source>('data');
   const [seed, setSeed] = useState(DEFAULT_SEED);
   const [errors, setErrors] = useState<Errors>('newey-west');
-  const { sample, failed } = usePredictiveSample(source, seed);
+  const { sample, failed } = usePredictiveSample(source, seed, predictor);
 
   const view = useMemo(() => {
     if (!sample) return null;
@@ -58,9 +86,9 @@ export default function PredictiveRegression({ initialHorizon = 1 }: { initialHo
       height={HEIGHT}
       xTicks={niceTicks(x0, x1, 5)}
       yTicks={niceTicks(bottom, top, 6)}
-      formatX={(v) => num(v, 1)}
+      formatX={(v) => num(v, text.xDigits)}
       formatY={(v) => pct(v)}
-      xLabel={<tspan style={{ fill: 'var(--c-signal)' }}>dp at the end of year t</tspan>}
+      xLabel={<tspan style={{ fill: 'var(--c-signal)' }}>{text.xLabel}</tspan>}
       yLabel={`log excess return over the next ${years(k)}`}
       baseline={bottom < 0 && top > 0 ? 0 : undefined}
       marginLeft={52}
@@ -80,11 +108,11 @@ export default function PredictiveRegression({ initialHorizon = 1 }: { initialHo
   const name = source === 'data' ? 'the goyal-welch-annual data' : `the simulation with seed ${seed}`;
   return (
     <WidgetFrame
-      title="Does today's dividend–price ratio forecast returns?"
+      title={text.title}
       ariaLabel={
         view
-          ? `Scatter of ${view.x.length} points from ${name}: the log dividend–price ratio at the end of each year from ${view.first} to ${view.last}, against the log excess return over the next ${years(k)}. The fitted line has slope ${num(view.fit.slope)}, ${ERROR_NAMES[errors]} t-statistic ${num(view.fit.tStat, 2)} and R-squared ${pct(view.fit.r2, 1)}. Thin vertical lines show the residuals.`
-          : 'Scatter of the dividend–price ratio against future returns. The data is loading.'
+          ? `Scatter of ${view.x.length} points from ${name}: the ${text.name} ${text.when} from ${view.first} to ${view.last}, against the log excess return over the next ${years(k)}. The fitted line has slope ${num(view.fit.slope)}, ${ERROR_NAMES[errors]} t-statistic ${num(view.fit.tStat, 2)} and R-squared ${pct(view.fit.r2, 1)}. Thin vertical lines show the residuals.`
+          : `Scatter of the ${text.name} against future returns. The data is loading.`
       }
       plotHeight={HEIGHT}
       plot={plot}
@@ -122,7 +150,7 @@ export default function PredictiveRegression({ initialHorizon = 1 }: { initialHo
             <dd>{pct(view.fit.r2, 1)}</dd>
             <dt>Observations</dt>
             <dd>{view.fit.nobs}</dd>
-            <dt>dp years</dt>
+            <dt>{text.years}</dt>
             <dd>{view.first}–{view.last}</dd>
             {source === 'sim' && (
               <>
@@ -136,11 +164,7 @@ export default function PredictiveRegression({ initialHorizon = 1 }: { initialHo
           <p>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
         )
       }
-      caption={
-        source === 'data'
-          ? 'Data: goyal-welch-annual (Welch and Goyal (2008), with Amit Goyal\'s update), 1926–2025. $\\Signal{dp_t}$ = log(D12) − log(Index) at the end of year $t$. Return = log(1 + CRSP_SPvw) − log(1 + Rfree), summed over years $t+1$ to $t+k$. Overlapping $k$-year windows; standard errors use $k$ lags.'
-          : 'Simulated (seeded): 100 years of an AR(1) $\\Signal{dp_t}$ with the persistence, one-year slope and shock sizes estimated on goyal-welch-annual, 1926–2025, centred on the data\'s mean $\\Signal{dp}$. Return and $\\Signal{dp}$ shocks are independent. Re-roll for a new seed.'
-      }
+      caption={source === 'data' ? text.data : text.sim}
     />
   );
 }
