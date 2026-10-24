@@ -3,8 +3,8 @@
 ## Acceptance
 
 - [x] `npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.
-  Evidence: `npm test`: 45 files, 502 tests passed, exit 0. `npm run build`: astro check
-  "Result (138 files): - 0 errors - 0 warnings", 18 pages built, exit 0.
+  Evidence: `npm test`: 46 files, 511 tests passed, exit 0. `npm run build`: astro check
+  "Result (140 files): - 0 errors - 0 warnings", 18 pages built, exit 0.
 - [x] `npm run screenshots -- 16-time-series-tests`, `17-cross-sectional` and `18-errors-in-variables` pass,
   and `npm run clickthrough` passes for the same three chapters.
   Evidence: all six runs exit 0. Clickthrough: chapter 16 two widgets (6 actions at 1280px and 360px each),
@@ -47,6 +47,6 @@
 - The library field `c` in `shankenCorrection` keeps its name; library maths is out of scope.
 - `READINGS.md` was not changed: its entry is already 1989, and renaming the citation key could break links.
 
-**Verified revision.** The task commit rebased on the latest `origin/main`; see the PR for the final SHA.
+**Verified revision.** Task commits rebased on `origin/main` `100d099`; every Verify command above was re-run on that revision.
 
 **Proposed follow-ups.** None.
