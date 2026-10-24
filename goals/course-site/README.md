@@ -125,6 +125,18 @@ flowchart TD
   end
   subgraph M_7["M-7 · Part V: Factors, anomalies and conditional models"]
     TASK_033["TASK-033 Plan: decompose M-7"]
+    TASK_067["TASK-067 Data: French 2×3 sorts and daily factors"]
+    TASK_068["TASK-068 Data: published anomaly portfolios from Open Source Asset Pricing"]
+    TASK_069["TASK-069 Library: factor models beyond FF3, 2×3 sorts, momentum and spanning tests"]
+    TASK_070["TASK-070 Library: anomaly t-statistics across the factor zoo"]
+    TASK_071["TASK-071 Library: conditional betas, scaled factors and the scaled CCAPM"]
+    TASK_072["TASK-072 Library: rolling and short-window betas and the Lewellen–Nagel alpha bound"]
+    TASK_073["TASK-073 Chapter 19: Size and value"]
+    TASK_074["TASK-074 Chapter 20: Momentum"]
+    TASK_075["TASK-075 Chapter 21: Anomalies and the factor zoo"]
+    TASK_076["TASK-076 Chapter 22: Conditional factor models"]
+    TASK_077["TASK-077 Chapter 23: Does the conditional CAPM explain anomalies?"]
+    TASK_078["TASK-078 Orchestrator reads Part V and signs it off"]
   end
   subgraph M_8["M-8 · Part VI: GMM and tests of asset pricing models"]
     TASK_034["TASK-034 Plan: decompose M-8"]
@@ -203,6 +215,7 @@ flowchart TD
   TASK_032 --> TASK_033
   TASK_063 --> TASK_033
   TASK_033 --> TASK_034
+  TASK_073 --> TASK_034
   TASK_034 --> TASK_035
   TASK_035 --> TASK_036
   TASK_036 --> TASK_037
@@ -236,6 +249,20 @@ flowchart TD
   TASK_063 --> TASK_066
   TASK_064 --> TASK_066
   TASK_065 --> TASK_066
+  TASK_067 --> TASK_069
+  TASK_068 --> TASK_070
+  TASK_067 --> TASK_072
+  TASK_069 --> TASK_073
+  TASK_069 --> TASK_074
+  TASK_069 --> TASK_075
+  TASK_070 --> TASK_075
+  TASK_071 --> TASK_076
+  TASK_072 --> TASK_077
+  TASK_073 --> TASK_078
+  TASK_074 --> TASK_078
+  TASK_075 --> TASK_078
+  TASK_076 --> TASK_078
+  TASK_077 --> TASK_078
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
