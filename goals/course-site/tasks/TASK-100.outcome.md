@@ -25,6 +25,13 @@ Verified revision: `origin/main` at `d09bfc2` (it contains the merges of TASK-09
 - [x] `git diff --name-only origin/main` lists only this task's outcome file.
   Evidence: the command prints `goals/course-site/tasks/TASK-100.outcome.md` and nothing else.
 
+## Blocked
+
+Acceptance item 1 needs plain `npm test` to pass on `main`. It fails on one 5 s timeout in `tests/chapter18-numbers.test.ts`
+(and earlier in `tests/chapter14-numbers.test.ts`), in 6 of 6 runs. The fix is a longer `testTimeout` (Sign-off change 5, issue
+all-explained/empirical-finance-lbs#67). Item 4 allows only this outcome file in the PR, so I cannot make that fix here. The
+orchestrator must merge change 5 first, then re-run `npm test`. Every other check passes.
+
 ## Summary
 
 I read Chapters 24 to 27 (about 12,400 words with the maths) in the source and as built pages. I looked at every widget in
