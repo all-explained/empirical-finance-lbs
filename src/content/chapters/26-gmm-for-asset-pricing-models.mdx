@@ -1,0 +1,349 @@
+---
+title: "GMM for asset pricing models"
+part: 6
+chapter: 26
+difficulty: 3
+prerequisites: [8, 17, 25]
+summary: "Estimate a linear SDF by GMM, see that the first stage is a cross-sectional regression, and rank models with the Hansen–Jagannathan distance instead of their own J tests."
+---
+
+import HJDistance from '../../components/plots/HJDistance';
+import RegressionLab from '../../components/plots/RegressionLab';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> The model that passes is the model that misses
+
+Take the 25 portfolios sorted on size and book-to-market, in quarterly data from 1963-Q3 to 2026-Q2: 252
+quarters. Write three models as stochastic discount factors: the CAPM, with the market as its factor; the
+consumption CAPM (CCAPM), with consumption growth; and Fama–French 3 (FF3). Estimate each one by GMM and run the
+$J$ test of its overidentifying restrictions.
+
+The consumption CAPM passes with ease: $J = 13.0$ on 24 degrees of freedom, a p-value of 0.97. FF3 fails, with
+$J = 67.7$ on 22 degrees of freedom and $p = 1.5 \times 10^{-6}$. The CAPM fails worse: $J = 91.2$ and
+$p = 8.9 \times 10^{-10}$.
+
+Now look at how far each model misses. At the first-stage estimates, the average absolute pricing error of the
+consumption CAPM is 8.35% a year. For FF3 it is 0.99%, and for the CAPM 2.09%. The model that passes its test is
+the model that prices worst.
+
+This chapter explains what a GMM estimate of a factor model measures, why its first stage is an old friend, and why
+each model's own $J$ test is the wrong scale for a comparison. Then it builds a scale that is the same for every
+model: the Hansen–Jagannathan distance.
+
+## <span class="section-tag">Intuition</span> A line through the origin
+
+The stochastic discount factor $\SDF{M}$ of
+[Chapter 8](/empirical-finance-lbs/chapters/08-euler-equation-and-sdf/) prices every excess return:
+$\mathbb{E}[\SDF{M}\Ret{R^e_i}] = 0$. A linear factor model says that $\SDF{M}$ is a straight line in the factors.
+With the market as the only factor, $\SDF{M} = 1 - b\,\Factor{\tilde f}$, where $\Factor{\tilde f}$ is the market
+excess return minus its mean. Put this into the pricing equation and move one term across:
+
+$$
+\mathbb{E}[\Ret{R^e_i}] = b\;\mathbb{E}[\Ret{R^e_i}\Factor{\tilde f}].
+$$
+
+The right side holds a covariance, because $\Factor{\tilde f}$ has mean zero. So the model makes one picture: plot
+each portfolio's mean excess return against its covariance with the market. The points should lie on a line
+through the origin, and its slope is $b$. An asset that does not move with the market earns no premium.
+
+The widget draws that picture for the 25 portfolios. The line is the least-squares fit through the origin. The
+next section shows that this line *is* the first-stage GMM estimate.
+
+<RegressionLab client:visible initialSource="gmm" />
+
+<p class="try-this"><strong>Try this:</strong> read the slope, $\hat b = 2.91$ with a standard error of 0.87. Then
+drag the dot for small growth stocks, ME1-BM1, the one with the largest covariance, up to the line. The slope
+rises and the average pricing error falls. Press "Reset dragged dots" to go back.</p>
+
+The slope is positive and more than three standard errors from zero. That looks like good news for the CAPM, but
+look at the cloud. Covariances run from 0.023 to 0.047 a year, and mean excess returns from 5.3% to 14.5% a year,
+with no upward pattern. If you let the line have a constant, its slope turns negative, −0.36. The line through the
+origin explains why the average portfolio earns a premium. It does not explain why one portfolio earns more than
+another. That is the CAPM's failure of
+[Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/), seen from a new
+side.
+
+<Callout type="key">An SDF model says that mean excess returns are proportional to covariances with the factors.
+First-stage GMM fits that proportion by least squares across the assets.</Callout>
+
+## <span class="section-tag">Formalisation</span> Moments, two stages and one distance
+
+The general machinery comes from Chapter 24, *The generalized method of moments*, and Chapter 25, *Efficient and
+feasible GMM*. Here are the parts this chapter needs. You pick $\theta$ to minimise $g_T(\theta)'W g_T(\theta)$ for
+a weighting matrix $W$. The first-order condition is $D'W g_T(\hat\theta) = 0$, with the Jacobian
+$D = \partial g_T/\partial\theta'$. Efficient GMM uses $W = \hat S^{-1}$, where $\hat S$ estimates the long-run
+covariance of the moments.
+
+### The linear SDF and its moments
+
+With $K$ factors, the linear SDF is
+
+$$
+\SDF{M_{t+1}} = 1 - b'\Factor{\tilde f_{t+1}}, \qquad \Factor{\tilde f_{t+1}} = \Factor{f_{t+1}} - \bar f.
+$$
+
+The factors are demeaned in the sample, so $\mathbb{E}_T[M] = 1$. Why fix the mean at 1? With excess returns, if
+$M$ prices the assets, so does $2M$, or any other multiple of $M$: the condition $\mathbb{E}[MR^e] = 0$ cannot see
+the scale. So you must fix it. Nagel (2013) notes that any multiple gives the same pricing when the model is right, but tests
+of a wrong model can depend on the choice (NBER WP, p. 13, fn. 5).
+
+Each of the $N$ assets gives one moment, $\Ret{R^e_{i,t+1}}(1 - \Factor{\tilde f_{t+1}}'b)$. The sample mean of the
+$N$ moments is
+
+$$
+g_T(b) = \mathbb{E}_T[\Ret{R^e}] - \mathbb{E}_T[\Ret{R^e}\Factor{\tilde f}']\,b.
+$$
+
+It is linear in $b$, so its Jacobian is a constant $N \times K$ matrix:
+
+$$
+D = \frac{\partial g_T}{\partial b'} = -\mathbb{E}_T[\Ret{R^e}\Factor{\tilde f}'].
+$$
+
+Because $\tilde f$ has a sample mean of zero, $\mathbb{E}_T[R^e\tilde f'] = \tfrac1T\sum_t R^e_t(f_t - \bar f)'$ is the
+sample covariance of returns and factors, with the divisor $T$. At an estimate $\hat b$, the vector
+$g_T(\hat b)$ holds the $N$ pricing errors $\Err{\hat\alpha_i}$: actual mean minus fitted mean.
+
+### First-stage GMM is a cross-sectional regression
+
+The first stage uses $W = I$, so it minimises $g_T(b)'g_T(b)$, the sum of squared pricing errors. Write the
+first-order condition $D'g_T(\hat b) = 0$ and cancel the minus sign in $D$:
+
+$$
+\mathbb{E}_T[R^e\tilde f']'\,\big(\mathbb{E}_T[R^e] - \mathbb{E}_T[R^e\tilde f']\,\hat b\big) = 0.
+$$
+
+Multiply out and solve for $\hat b$:
+
+$$
+\begin{aligned}
+\hat b_1 = {}&\big(\mathbb{E}_T[R^e\tilde f']'\,\mathbb{E}_T[R^e\tilde f']\big)^{-1} \\
+&\times \mathbb{E}_T[R^e\tilde f']'\,\Data{\mathbb{E}_T[R^e]}.
+\end{aligned}
+$$
+
+This is the OLS formula. The "observations" are the $N$ assets, the dependent variable is the mean excess return,
+the regressors are the covariances with the factors, and there is no constant. First-stage GMM is a cross-sectional
+regression of mean returns on covariances.
+
+It is also the regression of Chapter 17, on betas. The full-sample betas are $\hat\beta =
+\mathbb{E}_T[R^e\tilde f']\,\hat\Sigma_f^{-1}$, an $N \times K$ matrix with $\hat\Sigma_f$ the factors' covariance
+(divisor $T$). So $\mathbb{E}_T[R^e\tilde f'] = \hat\beta\hat\Sigma_f$. Put this in, and use that $\hat\Sigma_f$ is
+symmetric and invertible:
+
+$$
+\begin{aligned}
+\hat b_1 &= \big(\hat\Sigma_f\hat\beta'\hat\beta\hat\Sigma_f\big)^{-1}\hat\Sigma_f\hat\beta'\,\mathbb{E}_T[R^e] \\
+&= \hat\Sigma_f^{-1}\big(\hat\beta'\hat\beta\big)^{-1}\hat\Sigma_f^{-1}\hat\Sigma_f\hat\beta'\,\mathbb{E}_T[R^e] \\
+&= \hat\Sigma_f^{-1}\big(\hat\beta'\hat\beta\big)^{-1}\hat\beta'\,\mathbb{E}_T[R^e].
+\end{aligned}
+$$
+
+Multiply both sides by $\hat\Sigma_f$:
+$\hat\Sigma_f\hat b_1 = (\hat\beta'\hat\beta)^{-1}\hat\beta'\,\mathbb{E}_T[R^e]$. The right side is the
+second-pass OLS estimate $\hat\lambda$ of Chapter 17, without the constant. For the CAPM on our data,
+$\hat b_1 = 2.91$, and $\hat\lambda = \hat\Sigma_f\hat b_1 = 8.4\%$ a year with a standard error of 2.5%. The
+standard errors here come from the GMM sandwich formula. They treat $\bar f$ and $\hat\Sigma_f$ as known, much as
+the uncorrected two-pass errors treat the betas as known ([Chapter 18](/empirical-finance-lbs/chapters/18-errors-in-variables-and-shanken/) corrects those). The market's own mean excess
+return is 7.5% a year. A traded factor's premium should equal its mean, but the first stage does not impose it,
+because the market is not one of the test assets.
+
+### Two forms, two questions: $\lambda = \Sigma_f b$
+
+The step above holds in population too. Start from $\mathbb{E}[MR^e] = 0$ and follow three steps:
+
+1. $\mathbb{E}[R^e] = \mathbb{E}[R^e\tilde f']\,b = \operatorname{Cov}(R^e, f')\,b$.
+2. Insert $\Sigma_f^{-1}\Sigma_f$ in the middle: $\mathbb{E}[R^e] = \operatorname{Cov}(R^e, f')\Sigma_f^{-1}\,\Sigma_f b$.
+3. The first part is the beta, $\beta = \operatorname{Cov}(R^e, f')\Sigma_f^{-1}$. So $\mathbb{E}[R^e] = \beta\lambda$,
+   with $\lambda = \Sigma_f b$.
+
+The SDF form and the beta form are one model. But $b$ and $\lambda$ answer different questions. $\lambda_k$ is the
+premium for one unit of beta on factor $k$: is exposure to this factor paid? $b_k$ is factor $k$'s weight in the
+SDF: does this factor help to price the assets, given the other factors? A factor can carry a premium and still
+be redundant in the SDF. That happens when it is correlated with a factor that the SDF does need.
+
+FF3 shows this. At the first stage, SMB has $\hat b = -0.38$ (standard error 1.35), but its premium is
+$\hat\lambda = 1.93\%$ a year (standard error 1.34%). Neither number is significant at 5%, but their signs differ.
+The row of $\lambda = \Sigma_f b$ for SMB explains why. It splits the premium into three parts, one per factor:
+2.74% through the covariance of SMB with the market, −0.43% through its own variance, and −0.38% through HML. SMB
+carries a premium because it moves with the market, which the SDF prices with $\hat b = 3.38$
+(standard error 1.10).
+
+### The second stage and the $J$ test
+
+The second stage uses the efficient weighting. Build the moments at the first-stage estimate,
+$g(x_t, \hat b_1) = R^e_t(1 - \tilde f_t'\hat b_1)$, where $x_t$ holds the date-$t$ returns and factors, and their
+covariance $\hat S$, here with no Newey–West lags. Then set $W = \hat S^{-1}$ and solve again:
+
+$$
+\begin{aligned}
+\hat b_2 = {}&\big(\mathbb{E}_T[R^e\tilde f']'\,\hat S^{-1}\,\mathbb{E}_T[R^e\tilde f']\big)^{-1} \\
+&\times \mathbb{E}_T[R^e\tilde f']'\,\hat S^{-1}\,\mathbb{E}_T[R^e].
+\end{aligned}
+$$
+
+This is a GLS regression across assets, with weights from the moments' covariance. With $N$ moments and $K$
+parameters, the test of the overidentifying restrictions is
+
+$$
+J = T\,g_T(\hat b_2)'\,\hat S^{-1}g_T(\hat b_2) \;\sim\; \chi^2_{N-K}
+$$
+
+when the model is right. The weighting decides which moments the estimate takes seriously. Nagel (2013) notes that
+with an identity weighting, the estimate can put almost no weight on the moment for a traded factor's own return,
+while efficient weighting prices that factor exactly in large samples (NBER WP, p. 21).
+
+The $J$ statistic divides the pricing errors by $\hat S$, the noise of the model's *own* moments. That makes it a
+poor scale for comparing models. The consumption CAPM has a first-stage $\hat b$ of 331 (standard error 181).
+Quarterly consumption growth has a standard deviation of only 0.93%, so $M = 1 - 331\,\Delta\tilde c$ has a
+standard deviation of about 3.1 a quarter. Its moments are mostly noise, $\hat S$ is large, and large errors
+look small. The second-stage $\hat b$ is 177 (standard error 66). $M$ falls below zero whenever consumption growth
+beats its mean by more than $1/177$, about 0.57 percentage points in a quarter.
+
+### The Hansen–Jagannathan distance
+
+The Hansen–Jagannathan distance uses one weighting for every model: the inverse second moment of the test assets.
+That weighting has a clear meaning. Take a model's SDF $M$ and ask: how far is it from the nearest $M^*$ that
+prices all $N$ assets exactly?
+
+Write the gap as $M - M^* = w'R^e + \varepsilon$: a portfolio of the excess returns, with weights $w$, plus a
+residual $\varepsilon$ with $\mathbb{E}_T[R^e\varepsilon] = 0$. Then:
+
+1. Pricing needs $\mathbb{E}_T[M^*R^e] = 0$. Since $M^* = M - w'R^e - \varepsilon$ and $\mathbb{E}_T[MR^e] = g_T(b)$,
+   this is $g_T(b) - \mathbb{E}_T[R^eR^{e\prime}]\,w = 0$, so $w = \mathbb{E}_T[R^eR^{e\prime}]^{-1}g_T(b)$. The
+   residual does not enter.
+2. The squared distance is $\mathbb{E}_T[(M - M^*)^2] = w'\,\mathbb{E}_T[R^eR^{e\prime}]\,w + \mathbb{E}_T[\varepsilon^2]$.
+   The cross term vanishes because $\mathbb{E}_T[R^e\varepsilon] = 0$.
+3. The nearest $M^*$ has $\varepsilon = 0$. Insert $w$:
+   $\mathbb{E}_T[(M - M^*)^2] = g_T(b)'\,\mathbb{E}_T[R^eR^{e\prime}]^{-1}g_T(b)$.
+
+The model may choose its best $b$. So
+
+$$
+\delta_{\text{HJ}} = \min_b \sqrt{g_T(b)'\,\mathbb{E}_T[\Ret{R^e}\Ret{R^{e\prime}}]^{-1}\,g_T(b)}.
+$$
+
+The payoffs here are excess returns, so the second moment is $\mathbb{E}_T[R^eR^{e\prime}]$. This is GMM with
+$W = \mathbb{E}_T[R^eR^{e\prime}]^{-1}$, and that $W$ is the same whatever the model. That is the point: every model
+is measured with one ruler. The distance also has a second reading. It is the largest pricing error of any
+portfolio of the 25 assets, per unit of that portfolio's root-mean-square return.
+
+<details>
+<summary>The algebra: the largest pricing error, and the model with no factors</summary>
+
+Call the weights of step 1 $w^* = \mathbb{E}_T[R^eR^{e\prime}]^{-1}g_T(b)$, so that
+$g_T(b) = \mathbb{E}_T[R^eR^{e\prime}]\,w^*$. Any portfolio $w$ of the excess returns has the pricing error
+$w'g_T(b) = \mathbb{E}_T[(w'R^e)(w^{*\prime}R^e)]$. The Cauchy–Schwarz inequality for averages gives
+
+$$
+|w'g_T(b)| \le \sqrt{\mathbb{E}_T[(w'R^e)^2]}\;\sqrt{\mathbb{E}_T[(w^{*\prime}R^e)^2]},
+$$
+
+with equality for $w = w^*$. The last root is $\sqrt{g_T(b)'\,\mathbb{E}_T[R^eR^{e\prime}]^{-1}g_T(b)}$. So the
+largest pricing error per unit of root-mean-square return is the distance.
+
+With no factors, $M = 1$ and $g_T = \mu = \mathbb{E}_T[R^e]$. The second moment is $\mathbb{E}_T[R^eR^{e\prime}] =
+\Sigma + \mu\mu'$, with $\Sigma$ the covariance (divisor $T$). The squared highest Sharpe ratio of a portfolio of
+the test assets is $SR^2 = \mu'\Sigma^{-1}\mu$, as in
+[Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/). The Sherman–Morrison formula inverts
+the sum: $(\Sigma + \mu\mu')^{-1} = \Sigma^{-1} - \Sigma^{-1}\mu\mu'\Sigma^{-1}/(1 + SR^2)$. So
+
+$$
+\delta_{\text{HJ}}^2 = \mu'(\Sigma + \mu\mu')^{-1}\mu = SR^2 - \frac{SR^4}{1 + SR^2} = \frac{SR^2}{1 + SR^2}.
+$$
+
+</details>
+
+The model with no factors gives the benchmark. The highest quarterly Sharpe ratio of a portfolio of the 25 is 0.64
+(1.28 a year), so $M = 1$ has $\delta_{\text{HJ}} = 0.540$. The same Sharpe ratio sets the tightest
+Hansen–Jagannathan bound of Chapter 8. Against it: the CAPM reaches 0.513, FF3 0.488 and the consumption CAPM
+0.470.
+
+## <span class="section-tag">Playground</span> Pricing errors on one ruler
+
+The widget shows the 25 pricing errors of each model, in percent a year. Choose the weighting: the first stage
+($W = I$) or the HJ weighting that defines $\delta_{\text{HJ}}$. The readout lists every model's distance and its
+second-stage $J$ test.
+
+<HJDistance client:visible />
+
+<p class="try-this"><strong>Try this:</strong> step through the models with the first-stage weighting. The CAPM
+misses small growth stocks by −8.24% a year, and FF3 cuts that to −4.37%. The consumption CAPM leaves every bar
+positive: it explains little of the level of returns.</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch to the HJ weighting. Every model's average error grows: for
+FF3 from 0.99% to 2.17% a year. The HJ weighting does not chase each portfolio's raw error. Its weights are
+$\mathbb{E}_T[R^eR^{e\prime}]^{-1}$, so it cares most about combinations of the portfolios with a small second
+moment, such as spreads between similar portfolios.</p>
+
+### What the two rankings can and cannot show
+
+**The two rankings use different rulers.** In this sample they even put the three models in the same order. But
+they tell different stories. The $J$ test calls the consumption CAPM fine and rejects FF3 decisively. The HJ
+distance puts all three models within 0.05 of each other, and the best is only 0.07 below the model with no
+factors at all.
+Because each $J$ uses its own $\hat S$, a model with a noisy SDF gets a lenient test. Gospodinov, Kan & Robotti
+(2019) report the same pattern on their data. Models with factors that barely move with returns look almost
+perfect and pass the specification tests of continuously updated GMM and maximum likelihood. HJ-distance tests
+point to severe misspecification of every model (manuscript, pp. 5–6).
+
+**The consumption CAPM's sample is short and its factor is weak.** Our consumption data are quarterly, so 63
+years give only 252 observations. Its covariances with the portfolios are tiny, so the estimate needs a huge $b$,
+and small changes in the data move it a lot. A low HJ distance from such a model is not a win. Our consumption
+growth comes from the quarterly consumption data behind $cay$ in
+[Chapter 14](/empirical-finance-lbs/chapters/14-consumption-wealth-ratio/).
+
+**The distances have no standard errors here.** The gaps of 0.02 and 0.03 between neighbouring models may be
+noise. Testing them needs the sampling distribution of $\delta_{\text{HJ}}$, which this chapter does not derive.
+
+**The normalisation matters for a wrong model.** The $J$ tests reject the CAPM and FF3, and the consumption CAPM
+has the doubts above. For a wrong model, tests depend on how you normalise $M$, so another choice could move the
+distances (Nagel, 2013, NBER WP, p. 13, fn. 5).
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="You estimate $M = 1 - b'\tilde f$ on $N$ excess returns by GMM with $W = I$. What is $\hat b$?"
+  options={["The time-series OLS slope of each return on the factors", "The mean of the factors", "The OLS slope of the $N$ mean excess returns on their covariances with the factors, with no constant", "The slope of the factors on the $N$ returns"]}
+  answer={2}
+  explanation="With $W = I$ the first-order condition is $\mathbb{E}_T[R^e\tilde f']'g_T(\hat b) = 0$, the normal equations of OLS across the assets. The regressors are $\mathbb{E}_T[R^e\tilde f']$, the covariances, and there is no constant."
+/>
+
+<Quiz
+  client:visible
+  question="In FF3, SMB has $\hat b$ close to zero but a positive $\hat\lambda$. What is the best reading?"
+  options={["SMB has no premium", "Given the market and HML, SMB adds little to the SDF; its premium comes from its covariance with the market", "The estimate must be wrong, because $\\lambda = \\Sigma_f b$ forces equal signs", "SMB is the most important factor in the SDF"]}
+  answer={1}
+  explanation="$\lambda = \Sigma_f b$ mixes the loadings through the factor covariances. SMB moves with the market, so it inherits a premium from the market's large $b$, even with its own $b$ near zero."
+/>
+
+<Quiz
+  client:visible
+  question="Why can you compare $\delta_{\text{HJ}}$ across models, but not $J$?"
+  options={["$\\delta_{\\text{HJ}}$ weights every model's errors by the same $\\mathbb{E}_T[R^eR^{e\\prime}]^{-1}$; each $J$ uses its own $\\hat S^{-1}$", "$J$ has no distribution", "$\\delta_{\\text{HJ}}$ has more degrees of freedom", "$J$ ignores the pricing errors"]}
+  answer={0}
+  explanation="$J$ divides the errors by the noise of each model's own moments, so a noisy SDF gets a lenient test. The HJ weighting does not depend on the model, so the distances sit on one scale."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- A linear SDF $M = 1 - b'\tilde f$ prices excess returns when $\mathbb{E}_T[R^e] = \mathbb{E}_T[R^e\tilde f']\,b$:
+  mean returns are proportional to covariances with the factors.
+- First-stage GMM is an OLS regression of mean returns on covariances, with no constant. Through
+  $\lambda = \Sigma_f b$, it equals the two-pass estimate of Chapter 17 without the constant.
+- $b$ asks whether a factor helps the SDF, given the others; $\lambda$ asks whether its exposure is paid. SMB has a
+  positive premium but a loading near zero in FF3.
+- Each $J$ test uses the model's own $\hat S$, so it cannot rank models. The HJ distance uses one weighting for
+  all: on the 25 portfolios it gives 0.513 for the CAPM, 0.488 for FF3 and 0.470 for the consumption CAPM, against
+  0.540 with no factors.
+
+**Next up:** Chapter 27, *Identification: weak and useless factors*, asks why a factor that barely moves with
+returns can look so good.
+
+### Further reading
+
+- Cochrane (2005), Ch. 13
+- Nagel (2013)
+- Gospodinov, Kan & Robotti (2019)

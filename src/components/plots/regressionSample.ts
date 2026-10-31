@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { getColumn, loadSeries, type Series } from '../../lib/data/series';
 import { normalRng } from '../../lib/math/rng';
 
-export type Source = 'data' | 'even' | 'fan';
+/** 'gmm' (Chapter 26) is the cross-section of first-stage GMM: one dot per quarterly portfolio, see sdfGmmSample. */
+export type Source = 'data' | 'even' | 'fan' | 'gmm';
 export const DEFAULT_SEED = 1;
 /** Months in the widget's sample: few enough to drag, the shortest T in the style guide. */
 export const WINDOW = 60;
