@@ -68,13 +68,13 @@ function contour(values: number[][], xs: number[], ys: number[], level: number):
 
 /**
  * Chapters 24 and 25: the GMM objective over θ = (μ, σ²) for the seeded toy sample of gmm.ts, as a heat map
- * with contour lines. A control picks 2 moments (just identified) or 4 (over-identified); another picks
- * the weighting, from `methods`. The readout gives θ̂, its standard errors and the objective at the minimum.
+ * with contour lines. A control picks 2 moments (just identified) or 4 (over-identified), starting at
+ * initialCount; another picks the weighting, from `methods`. The readout gives θ̂, its standard errors and the objective at the minimum.
  */
-export default function GMMObjective({ methods = ['one-step', 'two-step'], title = 'The GMM objective and its minimum' }: {
-  methods?: GMMMethod[]; title?: string;
+export default function GMMObjective({ methods = ['one-step', 'two-step'], initialCount = 2, title = 'The GMM objective and its minimum' }: {
+  methods?: GMMMethod[]; initialCount?: MomentCount; title?: string;
 }) {
-  const [count, setCount] = useState<MomentCount>(2);
+  const [count, setCount] = useState<MomentCount>(initialCount);
   const [method, setMethod] = useState<GMMMethod>(methods[0]);
   const [seed, setSeed] = useState(DEFAULT_SEED);
 

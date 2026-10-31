@@ -1,0 +1,298 @@
+---
+title: "Efficient and feasible GMM"
+part: 6
+chapter: 25
+difficulty: 3
+prerequisites: [24]
+summary: "Weighting the moments by the inverse of their long-run covariance gives the most precise GMM estimate, two-step, iterated and continuously-updated GMM make that weighting feasible, and the J test checks the moments that are left over, with honest limits in short samples."
+---
+
+import GMMObjective from '../../components/plots/GMMObjective';
+import JTestSim from '../../components/plots/JTestSim';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Four moments, two parameters, four answers
+
+Take 600 seeded draws $x_t$ of a variable whose true mean is 0.5 and whose true variance is 1. The draws are normal.
+They are the toy sample of [Chapter 24](/empirical-finance-lbs/chapters/24-generalized-method-of-moments/). You
+want the mean $\mu$ and the variance $\sigma^2$. Chapter 24 estimates parameters like these from **moment
+conditions**: averages that should be zero at the true parameters. Here you know four of them. The deviation $x_t - \mu$ averages zero. So does $(x_t - \mu)^2 - \sigma^2$. Normal data add
+two more: the third power $(x_t - \mu)^3$ averages zero, and the fourth power averages $3\sigma^4$.
+
+Four conditions, but only two unknowns. No $(\mu, \sigma^2)$ can make all four sample averages exactly zero, so
+GMM makes them *small*. It minimises a weighted sum of their squares. And the answer depends on the weights.
+Weight all four moments equally, and you get $\hat\mu = 0.501$ and $\hat\sigma^2 = 1.086$. Weight them by how
+precisely each one is measured, and you get $\hat\mu = 0.488$ and $\hat\sigma^2 = 1.005$. Same data, same
+moments, different estimates. The standard error of $\hat\sigma^2$ falls from 0.087 to 0.061.
+
+Then there is a second surprise. With four moments and two parameters, two conditions are left over, and GMM has
+a test for them, the $J$ test. Run it at 5% on 400 seeded samples of 100 draws in which every condition is true.
+It rejects 13.3% of them, not 5%.
+
+So you have two questions. **Which weights should you use? And how far can you trust the test that comes with
+them?** This chapter answers both.
+
+## <span class="section-tag">Intuition</span> Listen hardest to the moments you measure best
+
+Some moments are measured much more precisely than others. On the sample above, the variance of the first moment
+across draws is 1.03. The variance of the fourth is 194.35. A fourth power swings wildly, because one large draw
+raised to the fourth power is huge. So a sample average of fourth powers is a noisy number. When it misses zero,
+that tells you little. When the sample mean misses zero by the same amount, that tells you a lot.
+
+Equal weights ignore this. They let the noisiest moment pull the estimate as hard as the most precise one. Better
+weights listen hardest to the moments you measure best. They also take account of the correlations between
+moments, so two moments that carry the same news do not count it twice. This is the same idea as the GRS test of
+[Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/), which weighs each alpha by how well
+you know it.
+
+The widget below draws the objective GMM minimises, over every pair $(\mu, \sigma^2)$. Stronger shading means a
+smaller objective, and the lines are its contours. The coloured point $\Model{\hat\theta}$ is the minimum for
+the chosen weighting. The other point is the true value.
+
+<GMMObjective client:visible methods={['one-step', 'two-step', 'iterated', 'cue']} initialCount={4} />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens with four moments and the identity weighting,
+which treats them equally. The minimum sits at (0.501, 1.086), inside long, flat contours: the objective hardly
+changes as $\mu$ moves. Switch to two-step. The contours become much rounder rings, so $\mu$ is now pinned down
+far more firmly, and the minimum moves to (0.488, 1.005). Now try iterated and CUE: the minimum barely moves
+again. Last, choose two moments. Every weighting now gives the same point, (0.496, 1.025): the sample mean and
+the sample variance.</p>
+
+Look at the weights behind the rounder rings. Two-step GMM gives the first two moments weights of about 2.50 and
+1.76 on the diagonal of $W$. The fourth moment gets 0.028. The data have told the estimator which conditions to
+believe.
+
+With two moments and two parameters, the model is **just identified**. Both averages can be set exactly to zero,
+so the weights have nothing to trade off. Weighting only matters when there are more moments than parameters.
+
+<Callout type="key">With more moments than parameters, GMM must trade the moments off against each other. The
+efficient weighting trusts each moment in proportion to how precisely it is measured.</Callout>
+
+## <span class="section-tag">Formalisation</span> The best weighting, made feasible, and its test
+
+### The setting
+
+We use the notation of Part VI. The moment function is $g(x_t, \theta)$, with $\dim g$ entries, and the model
+says $\mathbb{E}[g(x_t, \theta_0)] = 0$ at the true $\theta_0$, which has $\dim\theta$ entries. Its sample mean
+is $g_T(\theta) = \tfrac1T\sum_t g(x_t, \theta)$. For a weighting matrix $W$, GMM chooses
+
+$$
+\Model{\hat\theta} = \arg\min_\theta\; g_T(\theta)'\,W\,g_T(\theta).
+$$
+
+Two more objects carry the argument. $D = \partial g_T/\partial\theta'$ is the $\dim g \times \dim\theta$
+Jacobian at $\theta_0$. $S$ is the long-run covariance of the moments, so that
+$\operatorname{Var}(\sqrt T\,g_T(\theta_0)) \to S$. Its estimate $\hat S$ is the Newey–West sum of
+[Chapter 4](/empirical-finance-lbs/chapters/04-autocorrelation-and-newey-west/), applied to the moments
+$g(x_t, \hat\theta)$ instead of regression terms. Our toy draws are independent, so we use no lags.
+
+### The variance for any weighting
+
+The minimum satisfies the first-order condition $D_T(\hat\theta)'\,W\,g_T(\hat\theta) = 0$, where $D_T$ is the
+sample Jacobian. Here are the steps from it to the variance.
+
+1. Expand the moments around the truth: $g_T(\hat\theta) \approx g_T(\theta_0) + D(\hat\theta - \theta_0)$.
+2. Put this into the condition, with $D_T(\hat\theta) \approx D$: $D'W\,[g_T(\theta_0) + D(\hat\theta - \theta_0)] \approx 0$.
+3. Solve for the error: $\hat\theta - \theta_0 \approx -A_W\,g_T(\theta_0)$, with $A_W = (D'WD)^{-1}D'W$.
+4. Take the variance, using $\operatorname{Var}(g_T(\theta_0)) \approx S/T$:
+
+$$
+\begin{aligned}
+\operatorname{Var}(\Model{\hat\theta}) &\approx \frac1T\,A_W S A_W' \\
+&= \frac1T\,(D'WD)^{-1}D'W \\
+&\qquad \times SWD\,(D'WD)^{-1}.
+\end{aligned}
+$$
+
+This is the **sandwich**: $S$ is the filling, and $(D'WD)^{-1}D'W$ is the bread on each side. It holds for any
+$W$, so it is also the right standard error for a fixed weighting such as the identity.
+
+Note one fact for later. $A_W D = (D'WD)^{-1}D'WD = I$ for every $W$.
+
+### Why $W = S^{-1}$ gives the smallest variance
+
+Set $W = S^{-1}$ and call the matrix in step 3 $A_* = (D'S^{-1}D)^{-1}D'S^{-1}$. The sandwich collapses:
+
+$$
+\begin{aligned}
+\frac1T\,A_* S A_*' &= \frac1T\,(D'S^{-1}D)^{-1}D'S^{-1} \\
+&\qquad \times S\,S^{-1}D\,(D'S^{-1}D)^{-1} \\
+&= \frac1T\,(D'S^{-1}D)^{-1}.
+\end{aligned}
+$$
+
+Now compare any other $W$ with it. Write $A_W = A_* + \Delta$, with $\Delta = A_W - A_*$.
+
+1. Expand: $A_W S A_W' = A_* S A_*' + \Delta S A_*' + A_* S \Delta' + \Delta S \Delta'$.
+2. The cross term: $\Delta S A_*' = \Delta S S^{-1}D(D'S^{-1}D)^{-1} = \Delta D\,(D'S^{-1}D)^{-1}$.
+3. By the fact above, $\Delta D = A_W D - A_* D = I - I = 0$. So both cross terms vanish.
+4. What is left: $A_W S A_W' = A_* S A_*' + \Delta S \Delta'$.
+5. $S$ is a covariance matrix, so $c'\Delta S\Delta' c = (\Delta'c)'S(\Delta'c) \ge 0$ for every vector $c$.
+
+So
+
+$$
+\begin{aligned}
+\operatorname{Var}_W(\Model{\hat\theta}) &- \frac1T\,(D'S^{-1}D)^{-1} \\
+&= \frac1T\,\Delta S \Delta' \;\ge\; 0.
+\end{aligned}
+$$
+
+In words: every other weighting adds a piece that is never negative, for every linear combination of the
+parameters. $W = S^{-1}$ is the **efficient** weighting, and $\tfrac1T(D'S^{-1}D)^{-1}$ is the smallest variance
+any weighting of these moments can reach. Scaling $W$ by a constant changes nothing, so any multiple of $S^{-1}$
+is efficient too.
+
+### Feasible GMM: three ways to estimate $S$
+
+$S^{-1}$ is unknown. To estimate $S$ you need $\hat\theta$, and to get the efficient $\hat\theta$ you need $S$.
+There are three ways out of the circle.
+
+- **Two-step.** Estimate once with a fixed weighting, usually $W = I$, to get $\hat\theta_1$. Compute
+  $\hat S(\hat\theta_1)$. Estimate again with $W = \hat S(\hat\theta_1)^{-1}$.
+- **Iterated.** Repeat the second step: $\hat\theta_{k+1}$ minimises $g_T'\hat S(\hat\theta_k)^{-1}g_T$, until the
+  estimate stops moving. If there is only one point where it can stop, that point does not depend on the
+  first-stage weighting.
+- **Continuously updated (CUE).** Let $\hat S$ move with $\theta$ inside the objective:
+  $\hat\theta = \arg\min_\theta\; g_T(\theta)'\,\hat S(\theta)^{-1}g_T(\theta)$. This is no longer a fixed
+  quadratic form, so its surface in the widget is not a fixed bowl.
+
+All three use an $\hat S$ that converges to $S$. So they share one large-sample variance,
+$\tfrac1T(D'S^{-1}D)^{-1}$, which we estimate with $\hat D$ and $\hat S$. Any difference between them is a
+finite-sample effect. On the 600 draws of the hook, all three give $\hat\mu = 0.488$, and $\hat\sigma^2$ of 1.005,
+1.006 and 1.006. Those gaps are tiny next to standard errors of 0.041 and 0.061. The differences grow in shorter samples and in false models, as the
+Playground shows.
+
+### The $J$ test of the leftover moments
+
+GMM sets $\dim\theta$ combinations of the moments to zero to find $\hat\theta$. The other
+$\dim g - \dim\theta$ combinations are free. If the model is true, they should be close to zero too. Hansen's
+$J$ statistic measures how far they are:
+
+$$
+J = T\,g_T(\hat\theta)'\,\hat S^{-1}g_T(\hat\theta) \;\to\; \chi^2_{\dim g - \dim\theta}.
+$$
+
+Here is why the limit is $\chi^2$, step by step, for efficient GMM.
+
+1. From steps 1 and 3 above with $W = S^{-1}$: $g_T(\hat\theta) \approx (I - DA_*)\,g_T(\theta_0)$.
+2. Standardise. Let $z = \sqrt T\,S^{-1/2}g_T(\theta_0)$. By the central limit theorem, $z$ is approximately
+   $N(0, I)$ with $\dim g$ entries.
+3. Let $H = S^{-1/2}D$. Then $\sqrt T\,S^{-1/2}g_T(\hat\theta) \approx (I - P)\,z$, with
+   $P = H(H'H)^{-1}H'$. Multiply it out to check: $S^{-1/2}DA_* S^{1/2} = P$.
+4. $P$ projects onto the $\dim\theta$ columns of $H$. So $I - P$ is symmetric, satisfies $(I - P)^2 = I - P$, and
+   has rank $\dim g - \dim\theta$.
+5. So $J \approx z'(I - P)'(I - P)z = z'(I - P)z$.
+6. Write $I - P = Q\Lambda Q'$, with $Q$ orthogonal and $\Lambda$ diagonal. Its diagonal holds
+   $\dim g - \dim\theta$ ones and zeros elsewhere. Then $Q'z$ is again $N(0, I)$, and $J$ is the sum of
+   $\dim g - \dim\theta$ independent squared standard normals. That is the $\chi^2_{\dim g - \dim\theta}$.
+
+In our example, $\dim g = 4$ and $\dim\theta = 2$, so $J$ is compared with $\chi^2_2$, whose 5% cut-off is 5.99.
+On the 600 draws of the hook, two-step GMM gives $J = 2.22$, with a $p$-value of 0.33. The data do not reject
+the model.
+
+Two warnings. First, step 6 needs $W = \hat S^{-1}$. With the identity, $T\,g_T'Wg_T$ is a weighted sum of
+squared normals, not a $\chi^2$, so it cannot be read from the $\chi^2$ table. Second, the limit is a
+large-sample result. In the hook, at $T = 100$, the 5% test rejected 13.3% of true models.
+
+### When a fixed weighting is better
+
+The theorem compares weightings when $S$ is known. In practice $\hat S$ is estimated, and that has two costs.
+
+**$\hat S$ is noisy.** With four moments, $\hat S$ has ten distinct entries, and the variance of a fourth power
+needs eighth powers of the data. In a short sample these entries are poorly measured, and the "efficient" weights
+inherit the noise. A seeded study of 300 samples of 50 draws shows it. The root mean squared error of
+$\hat\sigma^2$ is 0.210 with the identity and 0.254 with two-step GMM. The fixed weighting wins. Two-step GMM is
+also too sure of itself. Its average reported standard error is 0.144, well below its actual error of 0.254. With
+1,000 draws, the order flips back: 0.051 for the identity, 0.049 for two-step GMM.
+
+**The moments that matter can lose their weight.** $S^{-1}$ chooses weights for statistical reasons. It may judge
+a model mostly on combinations of moments that no one cares about. Nagel (2013, p. 20) observes that many
+researchers report how well a model prices the portfolios they find economically interesting, instead of the
+statistically chosen mixes that a formal test weighs most. He also shows (p. 21) how far apart the two
+weightings can be. When a traded factor is among the moments, the efficient weighting makes the model price that
+factor exactly in large samples, while the identity may hardly look at it. So the choice of $W$ is also a choice
+of which moments the model must fit.
+
+A fixed $W$ is a valid choice. Its estimate is consistent, its standard errors come from the sandwich, and you
+choose which moments matter. What you give up is the smallest asymptotic variance, and the simple $\chi^2$ form
+of $J$.
+
+<Callout type="warning">Efficient GMM is efficient only in large samples. When $T$ is short relative to the number
+of moments, a fixed weighting with sandwich standard errors can give the more accurate estimate and the more
+honest standard error.</Callout>
+
+## <span class="section-tag">Playground</span> How honest is the $J$ test?
+
+The widget draws 400 seeded samples from the toy model, estimates each one with all four moments, and plots the
+histogram of $J$ against the $\chi^2_2$ density it should follow. With normal tails, every moment is true, so the
+share of samples above the 5% cut-off is the **size** of the test, and it should be 5%. With fat tails, the mean,
+the variance and the third moment are still right, but the fourth central moment is 9.75 instead of 3. The model
+is false, so the share rejected is the test's **power**, and higher is better.
+
+<JTestSim client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens at $T = 100$ with two-step GMM. The histogram has
+a longer right tail than the curve, and 13.3% of the samples are rejected. Drag $T$ down to 50: the size rises to
+18.0%. Drag it up to 1,000: it falls to 7.5%, still above 5%. Now set $T = 100$ again and try iterated and CUE.
+Both reject 13.5%, so neither one fixes the size.</p>
+
+<p class="try-this"><strong>Try this too:</strong> keep $T = 100$ and switch to fat tails. Two-step GMM rejects
+the false model in only 12.0% of samples, not much more than it rejects true models. Iterated GMM and CUE reject
+only 2.3%. Now raise $T$ to 500. Two-step GMM rejects 66.0% of samples and CUE 56.3%.</p>
+
+The prompts show three things. The $J$ test over-rejects true models in short samples, by a lot at $T = 50$. In
+short samples it also has almost no power against this false moment. And the three feasible estimators, which
+share one large-sample theory, behave very differently with 100 draws. We do not have a simple story for why
+iterated GMM and CUE lose so much power here. The lesson is to simulate the test in a world like your data before
+you trust its $p$-value.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A model has 6 moment conditions and 2 parameters, and you estimate it by two-step GMM. With how many degrees of freedom do you compare $J$?"
+  options={["2", "4", "6", "8"]}
+  answer={1}
+  explanation="Estimation sets $\dim\theta = 2$ combinations of the moments to zero. The $\dim g - \dim\theta = 4$ combinations that are left are what $J$ tests, so $J$ is compared with $\chi^2_4$."
+/>
+
+<Quiz
+  client:visible
+  question="Why does $W = S^{-1}$ give the smallest variance among all weightings of the same moments?"
+  options={["It sets every sample moment exactly to zero", "It puts less weight on the moments that are measured with more noise, and takes their correlations into account", "It makes the model just identified", "It removes the need to estimate $S$"]}
+  answer={1}
+  explanation="The variance with any $W$ equals $\tfrac1T(D'S^{-1}D)^{-1}$ plus a piece $\tfrac1T\Delta S\Delta'$ that is never negative. $S^{-1}$ down-weights noisy moments and accounts for their correlations. It does not remove the need to estimate $S$: that is the feasibility problem."
+/>
+
+<Quiz
+  client:visible
+  question="You have 50 observations and 4 moment conditions for 2 parameters. Two-step GMM gives $J = 6.5$, just above the 5% cut-off of 5.99. What is the most honest reading?"
+  options={["The model is rejected at 5%", "The test is likely to over-reject in a sample this short, so compare $J$ with a cut-off simulated in a world like your data", "Switch to CUE, which fixes the size of the test", "Use the identity weighting and compare $T\\,g_T'g_T$ with the same $\\chi^2_2$ cut-off"]}
+  answer={1}
+  explanation="In the toy model at $T = 50$, the 5% test rejects 18.0% of true models, so the table cut-off is too low. CUE does not fix this, and with the identity weighting $T\,g_T'g_T$ is not $\chi^2$ at all."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- With more moments than parameters, the weighting matrix $W$ decides how the moments trade off. For any $W$, the
+  variance is the sandwich $\tfrac1T(D'WD)^{-1}D'WSWD(D'WD)^{-1}$.
+- $W = S^{-1}$ is efficient. Its variance $\tfrac1T(D'S^{-1}D)^{-1}$ is the smallest, because every other $W$ adds
+  $\tfrac1T\Delta S\Delta' \ge 0$.
+- Two-step, iterated and continuously-updated GMM make $W = \hat S^{-1}$ feasible. They share one large-sample
+  theory but differ in short samples.
+- $J = T\,g_T'\hat S^{-1}g_T \to \chi^2_{\dim g - \dim\theta}$ tests the leftover moments. In the toy model it
+  rejects 13.3% of true models at 5% with 100 draws, so simulate its size before you trust it.
+- A fixed weighting, with sandwich standard errors, is the better choice when $\hat S$ is noisy or when the
+  moments that matter must keep their weight.
+
+**Next up:** Chapter 26, *GMM for asset pricing models*, writes a linear stochastic discount factor as moment
+conditions and estimates it with the tools of this chapter. Chapter 27, *Identification: weak and useless
+factors*, asks what happens when the Jacobian $D$ is close to having too little rank.
+
+### Further reading
+
+- Hansen (1982)
+- Nagel (2013)
+- Cochrane (2005), Ch. 11
