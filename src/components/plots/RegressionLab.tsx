@@ -103,7 +103,8 @@ function Lab({ initialSource, data, failed, view = null }: { initialSource: Sour
     }
   }, [points, errors, isGmm]);
 
-  const se = useTweened(fit ? fit.standardErrors[isGmm ? 0 : 1] : 0);
+  // Only the market view draws the ± 2 se band.
+  const se = useTweened(fit && !isGmm ? fit.standardErrors[1] : 0);
 
   const title = isGmm ? 'First-stage GMM is a regression through the origin' : 'How much does a stock move with the market?';
   if (!base || !box) {
