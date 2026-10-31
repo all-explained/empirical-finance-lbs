@@ -6,12 +6,12 @@ Verified revision: `origin/main` at `d09bfc2` (it contains the merges of TASK-09
 
 - [ ] `npm test` and `npm run build` pass on merged `main`; `astro check` reports 0 errors, 0 warnings.
   Evidence, build: `npm run build` exit 0, "Result (184 files): 0 errors, 0 warnings", "28 page(s) built", "Complete!".
-  Evidence, tests: **not met as written.** `npm ci` exit 0. The plain `npm test` failed in 5 of 5 runs, each time with
+  Evidence, tests: **not met as written.** `npm ci` exit 0. The plain `npm test` failed in 6 of 6 runs, each time with
   one 5 s timeout in a prose-number test of Part III or Part IV, never in a Part VI file. Run 1 failed
-  `tests/chapter14-numbers.test.ts > playground: full-sample against real-time weights`. Runs 3 to 5 failed
+  `tests/chapter14-numbers.test.ts > playground: full-sample against real-time weights`. Runs 3 to 6 failed
   `tests/chapter18-numbers.test.ts > playground: the default world and a short sample`. For run 2 I kept only the totals.
   Each run ended "Test Files 1 failed | 59 passed (60), Tests 1 failed | 623 passed (624)". The machine load average was
-  35 to 42 (other agents ran at the same time). Run alone, both files pass (`npx vitest run tests/chapter14-numbers.test.ts
+  35 to 42 in runs 1 to 5 (other agents ran at the same time) and 7.7 in run 6, which still timed out at 5.0 s. Run alone, both files pass (`npx vitest run tests/chapter14-numbers.test.ts
   tests/chapter18-numbers.test.ts`, exit 0, 5.2 s). With a longer timeout the whole suite passes:
   `npm test -- --testTimeout=30000` gave "Test Files 60 passed (60), Tests 624 passed (624)". Change 5 below fixes the cause.
 - [x] `npm run screenshots` and `npm run clickthrough` pass for chapters 24 to 27.
@@ -113,7 +113,7 @@ Five changes. Each becomes an M-8 task for claude opus high, and this PR is merg
    Chapter 26 names Chapters 24 and 25 (line 72) in plain text, and Chapter 27 names Chapter 26 (line 80) in plain text. Add the Part V bridge in one sentence each: in Chapter 24's
    IV paragraph, link "managed portfolio" to Chapter 22; in Chapter 26, after the linear SDF, say that the scaled models of
    Chapter 22 are linear SDFs with extra factors, so the same moments and tests apply.
-5. **`package.json` / a new `vitest.config.ts`.** Several prose-number tests (Chapter 14 once and Chapter 18 three times in 5 runs) need
+5. **`package.json` / a new `vitest.config.ts`.** Several prose-number tests (Chapter 14 once and Chapter 18 four times in 6 runs) need
    close to the 5 s default of Vitest under parallel load, so `npm test` fails on a busy machine. Fix: set `testTimeout` to 30000 in a
    Vitest config (or find why those two playground tests take 2 to 5 s). This is outside Part VI; it is reported in all-explained/empirical-finance-lbs#67.
 
