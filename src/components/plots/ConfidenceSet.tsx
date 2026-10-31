@@ -18,8 +18,8 @@ const DATA_RANGE: [number, number] = [-15, 50];
 
 type Mode = 'sim' | 'data';
 const MODES: { value: Mode; label: string }[] = [
-  { value: 'sim', label: 'Simulated world' },
-  { value: 'data', label: 'Consumption growth' },
+  { value: 'sim', label: 'Simulated' },
+  { value: 'data', label: 'Consumption' },
 ];
 
 const num = (v: number, digits = 2) => `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(digits)}`;
@@ -148,7 +148,7 @@ export default function ConfidenceSet({ initialSpread = 1 }: { initialSpread?: n
           </g>
         );
       })}
-      <Point x={real.wald.lambda * 100} y={dataRows.length - 0.5} color="var(--c-data)" />
+      <Point x={real.wald.lambda * 100} y={dataRows.length} color="var(--c-data)" />
     </PlotFrame>
   ) : null;
 
@@ -177,7 +177,6 @@ export default function ConfidenceSet({ initialSpread = 1 }: { initialSpread?: n
       plot={plot}
       controls={
         <>
-          <Segmented label="Sample" value={mode} options={MODES} onChange={setMode} />
           {mode === 'sim' && (
             <>
               <Slider label="Beta spread (0: all betas equal)" value={params.spread} min={0} max={1} step={0.05}
@@ -185,6 +184,7 @@ export default function ConfidenceSet({ initialSpread = 1 }: { initialSpread?: n
               <Button onClick={() => setParams((p) => ({ ...p, seed: p.seed + 1 }))}>Re-roll simulation</Button>
             </>
           )}
+          <Segmented label="Sample" value={mode} options={MODES} onChange={setMode} />
         </>
       }
       readout={
@@ -192,7 +192,7 @@ export default function ConfidenceSet({ initialSpread = 1 }: { initialSpread?: n
           sim && first && firstFar ? (
             <>
               <p style={{ margin: '0 0 0.5rem' }}>
-                <span style={{ color: 'var(--c-data)' }}>● estimate λ̂</span>
+                <span style={{ color: 'var(--c-data)' }}>● estimate <RichText>{'$\\hat\\lambda$'}</RichText></span>
                 {' · '}<span style={{ color: 'var(--text-muted)' }}>– – Wald (Shanken)</span>
                 {' · '}<span style={{ color: 'var(--c-model)' }}>━ GRS-FAR</span>
                 {' · '}<span style={{ color: 'var(--c-error)' }}>red: misses the true λ</span>
@@ -201,16 +201,17 @@ export default function ConfidenceSet({ initialSpread = 1 }: { initialSpread?: n
               </p>
               <dl className="readout-grid">
                 <dt>Betas</dt>
-                <dd>{num(sim.world.beta[0])} to {num(sim.world.beta.at(-1)!)}</dd>
+                <dd>{num(sim.world.beta[0])}–{num(sim.world.beta.at(-1)!)}</dd>
                 <dt>Sample 1: Wald, Shanken</dt>
                 <dd>{waldText(first.shanken, num)}</dd>
                 <dt>Sample 1: GRS-FAR</dt>
                 <dd>{setText(firstFar, WEAK_GRID, num)}</dd>
-                <dt>Sets that contain λ = 1 (target 95%)</dt>
-                <dd>
-                  Fama–MacBeth {share(sim.world.coverage.famaMacBeth)}, Shanken {share(sim.world.coverage.shanken)},{' '}
-                  <span style={{ color: 'var(--c-model)' }}>GRS-FAR {share(sim.world.coverage.far)}</span>
-                </dd>
+                <dt>Contain λ = 1 (target 95%): Wald, Fama–MacBeth</dt>
+                <dd>{share(sim.world.coverage.famaMacBeth)}</dd>
+                <dt>Wald, Shanken</dt>
+                <dd>{share(sim.world.coverage.shanken)}</dd>
+                <dt>GRS-FAR</dt>
+                <dd style={{ color: 'var(--c-model)' }}>{share(sim.world.coverage.far)}</dd>
                 <dt>Unbounded GRS-FAR sets</dt>
                 <dd>{share(sim.world.far.filter((f) => f.unbounded).length / WEAK.samples)}</dd>
                 <dt>Samples, seed</dt>
@@ -221,13 +222,13 @@ export default function ConfidenceSet({ initialSpread = 1 }: { initialSpread?: n
         ) : real ? (
           <>
             <p style={{ margin: '0 0 0.5rem' }}>
-              <span style={{ color: 'var(--c-data)' }}>● estimate λ̂</span>
+              <span style={{ color: 'var(--c-data)' }}>● estimate <RichText>{'$\\hat\\lambda$'}</RichText></span>
               {' · '}<span style={{ color: 'var(--text-muted)' }}>– – Wald</span>
               {' · '}<span style={{ color: 'var(--c-model)' }}>━ GRS-FAR</span>
               {' · '}◀ ▶ runs on
             </p>
             <dl className="readout-grid">
-              <dt><RichText>{'Rank test of $B = 0$'}</RichText></dt>
+              <dt><RichText>{'Rank test of $\\check\\beta = 0$'}</RichText></dt>
               <dd>F({real.rank.df1}, {real.rank.df2}) = {num(real.rank.statistic)}, p = {real.rank.pValue.toFixed(3)}</dd>
               <dt><RichText>{'Estimate $\\hat\\lambda$'}</RichText></dt>
               <dd style={{ color: 'var(--c-data)' }}>{quarter(real.wald.lambda)} a quarter</dd>
@@ -240,7 +241,7 @@ export default function ConfidenceSet({ initialSpread = 1 }: { initialSpread?: n
               <dt>99% GRS-FAR</dt>
               <dd style={{ color: 'var(--c-model)' }}>{setText(real.far99, DC_GRID, quarterFar)}</dd>
               <dt>Coverage</dt>
-              <dd>not known: real data have no true λ</dd>
+              <dd>unknown (no true λ)</dd>
             </dl>
           </>
         ) : (

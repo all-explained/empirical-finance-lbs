@@ -20,13 +20,13 @@ month, with a fixed seed. This factor has nothing to do with stock returns. Its 
 zero.
 
 Run the two-pass regression of
-[Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/) with it, with an
-intercept, and read the Fama–MacBeth $t$-statistic of its premium. Repeat with 200 fresh random factors. A test at
+[Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/) with an intercept,
+and read the Fama–MacBeth $t$-statistic of the premium. Repeat with 200 fresh random factors. A test at
 the 5% level should call about 5% of them priced. It calls 28.0% of them priced. The median cross-sectional $R^2$
 is 0.070, and the market itself gets 0.078 on the same portfolios. In 46.5% of the draws, pure noise fits the 25
 average returns better than the market does. The best draw reaches an $R^2$ of 0.625.
 
-Gospodinov, Kan & Robotti (2019), GKR below, report the same trap in a sharper form. They add one simulated normal
+Gospodinov, Kan & Robotti (2019), GKR below, show a sharper form of the trap. They add one simulated normal
 factor to the CAPM on the same 25 portfolios, in monthly data from 1967 to 2012. The pseudo-$R^2$ of their CU-GMM estimate
 jumps from 22.77% to 99.28% (table 1, pp. 2–3). So, **how can a factor unrelated to returns look priced, and
 how do you tell it from a real one?**
@@ -72,8 +72,8 @@ estimate blows up, the Fama–MacBeth $t$-test calls it priced far too often, an
 Write the beta model with a zero-beta rate $\lambda_0$ as in Chapter 17,
 $\mathbb{E}[\Ret{R^e_i}] = \lambda_0 + \beta_i'\lambda$ for $i = 1, \dots, N$, with $K$ factors. Stack the assets.
 The $N$ means are $\mathbb{E}[R^e] = \mathbf{1}\lambda_0 + B\lambda$, where row $i$ of the $N \times K$ matrix $B$
-is $\beta_i'$. The data pin down $\mathbb{E}[R^e]$ and $B$. They pin down $(\lambda_0, \lambda)$ only if no other
-pair gives the same means. That holds when the $N \times (K + 1)$ matrix $(\mathbf{1}, B)$ has full column rank
+is $\beta_i'$. The data fix $\mathbb{E}[R^e]$ and $B$, and they fix $(\lambda_0, \lambda)$ only if no other pair gives
+the same means. That holds when the $N \times (K + 1)$ matrix $(\mathbf{1}, B)$ has full column rank
 $K + 1$.
 
 In the SDF form of Part VI, $M_t = 1 - b'\tilde f_t$ with $\tilde f_t = f_t - \bar f$, the moments are
@@ -102,8 +102,8 @@ $$
 \sqrt{T}\,\hat\beta \;\to\; z \sim \mathcal{N}\!\left(0,\; \Sigma/\sigma_f^2\right),
 $$
 
-where $\Sigma$ is the covariance matrix of the $N$ returns. So $\hat\beta \approx z/\sqrt{T}$: a random vector
-that shrinks with $T$, with a fixed random direction $z$. The covariance $\Sigma$ of the 25 portfolios is dominated
+where $\Sigma$ is the covariance matrix of the $N$ returns. So $\hat\beta \approx z/\sqrt{T}$ shrinks with $T$, in a
+fixed random direction $z$. The covariance $\Sigma$ of the 25 portfolios is dominated
 by a few common factors, so $z$ mostly points along them. That is the patterned noise of the Intuition.
 
 The second pass with an intercept is an OLS slope across assets. Write $\bar z$ and $\bar\mu$ for the averages
@@ -114,7 +114,7 @@ across assets of $z_i$ and of the means $\mu_i = \mathbb{E}[R^e_i]$, and use $\b
 2. Put $\hat\beta_i = z_i/\sqrt{T}$. The numerator carries one factor $1/\sqrt{T}$ and the denominator two, so
    $\hat\lambda \approx \sqrt{T}\,\sum_i(z_i - \bar z)(\mu_i - \bar\mu)\big/\sum_i(z_i - \bar z)^2$.
 3. The ratio is a random number that does not shrink, unless the means $\mu_i$ are all equal. So
-   $\hat\lambda$ grows like $\sqrt{T}$, in a random direction. It does not converge to anything.
+   $\hat\lambda$ grows like $\sqrt{T}$ and converges to nothing.
 4. The $R^2$ is the squared cross-sectional correlation of the betas and the means,
    $R^2 = \big[\sum_i(z_i - \bar z)(\mu_i - \bar\mu)\big]^2 \big/ \big[\sum_i(z_i - \bar z)^2 \sum_i(\mu_i - \bar\mu)^2\big]$.
    The factors $\sqrt{T}$ cancel. The $R^2$ tends to a random number between 0 and 1, not to 0.
@@ -135,19 +135,18 @@ So test the rank condition before you trust $\hat\lambda$. With one factor and a
 (2020), KZ below, remove $\lambda_0$ by a difference. Subtract the last asset from each of the others:
 $\check R_t = (R^e_{1,t} - R^e_{N,t}, \dots, R^e_{N-1,t} - R^e_{N,t})'$, an $(N - 1)$-vector. Its betas are
 $\check\beta = (\beta_1 - \beta_N, \dots, \beta_{N-1} - \beta_N)'$, and its means are
-$\mathbb{E}[\check R_t] = \check\beta\lambda$. The constant is gone, and identification is now $\check\beta \neq 0$:
-not all betas equal. KZ show that the choice of the last asset does not matter (p. 518).
+$\mathbb{E}[\check R_t] = \check\beta\lambda$. Identification is now $\check\beta \neq 0$, and
+the choice of the last asset does not matter (KZ, p. 518).
 
 Regress $\check R_t$ on a constant and $f_t$. Call the slopes $\hat{\check\beta}$, the residual covariance
 $\hat\Sigma_\varepsilon$ and the factor variance $\hat\Sigma_f$, both with divisor $T$. The test of
 $H_0\colon \check\beta = 0$ is the joint test that all $N - 1$ slopes are zero (KZ, eqs. 17–19, pp. 518–519):
 
 $$
-F = \frac{T - N}{N - 1}\;\hat\Sigma_f\;\hat{\check\beta}{}'\,\hat\Sigma_\varepsilon^{-1}\hat{\check\beta}
-\;\sim\; F(N - 1,\; T - N) \quad\text{under } H_0 .
+F = \frac{T - N}{N - 1}\;\hat\Sigma_f\;\hat{\check\beta}{}'\,\hat\Sigma_\varepsilon^{-1}\hat{\check\beta} .
 $$
 
-It is exact with normal residuals and a fixed factor, and it has the shape of the GRS test
+Under $H_0$ it has the $F(N - 1, T - N)$ distribution. That is exact with normal residuals and a fixed factor, and it has the shape of the GRS test
 of [Chapter 16](/empirical-finance-lbs/chapters/16-time-series-tests-and-grs/), with slopes for intercepts.
 
 On the quarterly 25 portfolios from 1963-Q3 to 2026-Q2, consumption growth $\Delta c_{t+1}$ gives
@@ -156,51 +155,49 @@ gives $F = 9.27$ and a p-value of $1.8 \times 10^{-22}$: its betas are clearly n
 
 ### The GRS-FAR test at a hypothesised $\lambda^{\circ}$
 
-The rank test says whether $\lambda$ is identified, not where it is. For that, test one candidate value at a time:
-a hypothesised premium $\lambda^{\circ}$ and the null $H_0\colon \lambda = \lambda^{\circ}$.
+The rank test says whether $\lambda$ is identified, not where it is. For that, test one candidate at a time: a
+hypothesised premium $\lambda^{\circ}$ and the null $H_0\colon \lambda = \lambda^{\circ}$.
 
-1. The time-series regression is $\check R_t = a + \check\beta f_t + u_t$. Its sample means give
+1. The time-series regression is $\check R_t = a + \check\beta f_t + \varepsilon_t$. Its sample means give
    $\bar{\check R} = \hat a + \hat{\check\beta}\bar f$.
 2. Under $H_0$, $\mathbb{E}[\check R_t] = \check\beta\lambda^{\circ}$. Write the regression as
-   $\check R_t = \alpha(\lambda^{\circ}) + \check\beta(f_t - \bar f + \lambda^{\circ}) + u_t$. Then $H_0$ says
+   $\check R_t = \alpha(\lambda^{\circ}) + \check\beta(f_t - \bar f + \lambda^{\circ}) + \varepsilon_t$. Then $H_0$ says
    $\alpha(\lambda^{\circ}) = 0$ (KZ, eqs. 21–22, p. 526). The shifted factor $f_t - \bar f + \lambda^{\circ}$ acts
    like a traded return with mean $\lambda^{\circ}$, and the null is a set of zero intercepts.
-3. The estimate of $\alpha(\lambda^{\circ})$ is the pricing error $\Err{\bar{\check R} - \hat{\check\beta}\lambda^{\circ}}$.
-   Under $H_0$, with a fixed factor, $\bar{\check R} = \check\beta\lambda^{\circ} + \bar u$ and
-   $\hat{\check\beta} = \check\beta + \sum_t \tilde f_t u_t/(T\hat\Sigma_f)$. Subtract:
-   $\bar{\check R} - \hat{\check\beta}\lambda^{\circ} = \bar u - \lambda^{\circ}\sum_t \tilde f_t u_t/(T\hat\Sigma_f)$.
+3. The estimate of $\alpha(\lambda^{\circ})$ is the pricing error $\Err{\hat\alpha(\lambda^{\circ})} = \bar{\check R} - \hat{\check\beta}\lambda^{\circ}$.
+   Under $H_0$, with a fixed factor, $\bar{\check R} = \check\beta\lambda^{\circ} + \bar\varepsilon$ and
+   $\hat{\check\beta} = \check\beta + \sum_t \tilde f_t \varepsilon_t/(T\hat\Sigma_f)$. Subtract:
+   $\bar{\check R} - \hat{\check\beta}\lambda^{\circ} = \bar\varepsilon - \lambda^{\circ}\sum_t \tilde f_t \varepsilon_t/(T\hat\Sigma_f)$.
 4. The true $\check\beta$ has cancelled. The two terms are uncorrelated, because $\sum_t \tilde f_t = 0$. Their
    variances are $\Sigma_\varepsilon/T$ and $\lambda^{\circ 2}\Sigma_\varepsilon/(T\hat\Sigma_f)$. So the pricing
    error has covariance $\Sigma_\varepsilon(1 + \lambda^{\circ 2}/\hat\Sigma_f)/T$, whatever $\check\beta$ is.
 5. Scale by that covariance, as GRS does:
 
 $$
-\text{GRS-FAR}(\lambda^{\circ}) = \frac{T\,\Err{(\bar{\check R} - \hat{\check\beta}\lambda^{\circ})}'\,\hat\Sigma_\varepsilon^{-1}\,\Err{(\bar{\check R} - \hat{\check\beta}\lambda^{\circ})}}{1 + \lambda^{\circ\prime}\hat\Sigma_f^{-1}\lambda^{\circ}},
-\qquad
-\frac{T - K - N + 1}{T(N - 1)}\,\text{GRS-FAR} \sim F(N - 1,\; T - K - N + 1).
+\text{GRS-FAR}(\lambda^{\circ}) = \frac{T\,\Err{\hat\alpha(\lambda^{\circ})}'\,\hat\Sigma_\varepsilon^{-1}\,\Err{\hat\alpha(\lambda^{\circ})}}{1 + \lambda^{\circ\prime}\hat\Sigma_f^{-1}\lambda^{\circ}} .
 $$
 
-This is the second of the two equal forms of KZ's eq. (23), and eq. (25) gives its exact $F$ distribution
-(pp. 527–528). The denominator is the $1 + SR^2_f$ of GRS, for a factor whose mean is $\lambda^{\circ}$. Step 4 is
-the point: the distribution of the statistic does not depend on $\check\beta$. The test keeps its size when the
-betas are small, and even when they are zero.
+This is the second of the two equal forms of KZ's eq. (23). Under $H_0$,
+$\tfrac{T - K - N + 1}{T(N - 1)}\,\text{GRS-FAR}$ has the $F(N - 1, T - K - N + 1)$ distribution, exactly
+(eq. 25, pp. 527–528). The denominator is the $1 + SR^2_f$ of GRS, for a factor whose mean is $\lambda^{\circ}$. Step 4 is
+the point: the distribution does not depend on $\check\beta$, so the test keeps its size even when the betas are
+zero.
 
 ### Inverting the test into a confidence set
 
 The 95% GRS-FAR set collects every $\lambda^{\circ}$ that the test does not reject at 5% (KZ, eq. 27, p. 528):
 
 $$
-\mathrm{CS}_{95\%} = \big\{\lambda^{\circ} : \text{the p-value of GRS-FAR}(\lambda^{\circ}) \ge 0.05\big\}.
+\mathrm{CS}_{95\%} = \big\{\lambda^{\circ} : p(\lambda^{\circ}) \ge 0.05\big\},
 $$
 
-It contains the true $\lambda$ whenever the test at the true $\lambda$ does not reject, so 95% of the time, for any
-$\check\beta$. Now let $\lambda^{\circ}$ grow without bound. In the numerator, $\hat{\check\beta}\lambda^{\circ}$
+where $p(\lambda^{\circ})$ is the p-value of GRS-FAR at $\lambda^{\circ}$. It contains the true $\lambda$ whenever the test at the true $\lambda$ does not reject, so 95% of the time, for any
+$\check\beta$. Now let $\lambda^{\circ}$ grow without bound. In $\hat\alpha(\lambda^{\circ})$, the term $\hat{\check\beta}\lambda^{\circ}$
 dominates, so the numerator is close to $T\lambda^{\circ 2}\,\hat{\check\beta}{}'\hat\Sigma_\varepsilon^{-1}\hat{\check\beta}$.
-The denominator is close to $\lambda^{\circ 2}/\hat\Sigma_f$. The $\lambda^{\circ 2}$ cancels:
+The denominator is close to $\lambda^{\circ 2}/\hat\Sigma_f$. The $\lambda^{\circ 2}$ cancels, so as $\lambda^{\circ} \to \pm\infty$,
 
 $$
-\text{GRS-FAR}(\lambda^{\circ}) \;\to\; T\,\hat\Sigma_f\,\hat{\check\beta}{}'\hat\Sigma_\varepsilon^{-1}\hat{\check\beta}
-\quad\text{as } \lambda^{\circ} \to \pm\infty .
+\text{GRS-FAR}(\lambda^{\circ}) \;\to\; T\,\hat\Sigma_f\,\hat{\check\beta}{}'\hat\Sigma_\varepsilon^{-1}\hat{\check\beta} .
 $$
 
 With $K = 1$, the $F$ scaling $\tfrac{T - N}{T(N - 1)}$ turns this into the rank-test $F$ above, with the same
@@ -227,13 +224,13 @@ and the solid bars are the GRS-FAR set. Red marks a miss, and an arrow marks a s
 The Wald coverage falls to 38.3% and 41.0%. The GRS-FAR coverage stays at 94.7%, because 86.8% of its sets are
 now unbounded. At 0, the Wald sets cover only 22.2% and 23.5%, and 97.7% of the GRS-FAR sets are unbounded.</p>
 
-The GRS-FAR coverage is the same at every spread. This is step 4 at work: at the true $\lambda$ the statistic does
-not depend on the betas, and one seed gives the same residuals. As the spread shrinks, the Wald set stays narrow
+The GRS-FAR coverage is the same at every spread: by step 4, the statistic at the true $\lambda$ ignores the betas,
+and one seed gives the same residuals. As the spread shrinks, the Wald set stays narrow
 and becomes wrong. The GRS-FAR set becomes wide and stays right.
 
 ### What our data show
 
-Now switch the widget to consumption growth: the 25 portfolios in quarters and $\Delta c_{t+1}$ from our $cay$
+Now switch the widget to *Consumption*: the 25 portfolios in quarters and $\Delta c_{t+1}$ from our $cay$
 data, as in [Chapter 22](/empirical-finance-lbs/chapters/22-conditional-factor-models/), over 252 quarters from
 1963-Q3 to 2026-Q2. The two-pass estimate is $\hat\lambda = 0.89\%$ a quarter. The 95% Wald sets are $[0.14\%, 1.63\%]$ with the
 Fama–MacBeth standard error and $[-0.14\%, 1.91\%]$ with the Shanken one.
@@ -244,7 +241,7 @@ the Fama–MacBeth interval, and a premium of 43% a quarter on consumption growt
 the rank test no longer rejects, and the set is unbounded: everything below $-8.6\%$ or above $0.5\%$.
 
 So, plainly: consumption betas on these portfolios differ, but only just. The data cannot say how large the
-premium on consumption risk is. The narrow Wald interval treats weak betas as strong ones.
+premium on consumption risk is; the narrow Wald interval treats weak betas as strong.
 
 Over Lettau and Ludvigson's 141 quarters, 1963-Q3 to 1998-Q3, the verdict is weaker still. The rank test gives a
 p-value of 0.120, and the 95% GRS-FAR set is unbounded: everything below $-0.6\%$ or above $0.7\%$ a quarter. KZ
