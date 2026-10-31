@@ -166,6 +166,14 @@ flowchart TD
   end
   subgraph M_9["M-9 · Part VII: The factor zoo and shrinkage"]
     TASK_035["TASK-035 Plan: decompose M-9"]
+    TASK_102["TASK-102 Data: French 30 industry portfolios"]
+    TASK_103["TASK-103 Library: random-factor fits, GLS R², traded-factor restrictions and R² confidence intervals"]
+    TASK_104["TASK-104 Library: Bonferroni, Holm and Benjamini–Hochberg–Yekutieli, and seeded strategy searches"]
+    TASK_105["TASK-105 Library: shrinkage SDF estimates, the elastic net and cross-validated R²"]
+    TASK_106["TASK-106 Chapter 28: A skeptical look at asset pricing tests"]
+    TASK_107["TASK-107 Chapter 29: Multiple testing"]
+    TASK_108["TASK-108 Chapter 30: Shrinking the cross-section"]
+    TASK_109["TASK-109 Orchestrator reads Part VII and signs it off"]
   end
   subgraph M_10["M-10 · Part VIII: Latent factors and large cross-sections"]
     TASK_036["TASK-036 Plan: decompose M-10"]
@@ -242,6 +250,7 @@ flowchart TD
   TASK_034 --> TASK_035
   TASK_096 --> TASK_035
   TASK_035 --> TASK_036
+  TASK_106 --> TASK_036
   TASK_036 --> TASK_037
   TASK_037 --> TASK_038
   TASK_038 --> TASK_039
@@ -310,6 +319,13 @@ flowchart TD
   TASK_097 --> TASK_100
   TASK_098 --> TASK_100
   TASK_099 --> TASK_100
+  TASK_102 --> TASK_106
+  TASK_103 --> TASK_106
+  TASK_104 --> TASK_107
+  TASK_105 --> TASK_108
+  TASK_106 --> TASK_109
+  TASK_107 --> TASK_109
+  TASK_108 --> TASK_109
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
