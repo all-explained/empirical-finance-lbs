@@ -3,9 +3,10 @@
 ## Acceptance
 
 - [x] `npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.
-  Evidence: `npm test` exit 0, `Test Files 55 passed (55)`, `Tests 577 passed (577)`, including
+  Evidence (after the rebase on `origin/main` `20d5bfa`): `npm ci` exit 0; `npm test` exit 0, `Test Files 57 passed (57)`,
+  `Tests 602 passed (602)`, including
   `tests/chapter24-numbers.test.ts` (5 tests) and `tests/notation.test.ts`. `npm run build` exit 0:
-  `Result (171 files): 0 errors, 0 warnings, 1 hint` (the hint is an unused import in `src/lib/finance/news.ts`,
+  `Result (175 files): 0 errors, 0 warnings, 1 hint` (the hint is an unused import in `src/lib/finance/news.ts`,
   not touched here), `25 page(s) built`, `Complete!`. On a busy machine (load 38 on 12 cores) one earlier run timed
   out `tests/chapter18-numbers.test.ts` at 5 s; that is the known issue #67, and the final run passed.
 - [x] `npm run screenshots -- 24-generalized-method-of-moments` passes in both themes at desktop and phone size, and
@@ -95,7 +96,8 @@ matches each method's objective at $\hat\theta$, for one-step, two-step and CUE.
 - `tests/chapter24-numbers.test.ts`.
 
 **Chapter 25 and the shared widget.** TASK-097 had not merged `GMMObjective` or `gmmSample.ts` (checked against
-`origin/main` `ec4440e` at the final rebase; no remote branch had them either). So this task created both. The
+`origin/main` `20d5bfa` at the final rebase, which adds the TASK-094 and TASK-095 libraries but no widget; no
+remote branch had them either). So this task created both. The
 `methods` prop already handles `'iterated'` and `'cue'`: Chapter 25 only passes
 `methods={['one-step', 'two-step', 'iterated', 'cue']}`.
 
@@ -116,8 +118,9 @@ matches each method's objective at $\hat\theta$, for one-step, two-step and CUE.
   $Q(\theta)$, $\bar\theta$ (mean-value point), $A$ (the linear map), $P_Z$, $\hat X$, $s(x; \theta)$ (score).
   $D_T(\theta)$ is the likeliest to recur in Chapters 25–27 and is a candidate for the Part VI table.
 
-**Verified revision.** The commit of this outcome, on `origin/main` `ec4440e`. Verify ran on the final files:
-`npm test` 577 passed, `npm run build` 0 errors 0 warnings, screenshots and click-through exit 0.
+**Verified revision.** The commit of this outcome, rebased on `origin/main` `20d5bfa`. Verify ran again after the
+rebase: `npm ci` exit 0, `npm test` 602 passed, `npm run build` 0 errors 0 warnings, screenshots and click-through
+exit 0. The rebase changed no file of this task.
 
 **Follow-ups.**
 - Add the $x_t$ note, the instrument $z_t$ row and $D_T(\theta)$ to the §3 Part VI table.
