@@ -98,7 +98,7 @@ export function linearSdfGmm(
   const N = excess[0].length;
   const tilde = demean(factors);
   const actual = sampleMeans(excess);
-  // The exact D = E_T[R^e f̃'] (g_T = actual - Db). gmm's central-difference Jacobian loses about 1e-10 in λ̂.
+  // The exact D = E_T[R^e f̃'] (g_T = actual - Db). gmm's central-difference Jacobian is off by about 4e-10 in λ̂.
   const D = crossMoment(excess, tilde);
   const longRun = (b: readonly number[]) => longRunCovariance(excess.map((row, t) => {
     const m = 1 - tilde[t].reduce((sum, value, k) => sum + value * b[k], 0);
