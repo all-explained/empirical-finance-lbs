@@ -1,0 +1,367 @@
+---
+title: "The generalized method of moments"
+part: 6
+chapter: 24
+difficulty: 3
+prerequisites: [3, 4]
+summary: "Write an estimator as moment conditions, pick the parameters that bring the sample moments closest to zero, and get consistency, a sandwich covariance and OLS, IV and maximum likelihood as special cases."
+---
+
+import GMMObjective from '../../components/plots/GMMObjective';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Four facts, two unknowns
+
+Here is a sample of 600 draws $x_1, \dots, x_{600}$ from a seeded simulation. It is not a return. It is a toy
+series whose truth we know: the draws are independent and normal, with mean $\mu = 0.5$ and variance
+$\sigma^2 = 1$. Pretend you do not know those two numbers, and estimate them.
+
+The obvious answer uses two facts about a normal variable. Its mean is $\mu$, and its variance is $\sigma^2$.
+Match them to the sample: the sample mean is 0.496 and the sample variance is 1.025. But a normal variable obeys
+more facts than these two. Its third central moment, $\mathbb{E}[(x_t - \mu)^3]$, is zero. Its fourth,
+$\mathbb{E}[(x_t - \mu)^4]$, is $3\sigma^4$. In this sample the fourth central moment is 3.547. The variance that
+makes the fourth-moment fact hold exactly is $\sqrt{3.547/3} = 1.087$, not 1.025.
+
+So you have four equations and two unknowns, and the equations disagree. Which two do you use? Can you use all
+four at once? And once you have an answer, how precise is it? Asset pricing has the same problem at a larger
+scale: one pricing equation for each test asset, and only a few parameters. This chapter
+builds the method that turns any such set of equations into an estimate with a standard error: the
+**generalized method of moments**, or GMM.
+
+## <span class="section-tag">Intuition</span> Get every equation as close to zero as you can
+
+Write each fact as an average that should be zero at the true parameters. For the mean, the average of
+$x_t - \mu$ should be zero. For the variance, the average of $(x_t - \mu)^2 - \sigma^2$. For the third and fourth
+moments, the averages of $(x_t - \mu)^3$ and $(x_t - \mu)^4 - 3\sigma^4$. Each of these is a **moment
+condition**. In the sample, try any pair $(\mu, \sigma^2)$ and compute the four averages. At a good guess they
+are all small. At a bad guess some are large.
+
+GMM turns the four averages into one number, a weighted sum of their squares, and picks the pair that makes it
+smallest. The widget draws that number over a grid of guesses. Stronger shading means a smaller value. The lines
+are contours: each joins the guesses with the same value, like the height lines on a map. The dot labelled
+$\hat\theta$ is the lowest point, the estimate. The dot labelled $\theta_0$ is the truth.
+
+<GMMObjective client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start with 2 moments. The lowest point sits at the sample mean
+and variance, 0.496 and 1.025, and the readout shows that the objective there is 0: two equations in two
+unknowns can both hold exactly. Now switch to 4 moments, keeping one-step weighting. The dot moves to 0.501 and
+1.086, and the objective at the minimum is no longer zero. Then switch to two-step weighting. The dot moves to
+0.488 and 1.005.</p>
+
+Three things happen. First, with 2 moments the weighting does not matter: switch it, and the dot stays where it
+is. Second, with 4 moments no guess makes every equation hold, so the estimate is a compromise, and the weights
+decide who gives way. Third, with equal weights the compromise is poor. The fourth-moment equation is measured in
+much larger units than the others. A small change in $\sigma^2$ moves $3\sigma^4$ about six times as much as it
+moves $\sigma^2$. So equal weights let that one noisy equation pull $\hat\sigma^2$ almost to the 1.087 it wants.
+The standard errors in the readout say the same thing. With 2 moments they are 0.041 for $\hat\mu$ and 0.064
+for $\hat\sigma^2$. With 4 moments and equal weights they grow to 0.060 and 0.087. Extra equations made the
+estimate *worse*. With two-step weights they are 0.041 and 0.061: no worse for $\hat\mu$ than with 2 moments,
+and a little better for $\hat\sigma^2$.
+
+Nagel (2013, p. 21) makes the same point about asset pricing tests. A GMM estimator with an identity weighting
+matrix may give almost no weight to one moment condition, while the efficient weighting matrix makes the model
+fit it.
+
+<Callout type="key">GMM picks the parameters that bring a set of sample averages closest to zero. When there are
+as many equations as parameters, they all hold exactly and the weights do not matter. When there are more, the
+weighting matrix decides the compromise.</Callout>
+
+## <span class="section-tag">Formalisation</span> Moment conditions, the estimator and its distribution
+
+### Moment conditions and their sample analogue
+
+Let $x_t$ be the data at date $t$: here one draw, in an asset pricing test a vector of returns and factors. In
+this Part $x_t$ means the data inside $g(x_t, \theta)$, not a predictor as in Part II. Let $\theta$ be the
+vector of $\dim\theta$ unknown parameters, with true value $\theta_0$. A model gives $\dim g$ **moment
+conditions**, written as a vector function $g(x_t, \theta)$ with
+
+$$
+\mathbb{E}[g(x_t, \theta_0)] = 0.
+$$
+
+The sample replaces the expectation by an average over $t = 1, \dots, T$:
+
+$$
+\Data{g_T(\theta)} = \frac1T \sum_{t=1}^{T} g(x_t, \theta).
+$$
+
+For the toy model, $\theta = (\mu, \sigma^2)'$, and the four moment conditions of the widget stack into
+
+$$
+g(x_t, \theta) = \begin{pmatrix} x_t - \mu \\ (x_t - \mu)^2 - \sigma^2 \\ (x_t - \mu)^3 \\ (x_t - \mu)^4 - 3\sigma^4 \end{pmatrix}.
+$$
+
+With 2 moments, keep the first two rows. The model is **just identified** when $\dim g = \dim\theta$, and
+**over-identified** when $\dim g > \dim\theta$.
+
+### The estimator
+
+Choose a positive definite $\dim g \times \dim g$ **weighting matrix** $W$. The GMM estimate minimises the
+weighted sum of squares of the sample moments:
+
+$$
+\Model{\hat\theta} = \arg\min_\theta \; \Data{g_T(\theta)}'\,W\,\Data{g_T(\theta)}.
+$$
+
+With $W = I$ this is the plain sum of squares of the averages. Write $D_T(\theta) = \partial g_T/\partial\theta'$
+for the $\dim g \times \dim\theta$ matrix of derivatives. The gradient of $g_T'Wg_T$ is $2D_T'Wg_T$, so the
+minimum solves the **first-order condition**
+
+$$
+D_T(\hat\theta)'\,W\,g_T(\hat\theta) = 0.
+$$
+
+This is $\dim\theta$ equations. GMM sets $\dim\theta$ linear combinations of the $\dim g$ sample moments to zero,
+and $D_T'W$ chooses the combinations.
+
+### Why the estimator is consistent
+
+Consistent means that $\hat\theta$ gets as close to $\theta_0$ as you like when $T$ is large enough. Two
+assumptions give it.
+
+1. **The averages settle down.** For each $\theta$, the law of large numbers says that $g_T(\theta)$ goes to
+   $g_\infty(\theta) = \mathbb{E}[g(x_t, \theta)]$. We assume that $g_\infty$ is continuous and that the
+   convergence is uniform in $\theta$, over a closed and bounded set of parameters that contains $\theta_0$.
+   Then the sample objective goes to $Q(\theta) = g_\infty(\theta)'Wg_\infty(\theta)$, also uniformly.
+2. **The model is identified.** $g_\infty(\theta) = 0$ only at $\theta = \theta_0$.
+
+Now follow the objective. $Q(\theta) \ge 0$ for every $\theta$, because $W$ is positive definite. $Q(\theta_0) =
+0$, because the moment conditions hold. By assumption 2, $Q(\theta) > 0$ at every other $\theta$. So the limit
+of the objective has a unique lowest point, at $\theta_0$. The sample objective is uniformly close to that limit,
+so its lowest point cannot stay far from $\theta_0$: away from $\theta_0$, the limit is above some positive
+number, and for large $T$ the sample objective is too. Hence $\hat\theta$ goes to $\theta_0$. The weighting
+matrix plays no role in this argument. Every positive definite $W$ gives a consistent estimate. The choice of $W$
+changes only the precision.
+
+### The sandwich covariance
+
+Four steps give the distribution of $\hat\theta$ in large samples.
+
+**Step 1: expand the moments.** By the mean value theorem, applied row by row,
+$g_T(\hat\theta) = g_T(\theta_0) + D_T(\bar\theta)(\hat\theta - \theta_0)$, where each row of $D_T(\bar\theta)$
+is evaluated at a point between $\hat\theta$ and $\theta_0$.
+
+**Step 2: put the expansion into the first-order condition.**
+$D_T(\hat\theta)'W g_T(\theta_0) + D_T(\hat\theta)'W D_T(\bar\theta)(\hat\theta - \theta_0) = 0$. Solve for
+the estimation error and multiply by $\sqrt T$:
+
+$$
+\sqrt T(\hat\theta - \theta_0) = -\big[D_T(\hat\theta)'W D_T(\bar\theta)\big]^{-1} D_T(\hat\theta)'W\,\sqrt T g_T(\theta_0).
+$$
+
+**Step 3: take the limits of the pieces.** $\hat\theta$ and $\bar\theta$ go to $\theta_0$, so both derivative
+matrices go to $D = \mathbb{E}[\partial g(x_t, \theta_0)/\partial\theta']$. The vector $\sqrt T g_T(\theta_0)$ is
+$1/\sqrt T$ times a sum of $T$ terms with mean zero. Its variance is $\tfrac1T\operatorname{Var}(\sum_t g_t)$,
+with $g_t = g(x_t, \theta_0)$. [Chapter 4](/empirical-finance-lbs/chapters/04-autocorrelation-and-newey-west/)
+showed that the variance of such a sum is $T S$, with
+
+$$
+S = \sum_{j=-\infty}^{\infty} \mathbb{E}[g_t\,g_{t-j}'] = \Gamma_0 + \sum_{j \ge 1}\big(\Gamma_j + \Gamma_j'\big).
+$$
+
+$S$ is the **long-run covariance** of the moments. A central limit theorem for dependent series then gives
+$\sqrt T g_T(\theta_0) \to N(0, S)$.
+
+**Step 4: pass the normal through the linear map.** To first order, $\sqrt T(\hat\theta - \theta_0)$ is the
+fixed matrix $A = -(D'WD)^{-1}D'W$ times an asymptotically normal vector. This is the delta method: a smooth
+function of an asymptotically normal vector is asymptotically normal, with covariance from its first
+derivative. A linear map $A$ turns covariance $S$ into $ASA'$. Since $W$ and $D'WD$ are symmetric,
+
+$$
+\sqrt T(\Model{\hat\theta} - \theta_0) \to N\Big(0,\; (D'WD)^{-1}D'WSWD\,(D'WD)^{-1}\Big).
+$$
+
+This is a sandwich, the same shape as the OLS formula of
+[Chapter 3](/empirical-finance-lbs/chapters/03-regression-and-standard-errors/): the bread $(D'WD)^{-1}D'W$ on
+the outside, the noise $S$ in the middle. To use it, replace $D$ by $D_T(\hat\theta)$ and $S$ by its Newey–West
+estimate $\hat S$ with $L$ lags, built from the moments $g(x_t, \hat\theta)$ exactly as in Chapter 4. Divide by
+$T$ to get the covariance of $\hat\theta$ itself. In the toy model the draws are independent, so $L = 0$.
+
+The formula holds for any $W$. One choice simplifies it: with $W = S^{-1}$, the middle $WSW$ becomes $S^{-1}$,
+and the sandwich collapses to $(D'S^{-1}D)^{-1}$. The widget's two-step method uses that choice. It first
+estimates with $W = I$, then computes $\hat S$ at that estimate, and estimates again with $W = \hat S^{-1}$.
+This chapter uses that recipe without asking whether it is the best one.
+
+### Just identified: the weights drop out
+
+When $\dim g = \dim\theta$, $D$ is square. Assume it is invertible. Then $D'W$ is invertible too, and the
+first-order condition $D_T'W g_T(\hat\theta) = 0$ can only hold if
+
+$$
+g_T(\hat\theta) = 0.
+$$
+
+Every moment condition holds exactly in the sample, whatever $W$ is. The covariance loses $W$ as well. With
+square invertible matrices, $(D'WD)^{-1} = D^{-1}W^{-1}(D')^{-1}$, so the bread is
+
+$$
+(D'WD)^{-1}D'W = D^{-1}W^{-1}(D')^{-1}D'W = D^{-1},
+$$
+
+and the sandwich becomes $D^{-1}S(D^{-1})'$. Neither the estimate nor its covariance depends on $W$. That is why
+the dot did not move when you switched the weighting with 2 moments.
+
+In the toy model with 2 moments, $g_T(\hat\theta) = 0$ gives $\hat\mu = \bar x$ and
+$\hat\sigma^2 = \tfrac1T\sum_t (x_t - \bar x)^2$, the sample mean and the variance with divisor $T$. The
+derivative matrix at $\hat\theta$ is $D = -I$: the first row of $\partial g/\partial\theta'$ is $(-1, 0)$, and
+the second is $(-2(x_t - \mu), -1)$, whose first entry averages to zero at $\hat\mu = \bar x$. So the covariance
+of $\hat\theta$ is $\hat S/T$, and the standard errors are
+
+$$
+\operatorname{se}(\hat\mu) = \sqrt{\frac{\hat\sigma^2}{T}}, \qquad
+\operatorname{se}(\hat\sigma^2) = \sqrt{\frac{\tfrac1T\sum_t (x_t - \bar x)^4 - \hat\sigma^4}{T}}.
+$$
+
+The first is the familiar $0.041$. The second is 0.064, from the sample fourth moment. The textbook formula for
+normal data, $\sqrt{2\hat\sigma^4/T}$, gives 0.059. GMM did not use normality to get its standard error, only the
+two moment conditions.
+
+### OLS, IV and maximum likelihood are GMM
+
+**OLS.** In the regression $y_t = x_t'\beta + \Err{\varepsilon_t}$ of Chapter 3, the data at $t$ are $y_t$ and
+the regressors $x_t$. The assumption that the error is uncorrelated with the regressors is a moment condition:
+
+$$
+g(x_t, \beta) = x_t\,(y_t - x_t'\beta), \qquad g_T(\beta) = \frac1T\big(X'y - X'X\beta\big).
+$$
+
+It is just identified, so $g_T(\hat\beta) = 0$. That is $X'X\hat\beta = X'y$, the OLS normal equations, so
+$\hat\beta = (X'X)^{-1}X'y$. The derivative is $D = -X'X/T$. The just-identified covariance $D^{-1}S(D^{-1})'/T$
+is
+
+$$
+\frac1T\Big(\frac{X'X}{T}\Big)^{-1} S \Big(\frac{X'X}{T}\Big)^{-1} = (X'X)^{-1}\,T S\,(X'X)^{-1},
+$$
+
+which is Chapter 4's formula. Here $g_t = x_t\varepsilon_t$ is the $z_t$ of that chapter. With $\hat S$ from
+$L = 0$ lags you get White's standard errors, and with $L > 0$ the Newey–West ones.
+
+**IV.** Suppose the error may be correlated with $x_t$, but a vector $z_t$ of **instruments** is not. Part V used
+$z_t$ for a state variable. Here it names the instruments, which work in a similar way: multiplying the error by
+$z_t$ creates more moment conditions, as a managed portfolio $z_tR^e_{i,t+1}$ creates more test assets.
+With $\dim z \ge \dim\beta$,
+
+$$
+g(x_t, \beta) = z_t\,(y_t - x_t'\beta), \qquad g_T(\beta) = \frac1T\big(Z'y - Z'X\beta\big).
+$$
+
+Now $D = -Z'X/T$, and the first-order condition $D'Wg_T(\hat\beta) = 0$ reads
+$X'ZWZ'y = X'ZWZ'X\hat\beta$. So
+
+$$
+\hat\beta = (X'ZWZ'X)^{-1}X'ZWZ'y.
+$$
+
+With as many instruments as regressors, $Z'X$ is square, and the formula reduces to $\hat\beta = (Z'X)^{-1}Z'y$,
+for any $W$. With more instruments, take $W = (Z'Z/T)^{-1}$. Write $P_Z = Z(Z'Z)^{-1}Z'$, which is symmetric and
+satisfies $P_ZP_Z = P_Z$. The scalars $T$ cancel, and
+
+$$
+\hat\beta = (X'P_ZX)^{-1}X'P_Zy = (\hat X'\hat X)^{-1}\hat X'y, \qquad \hat X = P_ZX.
+$$
+
+$\hat X$ holds the fitted values of a regression of each regressor on the instruments. So this is two-stage least
+squares: regress $X$ on $Z$, then regress $y$ on the fitted values.
+
+**Maximum likelihood.** If $x_t$ has density $p(x_t; \theta)$, maximum likelihood sets the average **score**, the
+derivative of $\log p(x_t; \theta)$, to zero. That is GMM with the score as the moment function, just identified.
+For the normal toy model, $\log p = -\tfrac12\log(2\pi\sigma^2) - (x_t - \mu)^2/(2\sigma^2)$, and the score is
+
+$$
+\begin{pmatrix} (x_t - \mu)/\sigma^2 \\ \big((x_t - \mu)^2 - \sigma^2\big)/(2\sigma^4) \end{pmatrix}.
+$$
+
+Each row is one of our two moments divided by a positive number, so its average is zero at the same point. The
+maximum likelihood estimate is the 2-moment GMM estimate: 0.496 and 1.025 again. For a correctly specified
+likelihood, the GMM covariance $D^{-1}S(D^{-1})'$ of the score is the inverse of the **Fisher information**
+$-D$, the familiar ML covariance. That needs one identity, derived below.
+
+<details>
+<summary>Why $S = -D$ for the score of a correct likelihood</summary>
+
+1. Write $s(x; \theta) = \partial \log p(x; \theta)/\partial\theta$, so $\partial p/\partial\theta = p\,s$.
+2. A density integrates to one for every $\theta$: $\int p(x; \theta)\,dx = 1$.
+3. Differentiate in $\theta$: $\int p\,s\,dx = 0$, which says $\mathbb{E}[s] = 0$. The score is a valid moment
+   condition.
+4. Differentiate $\int p\,s'\,dx = 0$ once more: $\int p\,s\,s'\,dx + \int p\,\partial s/\partial\theta'\,dx = 0$.
+5. So $\mathbb{E}[ss'] = -\mathbb{E}[\partial s/\partial\theta']$. With independent draws, $S = \mathbb{E}[ss']$
+   and $D = \mathbb{E}[\partial s/\partial\theta']$, so $S = -D$.
+6. Then $D^{-1}S(D^{-1})' = D^{-1}(-D)(D^{-1})'$. That is $-(D^{-1})'$, which equals $(-D)^{-1}$ because $D$ is
+   symmetric here.
+
+</details>
+
+## <span class="section-tag">Playground</span> New samples, same rules
+
+This copy of the widget shows which of its features are rules and which are luck of the sample.
+
+<GMMObjective client:visible title="Re-draw the sample" />
+
+<p class="try-this"><strong>Try this:</strong> keep 2 moments and press <em>New sample</em> a few times. For
+every sample, switch the weighting: the dot never moves, and the objective at the minimum is always 0. With 2
+moments the contours change shape when you switch, but their centre does not.</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch to 4 moments and compare the two weightings on several
+samples. With one-step weights the valley is long and flat along $\mu$: the fourth-moment equation, in its large
+units, makes the objective rise steeply when $\sigma^2$ moves. With two-step weights the valley is rounder. Both
+estimates scatter around the true $\theta_0$, because both are consistent.</p>
+
+Why does the shape change? Near the minimum, put $g_T(\theta) \approx g_T(\hat\theta) + D(\theta - \hat\theta)$
+into the objective. The cross term is zero by the first-order condition, so the objective lies above its lowest
+value by about $(\theta - \hat\theta)'D'WD(\theta - \hat\theta)$. With $W = \hat S^{-1}$, the matrix
+$D'WD$ is the inverse of $T$ times the covariance of $\hat\theta$. So the two-step contours have the shape of a
+confidence region: they stretch most in the direction where the estimate is least precise. The one-step contours
+have no such reading.
+
+Two limits. The standard errors rest on large-sample theory, not on the exact distribution of $\hat\theta$ in
+600 draws. And in the toy model all four moment conditions are true. If one were false, GMM would still return an
+estimate; only the objective at its minimum would show the problem.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A model has 3 parameters and 3 moment conditions. You estimate it once with $W = I$ and once with a very different positive definite $W$. What happens to the estimate?"
+  options={["It does not change", "It changes, because $W$ weights the moments differently", "It changes only if the moments are correlated", "The second estimate is inconsistent"]}
+  answer={0}
+  explanation="With $\dim g = \dim\theta$ and an invertible $D$, the first-order condition forces $g_T(\hat\theta) = 0$, whatever $W$ is. The covariance $D^{-1}S(D^{-1})'$ does not depend on $W$ either."
+/>
+
+<Quiz
+  client:visible
+  question="You write OLS as GMM with $g(x_t, \beta) = x_t(y_t - x_t'\beta)$ and estimate $S$ with Newey–West and 6 lags. Which standard errors do you get?"
+  options={["The classical OLS standard errors", "White standard errors", "Newey–West standard errors with 6 lags", "None, because OLS is just identified"]}
+  answer={2}
+  explanation="The GMM covariance is $(X'X)^{-1}T\hat S(X'X)^{-1}$, the formula of Chapter 4. With 6 lags in $\hat S$ these are the Newey–West standard errors; with 0 lags they would be White's."
+/>
+
+<Quiz
+  client:visible
+  question="In the toy model with 4 moments, why does one-step GMM with $W = I$ estimate $\sigma^2$ less precisely than with 2 moments?"
+  options={["Because GMM with more moments than parameters is inconsistent", "Because equal weights let the noisy fourth-moment equation dominate the fit", "Because $W = I$ is not positive definite", "Because the fourth moment of a normal is not $3\\sigma^4$"]}
+  answer={1}
+  explanation="The fourth-moment equation is measured in larger units and is very noisy. With equal weights it pulls $\hat\sigma^2$ towards its own answer, so the estimate inherits its noise. Every positive definite $W$ still gives a consistent estimate."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- GMM starts from moment conditions $\mathbb{E}[g(x_t, \theta_0)] = 0$ and minimises $g_T(\theta)'Wg_T(\theta)$
+  over the parameters.
+- Every positive definite $W$ gives a consistent estimate, as long as the moment conditions pin down $\theta_0$.
+- $\sqrt T(\hat\theta - \theta_0)$ is asymptotically normal, with the sandwich covariance
+  $(D'WD)^{-1}D'WSWD\,(D'WD)^{-1}$. $S$ is the long-run covariance of the moments, estimated by Newey–West as in
+  Chapter 4.
+- When the model is just identified, $g_T(\hat\theta) = 0$ and $W$ drops out of the estimate and its covariance.
+- OLS, IV, two-stage least squares and maximum likelihood are all GMM with particular moments and weights.
+
+**Next up:** Chapter 25, *Efficient and feasible GMM*, asks which weighting matrix is best, how to compute it in
+practice, and how to test the over-identifying moments with $J$. Chapter 26, *GMM for asset pricing models*, then
+applies the method to the SDF, and Chapter 27, *Identification: weak and useless factors*, asks what happens when
+the moments barely pin down the parameters.
+
+### Further reading
+
+- Nagel (2013)
+- Cochrane (2005), Ch. 10–11
