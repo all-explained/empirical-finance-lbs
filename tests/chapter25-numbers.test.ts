@@ -8,17 +8,17 @@ import { chiSquareSurvival } from '../src/lib/math/distributions';
 import { bisection } from '../src/lib/math/rootFind';
 import { simulateToySample, TOY_MEAN, TOY_VARIANCE } from '../src/lib/stats/gmm';
 import {
-  J_CHUNKS, J_COUNT, J_DEFAULT_T, J_SAMPLES, J_SEED, jTestRun, OBJECTIVE_SEED, OBJECTIVE_T, objectiveSample,
-  toyEstimate, type EfficientMethod, type Tails,
+  DEFAULT_SEED, fitToy, J_CHUNKS, J_COUNT, J_DEFAULT_T, J_SAMPLES, J_SEED, jTestRun, SAMPLE_T, toySample,
+  type EfficientMethod, type Tails,
 } from '../src/components/plots/gmmSample';
 
 const fixed = (v: number, digits: number) => v.toFixed(digits);
 const percent = (v: number) => (v * 100).toFixed(1);
-const x = objectiveSample();
-const identity = toyEstimate(x, 4, 'one-step');
-const twoStep = toyEstimate(x, 4, 'two-step');
-const iterated = toyEstimate(x, 4, 'iterated');
-const cue = toyEstimate(x, 4, 'cue');
+const x = toySample();
+const identity = fitToy(x, 4, 'one-step');
+const twoStep = fitToy(x, 4, 'two-step');
+const iterated = fitToy(x, 4, 'iterated');
+const cue = fitToy(x, 4, 'cue');
 const size = (T: number, method: EfficientMethod, tails: Tails = 'normal') =>
   percent(jTestRun(J_SEED, { T, method, tails }).rejectionRate);
 
@@ -28,8 +28,8 @@ function study(T: number) {
   const out = { identity: 0, twoStep: 0, reportedSE: 0 };
   for (let s = 1; s <= N; s++) {
     const y = simulateToySample(1000 + s, { T });
-    const a = toyEstimate(y, 4, 'one-step');
-    const b = toyEstimate(y, 4, 'two-step');
+    const a = fitToy(y, 4, 'one-step');
+    const b = fitToy(y, 4, 'two-step');
     out.identity += (a.theta[1] - TOY_VARIANCE) ** 2 / N;
     out.twoStep += (b.theta[1] - TOY_VARIANCE) ** 2 / N;
     out.reportedSE += b.standardErrors[1] / N;
@@ -38,30 +38,31 @@ function study(T: number) {
 }
 
 describe('chapter 25 prose numbers', () => {
-  test('settings: 200 draws with mean 0.5 and variance 1; 400 J samples of 100 draws, four moments', () => {
-    expect([OBJECTIVE_T, OBJECTIVE_SEED, TOY_MEAN, TOY_VARIANCE]).toEqual([200, 1, 0.5, 1]);
+  test('settings: 600 draws with mean 0.5 and variance 1; 400 J samples of 100 draws, four moments', () => {
+    expect([SAMPLE_T, DEFAULT_SEED, TOY_MEAN, TOY_VARIANCE]).toEqual([600, 1, 0.5, 1]);
     expect([J_SAMPLES, J_CHUNKS, J_DEFAULT_T, J_SEED, J_COUNT]).toEqual([400, 8, 100, 1, 4]);
   });
 
-  test('hook and intuition: four weightings of four moments on the 200 draws', () => {
-    expect(identity.theta.map((v) => fixed(v, 3))).toEqual(['0.500', '1.052']);
-    expect(twoStep.theta.map((v) => fixed(v, 3))).toEqual(['0.466', '0.985']);
-    expect([fixed(identity.standardErrors[1], 3), fixed(twoStep.standardErrors[1], 3)]).toEqual(['0.131', '0.102']);
+  test('hook and intuition: four weightings of four moments on the 600 draws', () => {
+    expect(identity.theta.map((v) => fixed(v, 3))).toEqual(['0.501', '1.086']);
+    expect(twoStep.theta.map((v) => fixed(v, 3))).toEqual(['0.488', '1.005']);
+    expect([fixed(identity.standardErrors[1], 3), fixed(twoStep.standardErrors[1], 3)]).toEqual(['0.087', '0.061']);
     // Ŝ behind the two-step weighting: the variance of the first and the fourth moment.
-    expect([fixed(twoStep.S[0][0], 2), fixed(twoStep.S[3][3], 2)]).toEqual(['1.01', '138.08']);
-    expect([fixed(twoStep.W[0][0], 2), fixed(twoStep.W[1][1], 2), fixed(twoStep.W[3][3], 3)]).toEqual(['2.39', '2.24', '0.041']);
+    expect([fixed(twoStep.S[0][0], 2), fixed(twoStep.S[3][3], 2)]).toEqual(['1.03', '194.35']);
+    expect([fixed(twoStep.W[0][0], 2), fixed(twoStep.W[1][1], 2), fixed(twoStep.W[3][3], 3)]).toEqual(['2.50', '1.76', '0.028']);
   });
 
   test('intuition: with two moments every weighting gives the sample mean and variance', () => {
     for (const method of ['one-step', 'two-step', 'iterated', 'cue'] as const) {
-      expect(toyEstimate(x, 2, method).theta.map((v) => fixed(v, 3))).toEqual(['0.474', '1.009']);
+      expect(fitToy(x, 2, method).theta.map((v) => fixed(v, 3))).toEqual(['0.496', '1.025']);
     }
   });
 
   test('formalisation: the three feasible estimators, J and the 5% cut-off of chi-square with 2 df', () => {
-    expect([twoStep, iterated, cue].map((e) => fixed(e.theta[0], 3))).toEqual(['0.466', '0.467', '0.464']);
-    expect(fixed(twoStep.standardErrors[0], 3)).toBe('0.070');
-    expect([twoStep.df, fixed(twoStep.J as number, 2), fixed(twoStep.pValue as number, 2)]).toEqual([2, '0.54', '0.76']);
+    expect([twoStep, iterated, cue].map((e) => fixed(e.theta[0], 3))).toEqual(['0.488', '0.488', '0.488']);
+    expect([twoStep, iterated, cue].map((e) => fixed(e.theta[1], 3))).toEqual(['1.005', '1.006', '1.006']);
+    expect(twoStep.standardErrors.map((v) => fixed(v, 3))).toEqual(['0.041', '0.061']);
+    expect([twoStep.df, fixed(twoStep.J as number, 2), fixed(twoStep.pValue as number, 2)]).toEqual([2, '2.22', '0.33']);
     expect(fixed(bisection((v) => chiSquareSurvival(v, 2) - 0.05, 0, 100), 2)).toBe('5.99');
   });
 

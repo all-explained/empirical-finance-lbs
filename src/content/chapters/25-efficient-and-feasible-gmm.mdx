@@ -14,17 +14,17 @@ import { Quiz } from '../../components/ui/Quiz';
 
 ## <span class="section-tag">Hook</span> Four moments, two parameters, four answers
 
-Take 200 seeded draws $x_t$ of a variable whose true mean is 0.5 and whose true variance is 1. The draws are normal.
-You want the mean $\mu$ and the variance $\sigma^2$. Chapter 24, *The generalized method of moments*, estimates
-parameters like these from **moment conditions**: averages that should be zero at the true parameters. Here you
-know four of them. The deviation $x_t - \mu$ averages zero. So does $(x_t - \mu)^2 - \sigma^2$. Normal data add
+Take 600 seeded draws $x_t$ of a variable whose true mean is 0.5 and whose true variance is 1. The draws are normal.
+They are the toy sample of [Chapter 24](/empirical-finance-lbs/chapters/24-generalized-method-of-moments/). You
+want the mean $\mu$ and the variance $\sigma^2$. Chapter 24 estimates parameters like these from **moment
+conditions**: averages that should be zero at the true parameters. Here you know four of them. The deviation $x_t - \mu$ averages zero. So does $(x_t - \mu)^2 - \sigma^2$. Normal data add
 two more: the third power $(x_t - \mu)^3$ averages zero, and the fourth power averages $3\sigma^4$.
 
 Four conditions, but only two unknowns. No $(\mu, \sigma^2)$ can make all four sample averages exactly zero, so
 GMM makes them *small*. It minimises a weighted sum of their squares. And the answer depends on the weights.
-Weight all four moments equally, and you get $\hat\mu = 0.500$ and $\hat\sigma^2 = 1.052$. Weight them by how
-precisely each one is measured, and you get $\hat\mu = 0.466$ and $\hat\sigma^2 = 0.985$. Same data, same
-moments, different estimates. The standard error of $\hat\sigma^2$ falls from 0.131 to 0.102.
+Weight all four moments equally, and you get $\hat\mu = 0.501$ and $\hat\sigma^2 = 1.086$. Weight them by how
+precisely each one is measured, and you get $\hat\mu = 0.488$ and $\hat\sigma^2 = 1.005$. Same data, same
+moments, different estimates. The standard error of $\hat\sigma^2$ falls from 0.087 to 0.061.
 
 Then there is a second surprise. With four moments and two parameters, two conditions are left over, and GMM has
 a test for them, the $J$ test. Run it at 5% on 400 seeded samples of 100 draws in which every condition is true.
@@ -36,7 +36,7 @@ them?** This chapter answers both.
 ## <span class="section-tag">Intuition</span> Listen hardest to the moments you measure best
 
 Some moments are measured much more precisely than others. On the sample above, the variance of the first moment
-across draws is 1.01. The variance of the fourth is 138.08. A fourth power swings wildly, because one large draw
+across draws is 1.03. The variance of the fourth is 194.35. A fourth power swings wildly, because one large draw
 raised to the fourth power is huge. So a sample average of fourth powers is a noisy number. When it misses zero,
 that tells you little. When the sample mean misses zero by the same amount, that tells you a lot.
 
@@ -47,20 +47,20 @@ moments, so two moments that carry the same news do not count it twice. This is 
 you know it.
 
 The widget below draws the objective GMM minimises, over every pair $(\mu, \sigma^2)$. Stronger shading means a
-larger objective, and the lines are its contours. The filled point $\Model{\hat\theta}$ is the minimum for the
-chosen weighting. The hollow points are the minima of the other weightings. The cross is the true value.
+smaller objective, and the lines are its contours. The coloured point $\Model{\hat\theta}$ is the minimum for
+the chosen weighting. The other point is the true value.
 
 <GMMObjective client:visible methods={['one-step', 'two-step', 'iterated', 'cue']} initialCount={4} />
 
 <p class="try-this"><strong>Try this:</strong> the widget opens with four moments and the identity weighting,
-which treats them equally. The minimum sits at (0.500, 1.052), inside long, flat contours: the objective hardly
-changes as $\mu$ moves. Switch to two-step. The contours become round rings, so $\mu$ is now pinned down about
-as firmly as $\sigma^2$, and the minimum moves to (0.466, 0.985). Now try
-iterated and CUE: the minimum barely moves again. Last, choose two moments. Every weighting now gives the same
-point, (0.474, 1.009): the sample mean and the sample variance.</p>
+which treats them equally. The minimum sits at (0.501, 1.086), inside long, flat contours: the objective hardly
+changes as $\mu$ moves. Switch to two-step. The contours become much rounder rings, so $\mu$ is now pinned down
+far more firmly, and the minimum moves to (0.488, 1.005). Now try iterated and CUE: the minimum barely moves
+again. Last, choose two moments. Every weighting now gives the same point, (0.496, 1.025): the sample mean and
+the sample variance.</p>
 
-Look at the weights behind the round rings. Two-step GMM gives the first two moments weights of about 2.39 and
-2.24 on the diagonal of $W$. The fourth moment gets 0.041. The data have told the estimator which conditions to
+Look at the weights behind the rounder rings. Two-step GMM gives the first two moments weights of about 2.50 and
+1.76 on the diagonal of $W$. The fourth moment gets 0.028. The data have told the estimator which conditions to
 believe.
 
 With two moments and two parameters, the model is **just identified**. Both averages can be set exactly to zero,
@@ -160,8 +160,8 @@ There are three ways out of the circle.
 
 All three use an $\hat S$ that converges to $S$. So they share one large-sample variance,
 $\tfrac1T(D'S^{-1}D)^{-1}$, which we estimate with $\hat D$ and $\hat S$. Any difference between them is a
-finite-sample effect. On the 200 draws of the hook, the three give $\hat\mu$ of 0.466, 0.467 and 0.464. That is
-small next to a standard error of 0.070. The differences grow in shorter samples and in false models, as the
+finite-sample effect. On the 600 draws of the hook, all three give $\hat\mu = 0.488$, and $\hat\sigma^2$ of 1.005,
+1.006 and 1.006. Those gaps are tiny next to standard errors of 0.041 and 0.061. The differences grow in shorter samples and in false models, as the
 Playground shows.
 
 ### The $J$ test of the leftover moments
@@ -189,7 +189,7 @@ Here is why the limit is $\chi^2$, step by step, for efficient GMM.
    $\dim g - \dim\theta$ independent squared standard normals. That is the $\chi^2_{\dim g - \dim\theta}$.
 
 In our example, $\dim g = 4$ and $\dim\theta = 2$, so $J$ is compared with $\chi^2_2$, whose 5% cut-off is 5.99.
-On the 200 draws of the hook, two-step GMM gives $J = 0.54$, with a $p$-value of 0.76. The data do not reject
+On the 600 draws of the hook, two-step GMM gives $J = 2.22$, with a $p$-value of 0.33. The data do not reject
 the model.
 
 Two warnings. First, step 6 needs $W = \hat S^{-1}$. With the identity, $T\,g_T'Wg_T$ is a weighted sum of

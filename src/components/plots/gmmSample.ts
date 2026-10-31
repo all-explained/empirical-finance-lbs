@@ -1,59 +1,48 @@
-// The seeded toy samples of Part VI (Chapters 24 and 25), shared by the GMMObjective and JTestSim widgets and by
-// the chapters' numbers tests, so a figure the prose describes is the figure the reader sees.
+import { arithmeticMean } from '../../lib/finance/returns';
 import { inverse } from '../../lib/math/linalg';
 import {
-  gmm, longRunCovariance, objectiveSurface, simulateJTest, simulateToySample, toyMoments,
+  gmm, gmmObjective, longRunCovariance, objectiveSurface, simulateJTest, simulateToySample, toyMoments,
   type GMMMethod, type GMMResult,
 } from '../../lib/stats/gmm';
 
-export const OBJECTIVE_SEED = 1;
-export const OBJECTIVE_T = 200;
-/** Grid of the objective surface: μ and σ² around the true θ0 = (0.5, 1). */
-export const MU_RANGE: [number, number] = [0.1, 0.9];
-export const VARIANCE_RANGE: [number, number] = [0.5, 1.5];
-export const GRID = 30;
+/** The seeded toy sample of Chapters 24 and 25: T draws of x_t with mean 0.5 and variance 1, normal tails. */
+export const DEFAULT_SEED = 1;
+export const SAMPLE_T = 600;
+export type MomentCount = 2 | 4;
 
+/** The J-test simulation of Chapter 25: J_SAMPLES seeded samples of the toy model with all four moments, so J has
+ * 4 - 2 = 2 degrees of freedom. It runs in J_CHUNKS chunks of J_CHUNK samples, so the widget can draw between them. */
 export const J_SEED = 1;
 export const J_DEFAULT_T = 100;
-/** The J simulation runs in chunks of J_CHUNK samples, so the widget can draw between them. */
 export const J_CHUNK = 50;
 export const J_CHUNKS = 8;
 export const J_SAMPLES = J_CHUNK * J_CHUNKS;
-/** Every J simulation uses all four moments, so J has 4 - 2 = 2 degrees of freedom. */
 export const J_COUNT = 4;
-
-export type MomentCount = 2 | 4;
 export type Tails = 'normal' | 'fat';
 export type EfficientMethod = Exclude<GMMMethod, 'one-step'>;
 
-/** The toy sample behind the objective surface. */
-export function objectiveSample(seed = OBJECTIVE_SEED): number[] {
-  return simulateToySample(seed, { T: OBJECTIVE_T });
+export function toySample(seed = DEFAULT_SEED): number[] {
+  return simulateToySample(seed, { T: SAMPLE_T });
 }
 
-/** GMM estimate of θ = (μ, σ²) on the sample x. Each search starts at the sample mean and the divisor-T variance,
- * as in simulateJTest. */
-export function toyEstimate(x: readonly number[], count: MomentCount, method: GMMMethod): GMMResult {
-  const mean = x.reduce((sum, value) => sum + value, 0) / x.length;
-  const variance = x.reduce((sum, value) => sum + (value - mean) ** 2, 0) / x.length;
-  return gmm(toyMoments(x, count), [mean, variance], { method });
+/** GMM on the first count toy moments, starting at the sample mean and the divisor-T variance. */
+export function fitToy(x: readonly number[], count: MomentCount, method: GMMMethod): GMMResult {
+  const mean = arithmeticMean(x);
+  return gmm(toyMoments(x, count), [mean, arithmeticMean(x.map((v) => (v - mean) ** 2))], { method });
 }
 
-export const gridPoints = ([lo, hi]: [number, number]) => Array.from({ length: GRID + 1 }, (_, i) => lo + ((hi - lo) * i) / GRID);
-
-/** values[i][j] is the objective of the estimate's last stage at (μ_i, σ²_j). It uses the fixed W of the estimate,
- * except for CUE, whose weighting Ŝ(θ)⁻¹ moves with θ. A θ with a singular Ŝ(θ) gets +∞. */
-export function surface(x: readonly number[], count: MomentCount, method: GMMMethod, estimate: GMMResult): number[][] {
+/** The objective each method minimises, at θ = (mu[i], variance[j]): g_T'Wg_T with the fit's last-stage W,
+ * or, for 'cue', g_T(θ)'Ŝ(θ)⁻¹g_T(θ) with Ŝ recomputed at every θ.
+ */
+export function objectiveGrid(
+  x: readonly number[], count: MomentCount, method: GMMMethod, fit: GMMResult, mu: number[], variance: number[],
+): number[][] {
   const moments = toyMoments(x, count);
-  const mus = gridPoints(MU_RANGE);
-  const variances = gridPoints(VARIANCE_RANGE);
-  if (method !== 'cue') return objectiveSurface(moments, estimate.W, mus, variances);
-  return mus.map((mu) => variances.map((variance) => {
-    try {
-      return objectiveSurface(moments, inverse(longRunCovariance(moments([mu, variance]))), [mu], [variance])[0][0];
-    } catch {
-      return Infinity;
-    }
+  if (method !== 'cue') return objectiveSurface(moments, fit.W, mu, variance);
+  return mu.map((m) => variance.map((v) => {
+    const rows = moments([m, v]);
+    const gT = rows[0].map((_, i) => arithmeticMean(rows.map((row) => row[i])));
+    return gmmObjective(gT, inverse(longRunCovariance(rows)));
   }));
 }
 
