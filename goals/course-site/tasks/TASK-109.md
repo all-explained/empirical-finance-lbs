@@ -6,6 +6,7 @@ state: approved
 depends_on: [TASK-106, TASK-107, TASK-108]
 delivery: pr
 kind: gate
+route: {platform: claude, model: opus, effort: high}
 ---
 
 ## Why
