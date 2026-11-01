@@ -1,6 +1,6 @@
 # Public data
 
-These seventeen datasets are small teaching extracts of public source files. They keep source units.
+These eighteen datasets are small teaching extracts of public source files. They keep source units.
 Public access does not imply an open licence. The site's code and content licences do not cover third-party data.
 
 1. Install Node dependencies: `npm ci`.
@@ -10,7 +10,7 @@ Public access does not imply an open licence. The site's code and content licenc
 5. Check the results: `npm test && npm run build`.
 
 The script also needs `curl`, included with macOS. It runs from the repository root.
-Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all seventeen outputs.
+Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all eighteen outputs.
 A fresh checkout downloads all sources without API keys. A failed download exits with an error.
 Remove its raw cache file, or use `--refresh`, to try a source again.
 The script validates all datasets and their sizes before replacing any JSON file.
@@ -20,6 +20,7 @@ Python dependencies, including indirect dependencies, are pinned in `scripts/dat
 
 Coverage below describes the checked-in extract retrieved on 2026-10-22 (`fred-cay-quarterly`: 2026-10-23).
 The four French 2×3 and daily extracts were retrieved on 2026-10-24.
+The French 30-industry extract was retrieved on 2026-11-01.
 Dates identify observation periods, not publication dates. Historical values can change after a source revision.
 The source links provide the files or their download pages. Terms links give the available source notices.
 
@@ -33,6 +34,7 @@ The source links provide the files or their download pages. Terms links give the
 | `ff3-daily` | [French daily three-factor ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Fama and French (1993); Kenneth French Data Library. | 1963-07-01–2026-08-31 |
 | `mom-daily` | [French daily momentum ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Momentum_Factor_daily_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Carhart (1997); Kenneth French Data Library, momentum factor. | 1963-07-01–2026-08-31 |
 | `ff25-size-bm-monthly` | [French 25-portfolio ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/25_Portfolios_5x5_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Fama and French (1993); Kenneth French Data Library. | 1926-07–2026-08 |
+| `ff30-industry-monthly` | [French 30-industry ZIP](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/30_Industry_Portfolios_CSV.zip) | Public academic download; © Fama and French; no explicit open-data licence stated on the [library page](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html). | Fama and French (1993); Kenneth French Data Library. | 1926-07–2026-09 |
 | `shiller-monthly` | [Shiller XLS](http://www.econ.yale.edu/~shiller/data/ie_data.xls) | Public academic download; no explicit redistribution licence stated on the [source page](http://www.econ.yale.edu/~shiller/data.htm). Workbook disclaims accuracy and investment advice. | Shiller (2015), *Irrational Exuberance*, third edition; updated online data. | 1881-01–2023-06 |
 | `goyal-welch-annual` | [Goyal source page](https://sites.google.com/view/agoyal145), [2025 workbook export](https://docs.google.com/spreadsheets/d/1qwpl2R_DNujpU5YUkk8lacP1tTeMb9iJ/export?format=xlsx) | Public research download; no explicit redistribution licence stated. Source notes that `ltr`/`corpr` use Bloomberg indices from 2022. | Welch and Goyal (2008); Amit Goyal's update through 2025. | 1871–2025; optional columns have gaps |
 | `goyal-welch-monthly` | [Goyal source page](https://sites.google.com/view/agoyal145), [2025 workbook export](https://docs.google.com/spreadsheets/d/1qwpl2R_DNujpU5YUkk8lacP1tTeMb9iJ/export?format=xlsx) | Public research download; no explicit redistribution licence stated. Source notes that `ltr`/`corpr` use Bloomberg indices from 2022. | Welch and Goyal (2008); Amit Goyal's update through 2025. | 1871-01–2025-12; optional columns have gaps |
@@ -72,6 +74,11 @@ No gaps are filled, no returns are calculated, and no source units are converted
   Size varies from 1 to 5, then book-to-market varies from 1 to 5 within each size.
   Returns and factors are **percent per period** (month or trading day), including RF. Divide by 100 for decimal returns.
   Drop source missing-value markers `-99.99` and `-999`. Preserve source precision: two or four decimals.
+- French 30 industries: keep the first value-weighted monthly table and its source column names.
+  The [library's construction notes](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/Data_Library/det_30_ind_port.html)
+  assign NYSE, AMEX and NASDAQ stocks to industries at each June end using four-digit SIC codes.
+  These are Standard Industrial Classification codes. Use Compustat codes for the fiscal year ending in the prior calendar year.
+  If unavailable, use CRSP codes for June. Returns run from July through the following June.
 - French 2×3 sorts and daily files: retain the first value-weighted portfolio table.
   Replace spaces in the six source headers with hyphens, preserving their order.
   Size/value columns are `SMALL-LoBM`, `ME1-BM2`, `SMALL-HiBM`, `BIG-LoBM`, `ME2-BM2`, `BIG-HiBM`.
