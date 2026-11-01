@@ -181,6 +181,13 @@ The parameter vector $\theta$ and the statistic $J$ are in the Probability and s
 | $\delta_{\text{HJ}}$ | — | Hansen–Jagannathan distance, $\delta_{\text{HJ}} = \sqrt{g_T'\,\mathbb{E}_T[RR']^{-1}g_T}$. It always keeps its subscript, so it never reads as the time-discount factor $\delta$ |
 | $\lambda^{\circ}$ | — | A hypothesised value of the risk premia $\lambda$, tested by the GRS-FAR statistic and collected into a confidence set (Chapter 27). Not $\lambda_0$, which is the zero-beta rate of Chapter 17 |
 
+### Part VII: the factor zoo and shrinkage (Chapters 28–30)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $n$, $n_0$; $c(n)$ | — | Number of tests (strategies or signals tried), and how many of them have a true null (Chapter 29). Bonferroni rejects when $p_i \le q/n$; the expected number of false discoveries is $n_0$ times the test size; BHY's constant is $c(n) = \sum_{j=1}^{n} 1/j$, always written with its argument so it never reads as log consumption $c_t$. Not $M$, which is the SDF (Harvey, Liu & Zhu write $M$), nor $N$, which is the number of test assets. A maturity $n$ is always a superscript in parentheses, and log asset wealth $n_t$ always carries its date |
+| $p_i$; $p_{(j)}$ | — | $p$-value of test $i$, and the $j$-th smallest of the $n$ $p$-values, $p_{(1)} \le \dots \le p_{(n)}$ (Chapter 29). It always carries a test index and never a date, so it never reads as a log price $p_t$; $p_{(j)}$ has its index below the line, the bond price $p^{(n)}_t$ above it. Not $\pi$, which is a state probability |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |
