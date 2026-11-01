@@ -69,10 +69,11 @@ First-stage GMM fits that proportion by least squares across the assets.</Callou
 
 ## <span class="section-tag">Formalisation</span> Moments, two stages and one distance
 
-The general machinery comes from Chapter 24, *The generalized method of moments*, and Chapter 25, *Efficient and
-feasible GMM*. Here are the parts this chapter needs. You pick $\theta$ to minimise $g_T(\theta)'W g_T(\theta)$ for
-a weighting matrix $W$. The first-order condition is $D'W g_T(\hat\theta) = 0$, with the Jacobian
-$D = \partial g_T/\partial\theta'$. Efficient GMM uses $W = \hat S^{-1}$, where $\hat S$ estimates the long-run
+The general machinery comes from
+[Chapter 24](/empirical-finance-lbs/chapters/24-generalized-method-of-moments/), *The generalized method of moments*,
+and [Chapter 25](/empirical-finance-lbs/chapters/25-efficient-and-feasible-gmm/), *Efficient and feasible GMM*. Here
+are the parts this chapter needs. You pick $\theta$ to minimise $g_T(\theta)'W g_T(\theta)$ for a weighting matrix
+$W$. The first-order condition is $D'W g_T(\hat\theta) = 0$, with the Jacobian $D = \partial g_T/\partial\theta'$. Efficient GMM uses $W = \hat S^{-1}$, where $\hat S$ estimates the long-run
 covariance of the moments.
 
 ### The linear SDF and its moments
@@ -83,10 +84,11 @@ $$
 \SDF{M_{t+1}} = 1 - b'\Factor{\tilde f_{t+1}}, \qquad \Factor{\tilde f_{t+1}} = \Factor{f_{t+1}} - \bar f.
 $$
 
-The factors are demeaned in the sample, so $\mathbb{E}_T[M] = 1$. Why fix the mean at 1? With excess returns, if
-$M$ prices the assets, so does $2M$, or any other multiple of $M$: the condition $\mathbb{E}[MR^e] = 0$ cannot see
-the scale. So you must fix it. Nagel (2013) notes that any multiple gives the same pricing when the model is right, but tests
-of a wrong model can depend on the choice (NBER WP, p. 13, fn. 5).
+The scaled models of [Chapter 22](/empirical-finance-lbs/chapters/22-conditional-factor-models/) are linear SDFs of this
+form, with the scaled factors as extra factors. The factors are demeaned in the sample, so $\mathbb{E}_T[M] = 1$.
+Why fix the mean at 1? With excess returns, if $M$ prices the assets, so does $2M$, or any other multiple of $M$:
+the condition $\mathbb{E}[MR^e] = 0$ cannot see the scale. So you must fix it. Nagel (2013) notes that any multiple
+gives the same pricing when the model is right, but tests of a wrong model can depend on the choice (NBER WP, p. 13, fn. 5).
 
 Each of the $N$ assets gives one moment, $\Ret{R^e_{i,t+1}}(1 - \Factor{\tilde f_{t+1}}'b)$. The sample mean of the
 $N$ moments is
