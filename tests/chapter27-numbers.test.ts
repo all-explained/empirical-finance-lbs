@@ -9,14 +9,14 @@ import ff3 from '../src/data/series/ff3-monthly.json';
 import ff25 from '../src/data/series/ff25-size-bm-monthly.json';
 import cay from '../src/data/series/fred-cay-quarterly.json';
 import type { Series } from '../src/lib/data/series';
+import type { ConditionalData } from '../src/components/plots/conditionalSample';
 import { quarterlyPanel } from '../src/lib/finance/conditional';
 import { farConfidenceSet, rankTest } from '../src/lib/finance/identification';
 import {
   consumptionSets, DC_GRID, monthlySample, START, USELESS_SAMPLES, USELESS_SEED, uselessView, WEAK, WEAK_SEED, weakWorld,
-  type IdentificationData,
 } from '../src/components/plots/identificationSample';
 
-const data: IdentificationData = {
+const data: ConditionalData = {
   ff3: ff3 as unknown as Series<'ff3-monthly'>,
   ff25: ff25 as unknown as Series<'ff25-size-bm-monthly'>,
   cay: cay as unknown as Series<'fred-cay-quarterly'>,

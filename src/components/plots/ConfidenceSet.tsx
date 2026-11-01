@@ -4,9 +4,10 @@ import type { FarConfidenceSet, WaldInterval, WeakIdentificationSimulation } fro
 import { Button, Segmented, Slider } from '../ui/controls';
 import { RichText } from '../ui/Tex';
 import { WidgetFrame } from '../ui/WidgetFrame';
+import { useConditionalData } from './conditionalSample';
 import { niceTicks } from './format';
 import {
-  consumptionSets, DC_GRID, useIdentificationData, WEAK, WEAK_GRID, WEAK_SEED, weakWorld,
+  consumptionSets, DC_GRID, WEAK, WEAK_GRID, WEAK_SEED, weakWorld,
 } from './identificationSample';
 import { Label, PlotFrame } from './PlotFrame';
 
@@ -58,7 +59,7 @@ interface Params { spread: number; seed: number }
  * them. Data: consumption growth on the quarterly 25 size–B/M portfolios, with the rank test.
  */
 export default function ConfidenceSet({ initialSpread = 1 }: { initialSpread?: number }) {
-  const { data, failed } = useIdentificationData();
+  const { data, failed } = useConditionalData();
   const real = useMemo(() => (data ? consumptionSets(data) : null), [data]);
   const [mode, setMode] = useState<Mode>('sim');
   const [params, setParams] = useState<Params>({ spread: initialSpread, seed: WEAK_SEED });
