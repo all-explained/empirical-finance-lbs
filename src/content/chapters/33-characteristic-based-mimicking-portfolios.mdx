@@ -1,0 +1,265 @@
+---
+title: "Characteristic-based mimicking portfolios"
+part: 8
+chapter: 33
+difficulty: 3
+prerequisites: [17, 19]
+summary: "A sort and a cross-sectional regression turn a characteristic into a portfolio return, and a projection on returns turns consumption growth into a traded portfolio, with honest limits on both."
+---
+
+import SortGrid from '../../components/plots/SortGrid';
+import MimickingPortfolio from '../../components/plots/MimickingPortfolio';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> How do you buy a number?
+
+Book-to-market is a number in a firm's accounts. Consumption growth is a number in the national accounts. Neither
+is a price, and you cannot buy either one. Yet asset pricing keeps asking what each one "earns". So how do you hold
+a portfolio that pays off when a characteristic, or the economy, does?
+
+[Chapter 19](/empirical-finance-lbs/chapters/19-size-and-value/) gave one answer for book-to-market: sort the stocks
+and hold value minus growth. [Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/)
+gave a second answer without saying so. Each month, it regressed the 25 size and book-to-market portfolios on their
+betas, and each month's slope was the return of a zero-cost portfolio. Run that regression on the portfolios' B/M
+scores instead of their betas. Over the 758 months from 1963-07 to 2026-08, the monthly slope has a correlation of
+0.967 with HML. So a regression slope is a trade, and nearly the same trade as the sort.
+
+Consumption growth is harder. It is not a characteristic of any asset, and it is the factor of the consumption CAPM
+that [Chapter 26](/empirical-finance-lbs/chapters/26-gmm-for-asset-pricing-models/) tested on quarterly data. This
+chapter builds a traded stand-in for it, then asks how much of the fit is real.
+
+## <span class="section-tag">Intuition</span> Two ways to weight the same assets
+
+The grid below holds the 25 portfolios of Chapter 19, with small stocks in the top row and value stocks in the right
+column. Give each portfolio two **scores**: a B/M score, its B/M quintile minus 3, and a size score, 3 minus its size
+quintile. Each score runs from −2 to +2. Small stocks score +2 on size, and value stocks score +2 on B/M.
+
+Now each cell shows a **weight**: the share of capital put in that portfolio, in percent. Positive cells are long
+and negative cells are short.
+
+<SortGrid client:visible initialMeasure="weights" />
+
+<p class="try-this"><strong>Try this:</strong> with "Book-to-market" and "Sort", the value column holds +5.0% in
+each cell and the growth column −5.0%. The other 15 cells are empty. Switch to "Regression". Now every column has a
+weight: −4.0, −2.0, 0, +2.0 and +4.0% from growth to value.</p>
+
+Both portfolios are long value and short growth. Both hold equal weights in every size row, so neither bets on size.
+The readout shows the two numbers that make them comparable. Each has an exposure of 1.00 to the B/M score and 0.00
+to the size score. An **exposure** to a score is the weighted average score, $\sum_i w_i \times$ (score of $i$). An
+exposure of 1 means: move one quintile step in B/M, and nothing else.
+
+The two portfolios differ in how they spread that exposure. The sort puts all of it into the two extreme columns.
+The regression lets the middle columns help, with weights that rise in a straight line with the score. Over the
+sample, the sort earned 1.23% a year with $t = 3.17$, and the regression 1.11% with $t = 2.94$. Their correlations with
+HML are 0.963 and 0.967. Switch to "Size", and both portfolios earn 0.49% a year, with $t$-statistics of 1.05 and 1.07.
+
+<Callout type="key">A sort and a cross-sectional regression are two sets of weights on the same assets. Each one
+has unit exposure to its own characteristic and none to the other. They differ only in how they spread that
+exposure across the assets.</Callout>
+
+## <span class="section-tag">Formalisation</span> Slopes, weights and projections
+
+### Every slope is a portfolio return
+
+Let $Z_t$ be the $N \times \dim z$ matrix of characteristics known at $t$. Row $i$ is $z_{it}'$, with a constant 1
+first. Each period, run the cross-sectional regression of the excess returns $\Ret{R^e_{t+1}}$ on $Z_t$. Its OLS
+slopes are
+
+$$
+\hat\xi_{t+1} = (Z_t'Z_t)^{-1}Z_t'\,\Ret{R^e_{t+1}}.
+$$
+
+The curriculum writes this slope as $\hat\gamma_t$. Here $\gamma$ is always risk aversion, so the slope is
+$\hat\xi_{t+1}$, dated $t+1$ like the return it is made of.
+
+The matrix $(Z_t'Z_t)^{-1}Z_t'$ has $\dim z$ rows and $N$ columns. Entry $j$ of $\hat\xi_{t+1}$ is row $j$ times
+the $N$ returns. That is a sum of returns with fixed weights, so it is the return of a portfolio whose weights are
+row $j$. The weights are known at $t$, because $Z_t$ is.
+
+What does that portfolio hold? Multiply the weights by the characteristics:
+
+$$
+(Z_t'Z_t)^{-1}Z_t'\,Z_t = I.
+$$
+
+Row $j$ of the left side lists the exposures of portfolio $j$ to each characteristic: entry $l$ is the sum over
+assets of the weight times characteristic $l$. The identity says this is 1 for $l = j$ and 0 for every other $l$. One characteristic is the constant, whose "exposure" is the sum of the weights. So every slope portfolio
+except the constant's has weights that sum to zero: it is long–short and costs nothing. The constant's portfolio
+sums to one.
+
+The time-series mean of $\hat\xi_{t+1}$ is the Fama–MacBeth estimate of
+[Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/), and its
+$t$-statistic is the mean over its standard error. So the Fama–MacBeth test on a characteristic asks one plain
+question: does this portfolio earn a mean return different from zero? Kelly, Pruitt & Su (2019) read the slopes the
+same way. They call the portfolios characteristic-managed, and they note that their own estimator nests the
+period-by-period Fama–MacBeth slopes as its least restricted case (NBER WP, p. 15).
+
+### The 25 portfolios, worked out
+
+For the grid, $z_i = (1, z^{\text{size}}_i, z^{\text{BM}}_i)'$, with the two scores from the Intuition. A portfolio
+keeps its quintiles, so the scores never change and we drop the date. Now compute $Z'Z$ entry by entry.
+
+1. The constant: $\sum_i 1 \cdot 1 = 25$.
+2. Each score takes the values −2, −1, 0, 1 and 2 five times each. So
+   $\sum_i (z^{\text{BM}}_i)^2 = 5(4 + 1 + 0 + 1 + 4) = 50$, and the same for size.
+3. Each score sums to zero, so its cross-product with the constant is zero.
+4. Every B/M score meets every size score exactly once. So the sum of $z^{\text{size}}_i z^{\text{BM}}_i$ over the 25
+   cells is the sum of the five size scores times the sum of the five B/M scores. Each of those sums is zero.
+
+So $Z'Z$ is diagonal, $\operatorname{diag}(25, 50, 50)$, and its inverse is $\operatorname{diag}(1/25, 1/50, 1/50)$.
+The B/M row of $(Z'Z)^{-1}Z'$ is then
+
+$$
+w^{\text{reg}}_i = \frac{z^{\text{BM}}_i}{50},
+$$
+
+which is −0.04, −0.02, 0, 0.02 and 0.04 from growth to value: the grid's "Regression" view. The sort holds 1/5 in
+each value portfolio and −1/5 in each growth portfolio, divided by the spread of 4 between the scores so its
+exposure is 1:
+
+$$
+w^{\text{sort}}_i = \begin{cases} \phantom{-}1/20 & \text{if } z^{\text{BM}}_i = 2, \\ -1/20 & \text{if } z^{\text{BM}}_i = -2, \\ \phantom{-}0 & \text{otherwise.} \end{cases}
+$$
+
+Check the exposure: $5 \cdot \tfrac{1}{20} \cdot 2 + 5 \cdot (-\tfrac{1}{20}) \cdot (-2) = 1$. Each B/M column holds
+every size score once, and the size scores sum to zero, so the size exposure is 0.
+
+### Why the regression spreads its weights
+
+Both weight vectors meet the same three conditions, $Z'w = (0, 0, 1)'$: a zero sum, no size exposure, unit B/M
+exposure. Among all such $w$, the regression's has the smallest sum of squares. Here is why, in four steps.
+
+1. Write $w^{\text{reg}} = Z(Z'Z)^{-1}(0, 0, 1)'$. This is the B/M row of $(Z'Z)^{-1}Z'$, turned into a column.
+2. Take any $w$ with $Z'w = (0, 0, 1)'$. The gap $w - w^{\text{reg}}$ then has $Z'(w - w^{\text{reg}}) = 0$.
+3. Expand: $w'w$ equals $w^{\text{reg}\prime}w^{\text{reg}}$, plus $(w - w^{\text{reg}})'(w - w^{\text{reg}})$, plus
+   $2\,w^{\text{reg}\prime}(w - w^{\text{reg}})$.
+4. The last term is $2\,(0, 0, 1)(Z'Z)^{-1}Z'(w - w^{\text{reg}}) = 0$ by step 2. The middle term is never negative.
+   So $w'w \ge w^{\text{reg}\prime}w^{\text{reg}}$.
+
+On the grid, $w'w$ is 0.020 for the regression and 0.025 for the sort. If the 25 returns had equal variances and
+independent noise, a smaller $w'w$ would mean a less volatile portfolio for the same exposure. That is the
+Gauss–Markov reason that OLS is efficient. The 25 portfolios are not independent: they move together every month,
+as Chapter 17 showed. So $w'w$ is not the variance here, and the $t$-statistics of 3.17 for the sort and 2.94 for the regression show no
+gain from the smaller $w'w$.
+
+### A factor that is not a return
+
+Consumption growth $\Delta c_t$ has no portfolio behind it. To get one, project it on the excess returns of $N$ base
+assets by OLS:
+
+$$
+\Factor{f_t} = a + w'\Ret{R^e_t} + \Err{\varepsilon_t}.
+$$
+
+Here $\Factor{f_t} = \Delta c_t$, quarterly. The **mimicking portfolio** holds the weights $w$, and its return is
+$w'\Ret{R^e_t}$. The curriculum writes the intercept as $c$ and the residual as $e_t$. Here $c_t$ is log
+consumption, the very series being projected, and $e$ is the residual of Chapter 19's 2×3 sort, so we write $a$ and
+$\varepsilon_t$. The weights are $w = \operatorname{Var}(R^e_t)^{-1}\operatorname{Cov}(R^e_t, f_t)$. On excess
+returns, they need not sum to one.
+
+Of all portfolios of the base assets, $w'R^e_t$ has the highest correlation with $f_t$. Four steps show it.
+
+1. Pick any other portfolio of the base assets and regress $f_t$ on a constant and its return alone. The $R^2$ of
+   that regression is the squared correlation between $f_t$ and the portfolio.
+2. That regression is the full regression on all $N$ returns, with the weights forced to be proportional to the
+   chosen portfolio's.
+3. OLS on all $N$ returns picks the weights with the smallest sum of squared residuals. A forced choice cannot do
+   better, so its $R^2$ is no higher.
+4. The full regression's $R^2$ is the squared correlation between $f_t$ and its fitted value, $a + w'R^e_t$. The
+   constant $a$ does not change a correlation.
+
+Giglio & Xiu (2021, p. 1954) describe this maximally correlated portfolio and the use made of it. A non-traded
+factor's risk premium is estimated as the mean excess return of its mimicking portfolio.
+
+## <span class="section-tag">Playground</span> A portfolio that tracks consumption
+
+The widget projects quarterly consumption growth on the 25 portfolios, or on the three FF3 factors, from 1963-Q3 to
+2026-Q2. That is 252 quarters, the sample of Chapter 26. The solid line is $\Delta c_t$. The dashed line is the fitted
+value $a + w'R^e_t$.
+
+<MimickingPortfolio client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start "In sample" on the 25 portfolios. The correlation is 0.40.
+Switch to "FF3 factors": it falls to 0.09. Now go back to the 25 portfolios, pick "Split sample", and leave the split
+at 1995-Q1. The weights from the first 126 quarters reach 0.55 on those quarters, and −0.15 on the quarters after.</p>
+
+### How much of the fit is real?
+
+With 25 portfolios, the projection fits 26 numbers. Even if consumption growth had nothing to do with returns, OLS
+would find weights that track some of its noise. Under that null, with normal noise, the expected $R^2$ of a regression on 25 returns
+over $T$ quarters is $25/(T - 1)$. Over all 252 quarters, that is a correlation of about $\sqrt{25/251} = 0.32$.
+The fit we see, 0.40, is not far above it.
+
+The split sample makes the same point without a formula. On the first 126 quarters, noise alone would give about
+$\sqrt{25/125} = 0.45$, and the projection reaches 0.55. Apply those weights to the next 126 quarters, and the
+correlation is −0.15. Move the split back to 1975-Q1, and the weights fit 46 quarters with a correlation of 0.79, then
+score −0.05 afterwards. The fewer quarters per weight, the better the fit looks, and the less of it survives.
+
+The three FF3 factors cannot overfit much, with only four numbers to fit. But they track consumption growth poorly
+in any sample: 0.19 on the first 126 quarters and −0.01 on the rest.
+
+Two quarters stand out in the plot. Consumption fell 10.1% in 2020-Q2 and rose 7.4% in 2020-Q3, so the widget cuts
+its lines at ±4%. Drop the four quarters of 2020, and the 25-portfolio numbers barely move: 0.39 in sample, and
+−0.07 after 1995-Q1 with the weights of the first half. The FF3 numbers do move, to 0.16 and 0.13. With a few
+hundred quarters, one extreme year can change a correlation by this much.
+
+So the base assets pull two ways. Giglio & Xiu (2021, p. 1955) show that the premium of a mimicking portfolio is
+biased unless its base assets are well diversified and span all the true risk factors. Their example is a study that
+built a consumption mimicking portfolio from four size–B/M portfolios, which may omit risks tied to consumption. Few
+base assets risk that omission. Many base assets over a few hundred quarters risk fitting noise.
+
+### What the 25 portfolios hide
+
+Our characteristics are quintile scores of 25 portfolios. They never change, and they are ranks, not the portfolios'
+actual size or B/M. Fama & French (1992, p. 430) ran their regressions on individual stocks instead. Size and B/M are
+measured precisely for each stock, and grouping the stocks into portfolios would blur that information. Their
+monthly regressions used 2,267 stocks on average (p. 439). With firms, $Z_t$ changes every month, so the slope portfolios
+rebalance every month. Kelly, Pruitt & Su (2019) build on exactly those firm-level managed portfolios. That is the
+subject of Chapter 32, *Characteristics are covariances: IPCA*. Here, the 25 portfolios stand in for firms, and every
+number above holds only for them.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="The B/M row of $(Z_t'Z_t)^{-1}Z_t'$, with $Z_t$ holding a constant, a size score and a B/M score, is a portfolio. What does it hold?"
+  options={["Exposure 1 to the B/M score, 0 to the size score, and weights that sum to zero", "Exposure 1 to every characteristic", "Only the value portfolios, with weights that sum to one", "The same weights as HML"]}
+  answer={0}
+  explanation="Because $(Z_t'Z_t)^{-1}Z_t'Z_t = I$, the row has exposure 1 to its own column and 0 to the others. The constant is one of those columns, so the weights sum to zero."
+/>
+
+<Quiz
+  client:visible
+  question="The sort puts ±1/20 on the two extreme B/M columns. The regression puts −0.04 to +0.04 on all five. Which statement is true?"
+  options={["Only the sort has unit exposure to the B/M score", "Both have unit exposure to the B/M score; the regression has the smaller sum of squared weights", "The regression is long–short and the sort is not", "The sort has the smaller sum of squared weights"]}
+  answer={1}
+  explanation="Both meet the same three conditions. Among all weights that do, OLS picks the ones with the smallest sum of squares: 0.020 against 0.025."
+/>
+
+<Quiz
+  client:visible
+  question="Consumption growth projected on the 25 portfolios has a correlation of 0.55 with its fit on 1963-Q3 to 1994-Q4, and −0.15 with the same weights after. What is the best reading?"
+  options={["Consumption risk stopped mattering in 1995", "The projection fits 26 numbers on 126 quarters, so much of the in-sample fit is noise", "The FF3 factors would track consumption better", "The correlation after 1995 proves the CCAPM is wrong"]}
+  answer={1}
+  explanation="Noise alone would give an in-sample correlation near 0.45 here. Weights that fit noise do not carry over to new quarters, so the out-of-sample correlation is the honest measure."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- Each slope of a cross-sectional regression on characteristics is the return of a portfolio. Its weights are a row
+  of $(Z_t'Z_t)^{-1}Z_t'$, with exposure 1 to its own characteristic and 0 to the others.
+- A sort and a regression are two weightings of the same assets. On B/M, the two earned 1.23% and 1.11% a year and
+  have correlations of 0.963 and 0.967 with HML.
+- Among all weights with the same exposures, the regression's have the smallest sum of squares.
+- A non-traded factor gets a traded stand-in by projection: $w'R^e_t$ is its most correlated portfolio.
+- With 25 base assets and a few hundred quarters, the projection overfits: 0.55 in sample, −0.15 after the split.
+
+**Next up:** Chapter 34, *Risk premia with omitted factors*, estimates a factor's premium when the model leaves
+other factors out.
+
+### Further reading
+
+- Fama & French (1992)
+- Kelly, Pruitt & Su (2019)
+- Giglio & Xiu (2021)
