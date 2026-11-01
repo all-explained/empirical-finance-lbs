@@ -3,7 +3,7 @@ id: TASK-037
 title: 'Plan: decompose M-11'
 milestone: M-11
 state: approved
-depends_on: [TASK-036]
+depends_on: [TASK-036, TASK-116]
 delivery: pr
 kind: plan
 ---

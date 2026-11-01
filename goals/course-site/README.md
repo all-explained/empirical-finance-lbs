@@ -179,6 +179,15 @@ flowchart TD
   end
   subgraph M_10["M-10 · Part VIII: Latent factors and large cross-sections"]
     TASK_036["TASK-036 Plan: decompose M-10"]
+    TASK_112["TASK-112 Library: PCA factors, rotations, canonical correlations and latent-factor risk premia"]
+    TASK_113["TASK-113 Library: instrumented PCA by alternating least squares, managed portfolios and the alpha test"]
+    TASK_114["TASK-114 Library: characteristic portfolios from cross-sectional regressions, and factor-mimicking portfolios"]
+    TASK_115["TASK-115 Library: the three-pass estimator and a seeded economy with an omitted factor"]
+    TASK_116["TASK-116 Chapter 31: Latent and observable factors"]
+    TASK_117["TASK-117 Chapter 32: Characteristics are covariances: IPCA"]
+    TASK_118["TASK-118 Chapter 33: Characteristic-based mimicking portfolios"]
+    TASK_119["TASK-119 Chapter 34: Risk premia with omitted factors"]
+    TASK_120["TASK-120 Orchestrator reads Part VIII and signs it off"]
   end
   subgraph M_11["M-11 · Part IX: Consumption: data and the equity premium puzzle"]
     TASK_037["TASK-037 Plan: decompose M-11"]
@@ -254,6 +263,7 @@ flowchart TD
   TASK_035 --> TASK_036
   TASK_106 --> TASK_036
   TASK_036 --> TASK_037
+  TASK_116 --> TASK_037
   TASK_037 --> TASK_038
   TASK_038 --> TASK_039
   TASK_039 --> TASK_040
@@ -330,6 +340,15 @@ flowchart TD
   TASK_106 --> TASK_109
   TASK_107 --> TASK_109
   TASK_108 --> TASK_109
+  TASK_112 --> TASK_115
+  TASK_112 --> TASK_116
+  TASK_113 --> TASK_117
+  TASK_114 --> TASK_118
+  TASK_115 --> TASK_119
+  TASK_116 --> TASK_120
+  TASK_117 --> TASK_120
+  TASK_118 --> TASK_120
+  TASK_119 --> TASK_120
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
