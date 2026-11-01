@@ -205,6 +205,9 @@ The parameter vector $\theta$ and the statistic $J$ are in the Probability and s
 ### Part VIII: latent factors and large cross-sections (Chapters 31–34)
 
 Kelly, Pruitt & Su (2018) write $r_{i,t+1}$ for an excess return; here it is $R^e_{i,t+1}$, because $r$ is a log return.
+Giglio & Xiu (2021) write $v_t$, $u_t$ and $\gamma$ for the latent factors, the residuals and their premia, and $\hat p$ for the
+number of principal components; here they are $f_t$, $\varepsilon_t$, $\lambda$ and $K$, because $v_t$ and $u_t$ are a second
+equation's shocks and $\gamma$ is risk aversion.
 
 | Symbol | Macro | Meaning |
 |---|---|---|
@@ -221,6 +224,10 @@ Kelly, Pruitt & Su (2018) write $r_{i,t+1}$ for an excess return; here it is $R^
 | $X$, $Y$; $K_X$, $K_Y$ | — | The two blocks of series that canonical correlations compare (Chapter 31), $T \times K_X$ and $T \times K_Y$, such as the first three PCs and Mkt-RF, SMB, HML. $X$ never carries a date, so it is not the payoff $X_{t+1}$. $K$ with a block subscript counts that block's series, as bare $K$ counts factors |
 | $\hat\xi_{t+1}$ | — | Slopes of the cross-sectional regression of $R^e_{t+1}$ on the characteristics known at $t$, $\hat\xi_{t+1} = (Z_t'Z_t)^{-1}Z_t'R^e_{t+1}$ (Chapter 33). Each entry is the return of a portfolio whose weights are a row of $(Z_t'Z_t)^{-1}Z_t'$. The curriculum writes $\hat\gamma_t$; $\gamma$ is risk aversion. Not $c$, which is log consumption, nor $g$, since Chapter 24 writes the moment at $t$ as $g_t$. Dated $t+1$, as the return is |
 | $a$, $w$, $\varepsilon_t$ (mimicking) | — | Projection of a factor on the excess returns of base assets by OLS, $f_t = a + w'R^e_t + \varepsilon_t$ (Chapter 33); $w'R^e_t$ is the mimicking portfolio's return. $a$ is an intercept, as in every time-series regression here; the curriculum writes $c$, which is log consumption, the very series projected in Chapter 33. $w$ is the portfolio weights of §3; on excess returns they need not sum to one. $\varepsilon_t$ is the residual; the curriculum writes $e_t$, the residual of a 2×3 portfolio in Chapter 19 |
+| $\chi_t$ | `\Factor` | An observed factor whose premium Chapter 34 estimates, traded (Mkt-RF) or not (a macro series), with $\chi_t = a + \beta_\chi'f_t + \varepsilon_{\chi,t}$ for the latent factors $f_t$: a time-series regression, so its intercept is $a$, where the curriculum writes $\xi$. One series: each observed factor is estimated on its own. Giglio & Xiu (2021) write $g_t$, the moment at $t$ in Chapter 24; the curriculum's $\xi$ is the slopes $\hat\xi_{t+1}$ of Chapter 33. Not the $\chi^2$ distribution, which always carries its square and degrees of freedom |
+| $\beta_\chi$ | — | $K$-vector of loadings of $\chi_t$ on the latent factors (Chapter 34), the slopes of its time-series regression on them. A loading is an exposure, so it is a $\beta$; the subscript $\chi$ separates it from an asset's $\beta_i$. The paper and the curriculum write $\eta$, the intercept of a conditional SDF in Chapter 22 |
+| $\varepsilon_{\chi,t}$ | `\Err` | Measurement error of $\chi_t$, uncorrelated with $f_t$ (Chapter 34): the part of the observed factor that no latent factor explains. The paper and the curriculum write $z_t$, the state variable of Chapters 22–23. Not $u_t$, a second equation's shock, which the paper uses for the returns' residuals |
+| $\lambda_\chi$ | — | Risk premium of $\chi_t$, $\lambda_\chi = \beta_\chi'\lambda$ (Chapter 34): the mean excess return of a portfolio with beta 1 on $\chi_t$ and 0 on every other factor, priced as an asset's $\mathbb{E}[R^e_i] = \beta_i'\lambda$. No rotation $H$ changes it. The paper writes $\gamma_g$; $\gamma$ is risk aversion. The subscript is the letter $\chi$, never the zero-beta rate's $0$ in $\lambda_0$ |
 
 ### Bonds and the term structure
 
