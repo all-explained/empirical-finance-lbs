@@ -344,6 +344,7 @@ flowchart TD
   TASK_106 --> TASK_109
   TASK_107 --> TASK_109
   TASK_108 --> TASK_109
+  TASK_121 --> TASK_109
   TASK_112 --> TASK_115
   TASK_112 --> TASK_116
   TASK_113 --> TASK_117
@@ -353,6 +354,7 @@ flowchart TD
   TASK_117 --> TASK_120
   TASK_118 --> TASK_120
   TASK_119 --> TASK_120
+  TASK_123 --> TASK_124
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
