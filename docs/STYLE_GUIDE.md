@@ -181,6 +181,14 @@ The parameter vector $\theta$ and the statistic $J$ are in the Probability and s
 | $\delta_{\text{HJ}}$ | — | Hansen–Jagannathan distance, $\delta_{\text{HJ}} = \sqrt{g_T'\,\mathbb{E}_T[RR']^{-1}g_T}$. It always keeps its subscript, so it never reads as the time-discount factor $\delta$ |
 | $\lambda^{\circ}$ | — | A hypothesised value of the risk premia $\lambda$, tested by the GRS-FAR statistic and collected into a confidence set (Chapter 27). Not $\lambda_0$, which is the zero-beta rate of Chapter 17 |
 
+### Part VII: the factor zoo and shrinkage (Chapters 28–30)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $R^2_{\text{OLS}}$, $R^2_{\text{GLS}}$ | — | Cross-sectional $R^2$ of the two-pass regression with an intercept (Chapter 28). $R^2_{\text{OLS}} = 1 - \sum_i \hat\alpha_i^2 / \sum_i (\bar R^e_i - \bar{\bar R}^e)^2$. $R^2_{\text{GLS}} = 1 - \hat\alpha'\Sigma^{-1}\hat\alpha / (\bar R^e - \mu_{\text{gmv}}\iota)'\Sigma^{-1}(\bar R^e - \mu_{\text{gmv}}\iota)$, with the GLS pricing errors. Not $R^2_{OS}$, the out-of-sample $R^2$ of Chapter 13, nor the time-series $R^2$ of a first-pass regression |
+| $\mu_{\text{gmv}}$; $\iota$ | — | Mean excess return of the global minimum-variance portfolio, $\mu_{\text{gmv}} = \iota'\Sigma^{-1}\bar R^e / \iota'\Sigma^{-1}\iota$, and the $N$-vector of ones. Not $\lambda_0$, the zero-beta rate a model estimates |
+| $SR^2(\lambda_0)$; $SR^2_{\text{tan}}(\lambda_0)$, $SR^2_f(\lambda_0)$ | — | Squared Sharpe ratio measured against the zero-beta rate, $(\mathbb{E}[R^e] - \lambda_0)^2/\sigma^2$, for a portfolio whose weights sum to one; the highest one among the test assets and among the factors' mimicking portfolios (Chapter 28). The GLS pricing errors leave $SR^2_{\text{tan}}(\hat\lambda_0) - SR^2_f(\hat\lambda_0)$ unexplained. Lewellen, Nagel & Shanken write $\theta^2$; not $\theta$, which is the GMM parameter vector |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |
