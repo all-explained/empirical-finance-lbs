@@ -22,7 +22,7 @@ const data = shrinkageData({
   osap: osap as unknown as Series<'osap-ls-monthly'>,
 });
 const fixed = (v: number, digits: number) => v.toFixed(digits);
-const TARGET = 0.15; // FrontierBuilder's TARGET_VOL; Sharpe ratios do not depend on it
+const TARGET = 0.1; // FrontierBuilder's TARGET_VOL; Sharpe ratios do not depend on it
 const varianceShare = (returns: number[][], k: number) => {
   const { values } = principalComponentAssets(returns);
   return values.slice(0, k).reduce((a, b) => a + b, 0) / values.reduce((a, b) => a + b, 0);

@@ -194,7 +194,7 @@ function FragmentRow({ label, weight }: { label: string; weight: number | null }
   );
 }
 
-const TARGET_VOL = 0.15;
+const TARGET_VOL = 0.1;
 /** The penalty slider runs over log₁₀ ν₂; its left end is ν₂ = 0, the naive estimate. */
 const LOG_MIN = -5.5;
 const penaltyOf = (exponent: number) => (exponent <= LOG_MIN ? 0 : 10 ** exponent);
@@ -206,7 +206,8 @@ function ShrunkFrontier() {
   const [exponent, setExponent] = useState(LOG_MIN);
   const view = useMemo(() => (data ? shrunkTangency(data.ff, penaltyOf(exponent), TARGET_VOL) : null), [data, exponent]);
   const yLo = view ? Math.min(0, view.outOfSample.mean * 1.3) : 0;
-  const rayEnd = view ? Math.min(X_MAX, Y_MAX / view.frontierSharpe) : 0;
+  // The line stops below the top, where it would cross the axis title on a phone.
+  const rayEnd = view ? Math.min(X_MAX, (0.8 * Y_MAX) / view.frontierSharpe) : 0;
 
   const plot = view ? (
     <PlotFrame
@@ -223,7 +224,7 @@ function ShrunkFrontier() {
       baseline={0}
     >
       <Line.Segment point1={[0, 0]} point2={[rayEnd, view.frontierSharpe * rayEnd]} color="var(--c-model)" weight={2.5} />
-      <Label x={rayEnd * 0.55} y={view.frontierSharpe * rayEnd * 0.55} attach="nw" attachDistance={8} size={12} color="var(--c-model)">in-sample frontier</Label>
+      <Label x={rayEnd} y={view.frontierSharpe * rayEnd} attach="e" attachDistance={8} size={12} color="var(--c-model)">in-sample frontier</Label>
       <Line.Segment point1={[view.inSample.volatility, view.inSample.mean]} point2={[view.outOfSample.volatility, view.outOfSample.mean]} color="var(--text-muted)" weight={1.5} style="dashed" />
       <Point x={view.inSample.volatility} y={view.inSample.mean} color="var(--c-model)" svgCircleProps={{ r: 7 }} />
       <Label x={view.inSample.volatility} y={view.inSample.mean} attach="e" attachDistance={10} size={12} color="var(--c-model)">{`${view.first.slice(0, 4)}–${Number(view.splitMonth.slice(0, 4)) - 1}`}</Label>

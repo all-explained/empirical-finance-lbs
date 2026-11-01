@@ -256,18 +256,18 @@ would move with a different split. Treat the best $R^2_{CV}$ as optimistic, not 
 
 The widget shows two panels against the total penalty $\nu_2 + \nu_1$, on a log scale. The top panel shows the five largest
 coefficients $\hat b$ at the best penalty. The bottom panel shows $R^2_{CV}$, with its maximum ringed. It opens on
-the 108 anomaly portfolios with the ridge ($s = 0$). With an $L^1$ share above zero, the path takes a few seconds to
+the 108 anomaly portfolios with the ridge, where $s = 0$. With an $L^1$ share above zero, the path takes a few seconds to
 compute.
 
 <ShrinkagePath client:visible />
 
 <p class="try-this"><strong>Try this:</strong> read the ridge first. $R^2_{CV}$ peaks at 0.520, at a prior scale of
 0.158 a month, or 0.55 a year. The largest coefficient there is short-term reversal. Slide the penalty to the
-left end, the weakest shrinkage on the grid ($SR_{\text{prior}} = 1.26$ a month): $R^2_{CV}$ falls to −1.38, far
+left end, the weakest shrinkage on the grid, at $SR_{\text{prior}} = 1.26$ a month: $R^2_{CV}$ falls to −1.38, far
 worse than pricing nothing.</p>
 
 <p class="try-this"><strong>Try this too:</strong> set the $L^1$ share to 0.9 and move the penalty one step right
-of the ridge's best ($SR_{\text{prior}} = 0.112$). In the asset space, 20 coefficients are not zero and
+of the ridge's best, to $SR_{\text{prior}} = 0.112$. In the asset space, 20 coefficients are not zero and
 $R^2_{CV}$ is 0.29. Switch to PCs. Now only 14 components are not zero, and $R^2_{CV}$ is 0.44.</p>
 
 This is the main lesson of Kozak, Nagel & Santosh (2020, p. 271). An SDF built from a few characteristics

@@ -72,16 +72,20 @@ export default function ShrinkagePath() {
     const names = space === 'pcs' ? assets.names.map((_, j) => `PC${j + 1}`) : assets.names;
     const order = points[best].b.map((v, i) => [Math.abs(v), i]).sort((a, b) => b[0] - a[0]).slice(0, LINES).map(([, i]) => i);
     const lines = order.map((i) => ({ i, name: names[i], xy: points.map((p) => [Math.log10(p.penalty), p.b[i]] as [number, number]) }));
-    const bMax = Math.max(1e-6, ...lines.flatMap((l) => l.xy.map(([, y]) => Math.abs(y))));
+    const ys = lines.flatMap((l) => l.xy.map(([, y]) => y));
+    const [bLo, bHi] = [Math.min(0, ...ys), Math.max(0, ...ys)];
+    const bSpan = Math.max(1e-6, bHi - bLo);
     const r2 = points.map((p) => p.r2);
-    return { names, lines, bMax, r2Lo: Math.min(0, ...r2), r2Hi: Math.max(0, ...r2) };
+    return { names, lines, bLo, bHi, bSpan, r2Lo: Math.min(0, ...r2), r2Hi: Math.max(0, ...r2) };
   }, [assets, points, best, space]);
 
   const xLo = penalties.length ? Math.log10(penalties[LAST]) : -5;
   const xHi = penalties.length ? Math.log10(penalties[0]) : 0;
-  const bLim = useTweened(view ? view.bMax * 1.12 : 1);
+  // Headroom in both panels keeps the line numbers and the 'best' label clear of the axis titles.
+  const bLo = useTweened(view ? view.bLo - 0.1 * view.bSpan : -1);
+  const bHi = useTweened(view ? view.bHi + 0.3 * view.bSpan : 1);
   const r2Lo = useTweened(view ? view.r2Lo - 0.08 * (view.r2Hi - view.r2Lo + 0.1) : -1);
-  const r2Hi = useTweened(view ? view.r2Hi + 0.12 * (view.r2Hi - view.r2Lo + 0.1) : 1);
+  const r2Hi = useTweened(view ? view.r2Hi + 0.35 * (view.r2Hi - view.r2Lo + 0.1) : 1);
   const xTicks = Array.from({ length: Math.floor(xHi) - Math.ceil(xLo) + 1 }, (_, k) => Math.ceil(xLo) + k);
   const xAt = at ? Math.log10(at.penalty) : 0;
   const spaceWord = space === 'pcs' ? 'principal components' : 'assets';
@@ -90,9 +94,9 @@ export default function ShrinkagePath() {
   const plot = view && at ? (
     <div>
       <PlotFrame
-        x={[xLo, xHi]} y={[-bLim, bLim]} height={B_HEIGHT}
-        xTicks={xTicks} yTicks={niceTicks(-bLim, bLim, 4)}
-        formatX={power} formatY={(v) => num(v, Math.abs(bLim) < 0.1 ? 3 : bLim < 2 ? 1 : 0)}
+        x={[xLo, xHi]} y={[bLo, bHi]} height={B_HEIGHT}
+        xTicks={xTicks} yTicks={niceTicks(bLo, bHi, 4)}
+        formatX={power} formatY={(v) => num(v, bHi - bLo < 0.2 ? 3 : bHi - bLo < 4 ? 1 : 0)}
         xLabel="penalty ν₂ + ν₁ (log scale)"
         yLabel={<tspan style={{ fill: 'var(--c-sdf)' }}>SDF coefficient b̂</tspan>}
         baseline={0}
@@ -103,14 +107,14 @@ export default function ShrinkagePath() {
             <Label x={l.xy[l.xy.length - 1][0]} y={l.xy[l.xy.length - 1][1]} attach="e" attachDistance={6} size={12} color="var(--c-sdf)">{String(k + 1)}</Label>
           </g>
         ))}
-        <Line.Segment point1={[xAt, -bLim]} point2={[xAt, bLim]} color="var(--text)" weight={1.5} style="dashed" />
+        <Line.Segment point1={[xAt, bLo]} point2={[xAt, bHi]} color="var(--text)" weight={1.5} style="dashed" />
       </PlotFrame>
       <PlotFrame
         x={[xLo, xHi]} y={[r2Lo, r2Hi]} height={R2_HEIGHT}
         xTicks={xTicks} yTicks={niceTicks(r2Lo, r2Hi, 4)}
         formatX={power} formatY={(v) => num(v, r2Hi - r2Lo < 1 ? 1 : 0)}
         xLabel="penalty ν₂ + ν₁ (log scale)"
-        yLabel={<tspan style={{ fill: 'var(--c-model)' }}>R²_CV</tspan>}
+        yLabel={<tspan style={{ fill: 'var(--c-model)' }}>R²<tspan baselineShift="sub" fontSize="0.8em">CV</tspan></tspan>}
         baseline={0}
       >
         <Polyline points={points.map((p) => [Math.log10(p.penalty), p.r2] as [number, number])} color="var(--c-model)" weight={2.5} fillOpacity={0} />
@@ -150,7 +154,7 @@ export default function ShrinkagePath() {
           <>
             <p style={{ margin: '0 0 0.5rem' }}>
               <span style={{ color: 'var(--c-sdf)' }}>solid and dashed lines: the {LINES} largest b̂ at the best penalty, numbered at the left</span>
-              {' · '}<span style={{ color: 'var(--c-model)' }}>solid curve: R²_CV · ○ ring: its maximum</span>
+              {' · '}<span style={{ color: 'var(--c-model)' }}>solid curve: cross-validated R² · ○ ring: its maximum</span>
               {' · '}<span>– – marker: the penalty slider</span>
               {pending && <> · computing the path, {path?.key === key ? points.length : 0} of {PRIOR_SCALES.length} points…</>}
             </p>
