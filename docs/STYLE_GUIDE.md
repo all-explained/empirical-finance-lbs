@@ -90,7 +90,7 @@ Use these symbols everywhere. If a chapter needs a new symbol, add it to this ta
 | $\lambda$, $\lambda_k$ | — | Risk premia (factor prices): $\mathbb{E}[R^e_i] = \beta_i'\lambda$ |
 | $\alpha_i$, $\alpha$ | `\Err` | Pricing error (alpha) of asset $i$, and the $N$-vector of them. Never a significance level |
 | $a_i$ | — | Intercept of asset $i$ in a first-pass time-series regression, $R^e_{i,t} = a_i + \beta_i'f_t + \varepsilon_{i,t}$, in a two-pass test (Chapters 17–18), where $\alpha_i$ is the cross-sectional pricing error. In a time-series test with traded factors (Chapter 16) the intercept is the pricing error, so it is $\alpha_i$. In predictive regressions $a$ is the intercept; context separates the two |
-| $\zeta$ | — | Shanken factor $\zeta = \lambda'\Sigma_f^{-1}\lambda$, per period: the corrected variance of $\hat\lambda$ scales the residual part by $1 + \zeta$. For traded factors it is the squared highest Sharpe ratio of the factors, $SR^2_f$. Not $c$, which is log consumption or a slope on characteristics, nor $\kappa$, which is a Campbell–Shiller constant |
+| $\zeta$ | — | Shanken factor $\zeta = \lambda'\Sigma_f^{-1}\lambda$, per period: the corrected variance of $\hat\lambda$ scales the residual part by $1 + \zeta$. For traded factors it is the squared highest Sharpe ratio of the factors, $SR^2_f$. Not $c$, which is log consumption, nor $\kappa$, which is a Campbell–Shiller constant |
 | $\varepsilon_{i,t}$ | `\Err` | Residual or shock. $u_t$, $v_t$ name the shocks of a second equation (for example a predictor's) |
 | $T$, $N$, $K$ | — | Sample size (periods), number of test assets, number of factors. Index them $t = 1, \dots, T$, $i = 1, \dots, N$, $k = 1, \dots, K$ |
 | $\hat\beta$, $\bar R$ | — | A hat marks an estimate or a fitted value. A bar marks a sample mean over time, $\bar R_i = \tfrac1T \sum_t R_{i,t}$ |
@@ -106,7 +106,7 @@ Use these symbols everywhere. If a chapter needs a new symbol, add it to this ta
 | $b$ (SDF) | — | Loadings of a linear SDF on the factors (Part VI on). In predictive regressions $b$ is a slope; context separates the two |
 | $X_{t+1}$ | — | Payoff at $t+1$: $P_t = \mathbb{E}_t[M_{t+1} X_{t+1}]$ and $\mathbb{E}_t[M_{t+1}(1 + R_{t+1})] = 1$ |
 | $C_t$, $c_t$, $\Delta c_{t+1}$ | — | Consumption, its log, and log consumption growth $c_{t+1} - c_t$ |
-| $\gamma$ | — | Relative risk aversion. $\gamma$ is used for nothing else: slopes on characteristics are $c$ or $g$ |
+| $\gamma$ | — | Relative risk aversion. $\gamma$ is used for nothing else: slopes on characteristics are $\hat\xi_{t+1}$ (Part VIII) |
 | $\delta$ | — | Subjective time-discount factor: $M_{t+1} = \delta (C_{t+1}/C_t)^{-\gamma}$. Never $\beta$, which is a factor exposure |
 | $\psi$ | — | Elasticity of intertemporal substitution (Epstein–Zin) |
 | $\mathbb{E}_t[\cdot]$ | — | Expectation conditional on information at $t$. $\mathbb{E}[\cdot]$ without a subscript is unconditional |
@@ -171,7 +171,7 @@ The parameter vector $\theta$ and the statistic $J$ are in the Probability and s
 
 | Symbol | Macro | Meaning |
 |---|---|---|
-| $g(x_t, \theta)$, $g_T(\theta)$ | — | Moment function at date $t$, with $\mathbb{E}[g(x_t, \theta_0)] = 0$, and its sample mean $g_T(\theta) = \tfrac1T\sum_t g(x_t, \theta)$. Not $f$, which is a factor $f_t$. $g$ always carries an argument or the subscript $T$, so it never reads as a slope on characteristics |
+| $g(x_t, \theta)$, $g_T(\theta)$ | — | Moment function at date $t$, with $\mathbb{E}[g(x_t, \theta_0)] = 0$, and its sample mean $g_T(\theta) = \tfrac1T\sum_t g(x_t, \theta)$. Not $f$, which is a factor $f_t$ |
 | $\dim g$, $\dim\theta$ | — | Number of moment conditions and of parameters. $J$ has $\dim g - \dim\theta$ degrees of freedom. Not $r$ and $k$, which are a log return and a factor index, nor $L$, which counts Newey–West lags in $\hat S$ (Chapter 4) |
 | $D$ | — | Jacobian $D = \partial g_T/\partial\theta'$, a $\dim g \times \dim\theta$ matrix. Not $d$, which is a log dividend $d_t$. The dividend $D_t$ always carries its date |
 | $W$ | — | Weighting matrix: $\hat\theta$ minimises $g_T(\theta)'W g_T(\theta)$. Not $w$, which is portfolio weights. Total wealth $W_t$ (Chapter 14) always carries its date |
@@ -192,10 +192,19 @@ The parameter vector $\theta$ and the statistic $J$ are in the Probability and s
 | $R^2_{CV}$ | — | Cross-validated cross-sectional $R^2$ (Chapter 30): the mean over folds of $1 - \lVert\bar\mu_{\text{out}} - \Sigma_{\text{out}}\hat b\rVert^2/\lVert\bar\mu_{\text{out}}\rVert^2$, with $\bar\mu_{\text{out}}$ and $\Sigma_{\text{out}}$ from the withheld fold and $\hat b$ from the others. Not $R^2_{OS}$, the forecast $R^2$ of Chapter 13 |
 | $K_{CV}$ | — | Number of folds in the cross-validation, each a block of consecutive months; 3, as in the paper. Bare $K$ is the number of factors |
 | $s$ | — | $L^1$ share of the total elastic-net penalty (Chapter 30): $\nu_1 = s(\nu_2 + \nu_1)$, so $s = 0$ is the ridge. Our device, not the paper's. Not a state $s$, which only appears as the argument of $\pi(s)$ or $M(s)$, nor $s_{\text{S},t}$, which carries a sort letter |
-| $c$ (prior) | — | Prior constant $c = SR^2_{\text{prior}}/\operatorname{tr}\Sigma$, so $\mu \sim N(0, c\Sigma^2)$, in the ridge derivation of Chapter 30 only; the chapter says so in words. Not log consumption $c_t$, which carries its date, nor a slope on characteristics |
+| $c$ (prior) | — | Prior constant $c = SR^2_{\text{prior}}/\operatorname{tr}\Sigma$, so $\mu \sim N(0, c\Sigma^2)$, in the ridge derivation of Chapter 30 only; the chapter says so in words. Not log consumption $c_t$, which carries its date |
 | $R^2_{\text{OLS}}$, $R^2_{\text{GLS}}$ | — | Cross-sectional $R^2$ of the two-pass regression with an intercept (Chapter 28). $R^2_{\text{OLS}} = 1 - \sum_i \hat\alpha_i^2 / \sum_i (\bar R^e_i - \bar{\bar R}^e)^2$. $R^2_{\text{GLS}} = 1 - \hat\alpha'\Sigma^{-1}\hat\alpha / (\bar R^e - \mu_{\text{gmv}}\iota)'\Sigma^{-1}(\bar R^e - \mu_{\text{gmv}}\iota)$, with the GLS pricing errors. Not $R^2_{OS}$, the out-of-sample $R^2$ of Chapter 13, nor the time-series $R^2$ of a first-pass regression |
 | $\mu_{\text{gmv}}$; $\iota$ | — | Mean excess return of the global minimum-variance portfolio, $\mu_{\text{gmv}} = \iota'\Sigma^{-1}\bar R^e / \iota'\Sigma^{-1}\iota$, and the $N$-vector of ones. Not $\lambda_0$, the zero-beta rate a model estimates |
 | $SR^2(\lambda_0)$; $SR^2_{\text{tan}}(\lambda_0)$, $SR^2_f(\lambda_0)$ | — | Squared Sharpe ratio measured against the zero-beta rate, $(\mathbb{E}[R^e] - \lambda_0)^2/\sigma^2$, for a portfolio whose weights sum to one; the highest one among the test assets and among the factors' mimicking portfolios (Chapter 28). The GLS pricing errors leave $SR^2_{\text{tan}}(\hat\lambda_0) - SR^2_f(\hat\lambda_0)$ unexplained. Lewellen, Nagel & Shanken write $\theta^2$; not $\theta$, which is the GMM parameter vector |
+
+### Part VIII: latent factors and large cross-sections (Chapters 31–34)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $z_{i,t}$, $Z_t$ | `\Signal` | Characteristics of asset $i$ known at $t$, a vector of $\dim z$ entries, and the $N \times \dim z$ matrix whose row $i$ is $z_{i,t}'$. In Chapter 33 the first entry is 1 and the 25 size–B/M portfolios have fixed characteristics, their centred size and B/M quintile scores. $z_{i,t}$ always carries an asset index, so it never reads as the state variable $z_t$ of Part V |
+| $\dim z$ | — | Number of characteristics, the constant included, written as Part VI writes $\dim g$. Not $L$, which counts Newey–West lags and is the eigenvalue matrix of $\Sigma = QLQ'$ |
+| $\hat\xi_{t+1}$ | — | Slopes of the cross-sectional regression of $R^e_{t+1}$ on the characteristics known at $t$, $\hat\xi_{t+1} = (Z_t'Z_t)^{-1}Z_t'R^e_{t+1}$ (Chapter 33). Each entry is the return of a portfolio whose weights are a row of $(Z_t'Z_t)^{-1}Z_t'$. The curriculum writes $\hat\gamma_t$; $\gamma$ is risk aversion. Not $c$, which is log consumption, nor $g$, since Chapter 24 writes the moment at $t$ as $g_t$. Dated $t+1$, as the return is |
+| $a$, $w$, $\varepsilon_t$ (mimicking) | — | Projection of a factor on the excess returns of base assets by OLS, $f_t = a + w'R^e_t + \varepsilon_t$ (Chapter 33); $w'R^e_t$ is the mimicking portfolio's return. $a$ is an intercept, as in every time-series regression here; the curriculum writes $c$, which is log consumption, the very series projected in Chapter 33. $w$ is the portfolio weights of §3; on excess returns they need not sum to one. $\varepsilon_t$ is the residual; the curriculum writes $e_t$, the residual of a 2×3 portfolio in Chapter 19 |
 
 ### Bonds and the term structure
 
