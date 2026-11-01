@@ -24,6 +24,8 @@ const references: Record<SeriesId, readonly (readonly [string, string, number])[
   'mom-daily': [['1963-07-01', 'Mom', -0.23], ['1963-07-02', 'Mom', 0.45], ['1963-07-03', 'Mom', 0.39]],
   // 25_Portfolios_5x5.csv value-weighted monthly block, lines 17–19, B, F, Z.
   'ff25-size-bm-monthly': [['1926-07-01', 'ME1-BM1', 3.7806], ['1926-08-01', 'ME1-BM5', 8.5104], ['1926-09-01', 'ME5-BM5', -2.4284]],
+  // Transcribed 2026-11-01: 30_Industry_Portfolios.csv first value-weighted monthly block, lines 13/B, 14/C, 15/AE.
+  'ff30-industry-monthly': [['1926-07-01', 'Food', 0.53], ['1926-08-01', 'Beer', 27.03], ['1926-09-01', 'Other', -3.58]],
   // ie_data.xls Data!B129, E1533, M1838. M1838 raw = 29.939593027231528.
   'shiller-monthly': [['1881-01-01', 'price', 6.19], ['1998-01-01', 'cpi', 161.6], ['2023-06-01', 'cape', 29.939593]],
   // PredictorData2025.xlsx Annual!B58, C131, L156.
@@ -82,6 +84,17 @@ for (const id of Object.keys(seriesColumns) as SeriesId[]) {
 }
 
 describe('typed loader helpers', () => {
+  it('keeps all 30 value-weighted industries from July 1926 in percent units without missing-value markers', async () => {
+    const series = await loadSeries('ff30-industry-monthly');
+    expect(series.rows[0]?.[0]).toBe('1926-07-01');
+    expect(series.columns.slice(1)).toHaveLength(30);
+    expect(series.columns.slice(1).every(({ unit, required }) => unit === 'percent' && required)).toBe(true);
+    for (const row of series.rows) {
+      expect(row.slice(1)).not.toContain(-99.99);
+      expect(row.slice(1)).not.toContain(-999);
+    }
+  });
+
   it('preserves OSAP source units and unavailable signal histories', async () => {
     const series = await loadSeries('osap-ls-monthly');
     expect(dateRange(series)).toEqual({ start: '1963-01-01', end: '2024-12-01' });
