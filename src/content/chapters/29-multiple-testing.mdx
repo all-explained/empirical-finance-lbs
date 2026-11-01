@@ -111,9 +111,10 @@ $t^\ast = 3$, the size is 0.27%, and the expected count is 0.73. This is the "ex
 ### The family-wise error rate and Bonferroni
 
 The family-wise error rate is $\text{FWER} = \Pr(n_{\text{false}} \ge 1)$. It is never larger than the expected
-count. The reason is that $n_{\text{false}}$ is a whole number: when it is at least 1, it is at least 1, and when it
-is 0, the indicator is 0 too. So $\mathbf{1}\{n_{\text{false}} \ge 1\} \le n_{\text{false}}$, and taking
-expectations,
+count. Compare the indicator $\mathbf{1}\{n_{\text{false}} \ge 1\}$ with $n_{\text{false}}$ itself. When
+$n_{\text{false}} = 0$, both are 0. When $n_{\text{false}} \ge 1$, the indicator is 1 and $n_{\text{false}}$ is 1, 2
+or more, because it is a whole number. So $\mathbf{1}\{n_{\text{false}} \ge 1\} \le n_{\text{false}}$ in every case,
+and taking expectations,
 
 $$
 \text{FWER} \le \mathbb{E}[n_{\text{false}}].
@@ -128,7 +129,8 @@ $$
 The last step uses $n_0 \le n$. No step assumed that the tests are independent. Harvey, Liu & Zhu (2016, p. 18) make
 the same point. The price is a high bar. With $n = 300$ and $q = 5\%$, the rule needs $p_i \le 0.000167$, which is
 $|t_i| > 3.76$. In the widget, snap the line to "Bonferroni": it finds 12 of the 30 true strategies and no false
-one.
+one. The line then reads 3.71, not 3.76, because the widget draws it halfway between the smallest $|t|$ the rule
+rejects (3.79) and the largest $|t|$ it keeps (3.64), and any line in that gap gives the same 12 discoveries.
 
 ### Holm's step-down rule
 
