@@ -6,9 +6,10 @@ import { WidgetFrame } from '../ui/WidgetFrame';
 import { useElementWidth, useTweened } from './animation';
 import { extent, niceTicks } from './format';
 import { Label, PlotFrame } from './PlotFrame';
-import { PRESETS, presetPanel, seriesName, usePcaData, type Preset } from './pcaSample';
+import { factorComparison, latentPanel, MAX_K, useLatentData } from './latentSample';
+import { PRESETS, presetPanel, seriesName, type Preset } from './pcaSample';
 
-type View = 'cloud' | 'scree' | 'loadings';
+type View = 'cloud' | 'scree' | 'loadings' | 'factors';
 const HEIGHT = 380;
 // PlotFrame's default margins: the cloud needs them to give both axes the same scale.
 const MARGIN_X = 48 + 30;
@@ -22,17 +23,22 @@ const STYLES = [
 
 const pct = (v: number, digits = 1) => `${Math.abs(v * 100).toFixed(digits)}%`;
 const num = (v: number, digits = 1) => `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(digits)}`;
+const FACTOR_LABELS = ['Mkt-RF', 'SMB', 'HML'];
 
 /**
  * Chapter 6: principal components of the 25 size–value portfolios or of monthly
  * yield changes. Three views: a two-series cloud with its principal axes (and the
  * distances the first axis leaves out), a scree plot, and the loadings of the first
  * three components. A rotation slider and a sign flip show what PCA does not pin down.
+ * Chapter 31 opens on a fourth view, "factors": the canonical and plain correlations of the first K PCs of
+ * the excess returns with Mkt-RF, SMB and HML. Only initialView="factors" offers it and loads ff3-monthly.
  */
 export default function PCAExplorer({ initialPreset = 'ff25', initialView = 'cloud' }: { initialPreset?: Preset; initialView?: View }) {
-  const { data, failed } = usePcaData();
+  const withFactors = initialView === 'factors';
+  const { data, failed } = useLatentData(withFactors);
   const [preset, setPreset] = useState<Preset>(initialPreset);
   const [view, setView] = useState<View>(initialView);
+  const [K, setK] = useState(3);
   const [pair, setPair] = useState<[number, number]>(PRESETS[initialPreset].pair);
   const [degrees, setDegrees] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -53,6 +59,14 @@ export default function PCAExplorer({ initialPreset = 'ff25', initialView = 'clo
     setPreset(next);
     setPair(PRESETS[next].pair);
   };
+  // The factors view compares portfolio PCs with equity factors, so it has no yield-change sample.
+  const changeView = (next: View) => {
+    setView(next);
+    if (next === 'factors' && preset === 'gsw') changePreset('ff25-1963');
+  };
+  const latent = useMemo(() => (data?.ff3 && preset !== 'gsw' ? latentPanel(data.ff3, data.ff25, preset) : null), [data, preset]);
+  // The discrete flip, not the tweened sign: H must stay invertible.
+  const comparison = useMemo(() => latent && factorComparison(latent, K, omega, flipped), [latent, K, omega, flipped]);
 
   // Components 1 and 2 after the rotation; 3 onward are unchanged.
   const fullAxes = full && rotatePair(full.loadings[0], full.loadings[1], omega);
@@ -163,10 +177,33 @@ export default function PCAExplorer({ initialPreset = 'ff25', initialView = 'clo
         ))}
       </PlotFrame>
     );
+  } else if (comparison && view === 'factors') {
+    plot = (
+      <PlotFrame
+        x={[0.4, 3.6]} y={[0, 1.12]} height={HEIGHT}
+        xTicks={comparison.canonical.map((_, k) => k + 1)} yTicks={[0, 0.2, 0.4, 0.6, 0.8, 1]}
+        formatY={(v) => num(v, 1)}
+        xLabel="canonical pair k"
+        yLabel="canonical correlation"
+      >
+        {comparison.canonical.map((cc, i) => (
+          <Polygon key={`c${i}`} points={[[i + 0.65, 0], [i + 1.35, 0], [i + 1.35, cc], [i + 0.65, cc]]} color="var(--c-factor)" fillOpacity={0.45} weight={1.5} />
+        ))}
+        {comparison.canonical.map((cc, i) => (
+          <Label key={`t${i}`} x={i + 1} y={cc} attach="n" attachDistance={6} size={12}>{cc.toFixed(3)}</Label>
+        ))}
+      </PlotFrame>
+    );
   }
 
   const sample = panel ? `${panel.dates[0].slice(0, 7)} to ${panel.dates.at(-1)!.slice(0, 7)}` : '';
-  const ariaLabel = !panel || !full || !cloud
+  const latentSampleText = latent ? `${latent.dates[0].slice(0, 7)} to ${latent.dates.at(-1)!.slice(0, 7)}` : '';
+  const rotated = K >= 2 && degrees !== 0;
+  const ariaLabel = view === 'factors'
+    ? comparison
+      ? `Bars give the ${comparison.canonical.length} canonical correlations between the first ${K} principal components of the 25 portfolios' excess returns and Mkt-RF, SMB and HML, ${latentSampleText}: ${comparison.canonical.map((cc) => cc.toFixed(3)).join(', ')}.${rotated ? ` Components 1 and 2 are turned by ${degrees} degrees; the bars do not change.` : ''}`
+      : 'Principal components explorer. The data is loading.'
+    : !panel || !full || !cloud
     ? 'Principal components explorer. The data is loading.'
     : view === 'cloud'
       ? `Scatter of ${cloud.points.length} months: ${seriesName(preset, panel, pair[0])} across and ${seriesName(preset, panel, pair[1])} up, ${info.unit}, ${sample}. Two arrows from the mean show the principal axes${degrees ? `, rotated by ${degrees} degrees` : ''}. Axis 1 carries ${pct(cloudVar[0] / cloudTotal)} of the variance of the pair. Thin lines join each point to axis 1.`
@@ -175,6 +212,37 @@ export default function PCAExplorer({ initialPreset = 'ff25', initialView = 'clo
         : `Loadings of components 1, 2 and 3 on each of the ${full.loadings[0].length} series of the ${info.label}. Component 1 is a ${STYLES[0].word} line, 2 is ${STYLES[1].word}, 3 is ${STYLES[2].word}.${flipped ? ' The signs are flipped.' : ''}`;
 
   const names = panel ? panel.names.map((_, i) => ({ value: String(i), label: seriesName(preset, panel, i) })) : [];
+  const loading = <p>{failed ? 'The data did not load.' : 'Loading the data…'}</p>;
+  const factorsReadout = comparison && latent ? (
+    <>
+      <p style={{ margin: '0 0 0.5rem' }}>
+        <span style={{ color: 'var(--c-factor)' }}>bars: canonical correlations</span> · <span style={{ color: 'var(--text-muted)' }}>table: plain correlations of each component</span>
+      </p>
+      <dl className="readout-grid">
+        <dt>Sample</dt>
+        <dd>{latentSampleText}, {latent.dates.length} months, 25 portfolios in excess of RF</dd>
+        <dt>Canonical correlations</dt>
+        <dd style={{ color: 'var(--c-factor)' }}>{comparison.canonical.map((cc) => cc.toFixed(3)).join(', ')}</dd>
+        <dt>Share of {K === 1 ? 'component 1' : `components 1–${K}`}</dt>
+        <dd>{pct(comparison.share)} of total variance</dd>
+        <dt>Rotation</dt>
+        <dd>{K < 2 ? 'needs K ≥ 2: one component has no plane to turn in' : degrees === 0 ? 'none (PCA)' : `components 1 and 2 turned by ${num(degrees, 0)}°`}</dd>
+        <dt>Signs</dt>
+        <dd>{flipped ? 'flipped; no canonical correlation changes' : 'as computed'}</dd>
+      </dl>
+      <table className="iter-table" style={{ marginTop: '0.5rem' }}>
+        <caption style={{ textAlign: 'left', color: 'var(--text-muted)' }}>Correlation of each component with each factor</caption>
+        <thead>
+          <tr><th scope="col">Component</th>{FACTOR_LABELS.map((name) => <th key={name} scope="col">{name}</th>)}</tr>
+        </thead>
+        <tbody>
+          {comparison.correlations.map((row, k) => (
+            <tr key={k}><th scope="row" style={{ textAlign: 'left' }}>{k + 1}</th>{row.map((v, j) => <td key={j}>{num(v, 2)}</td>)}</tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  ) : loading;
   return (
     <WidgetFrame
       title="Principal components: the few directions that matter"
@@ -183,13 +251,17 @@ export default function PCAExplorer({ initialPreset = 'ff25', initialView = 'clo
       plot={<div ref={ref}>{plot}</div>}
       controls={
         <>
-          <Select label="Data" value={preset} onChange={changePreset} options={(Object.keys(PRESETS) as Preset[]).map((p) => ({ value: p, label: PRESETS[p].label }))} />
-          {/* Cloud last: the click-through then ends in the view whose pair selects follow. */}
-          <Segmented label="Show" value={view} onChange={setView} options={[
+          <Select label="Data" value={preset} onChange={changePreset} options={(Object.keys(PRESETS) as Preset[]).filter((p) => view !== 'factors' || p !== 'gsw').map((p) => ({ value: p, label: PRESETS[p].label }))} />
+          {/* Cloud (or factors) last: the click-through then ends in the view whose controls follow. */}
+          <Segmented label="Show" value={view} onChange={changeView} options={[
             { value: 'scree', label: 'scree' },
             { value: 'loadings', label: 'loadings' },
             { value: 'cloud', label: 'cloud' },
+            ...(withFactors ? [{ value: 'factors' as const, label: 'factors' }] : []),
           ]} />
+          {view === 'factors' && (
+            <Slider label="Components $K$" value={K} min={1} max={MAX_K} step={1} onChange={setK} color="var(--c-factor)" />
+          )}
           {view === 'cloud' && names.length > 0 && (
             <>
               <Select label="Across" value={String(pair[0])} onChange={(v) => setPair([Number(v), pair[1]])} options={names} />
@@ -201,7 +273,7 @@ export default function PCAExplorer({ initialPreset = 'ff25', initialView = 'clo
         </>
       }
       readout={
-        panel && full && cloud ? (
+        view === 'factors' ? factorsReadout : panel && full && cloud ? (
           <>
             <p style={{ margin: '0 0 0.5rem' }}>
               {view === 'cloud' && <><span style={{ color: 'var(--c-data)' }}>● dots: months</span> · <span style={{ color: 'var(--c-factor)' }}>arrows: axis 1 (solid), axis 2 (dashed)</span> · <span style={{ color: 'var(--c-error)' }}>thin lines: distance to axis 1</span></>}
@@ -236,11 +308,9 @@ export default function PCAExplorer({ initialPreset = 'ff25', initialView = 'clo
               <dd>{flipped ? 'flipped; no share changes' : 'as computed'}</dd>
             </dl>
           </>
-        ) : (
-          <p>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
-        )
+        ) : loading
       }
-      caption={`Data: ${preset === 'gsw' ? 'gsw-zero-coupon (Gürkaynak, Sack and Wright (2007)), month-end 1- to 30-year zero-coupon yields, November 1985 to September 2026; PCA of their monthly changes, in basis points' : `ff25-size-bm-monthly (Kenneth French Data Library), value-weighted monthly returns, ${preset === 'ff25' ? 'July 1926' : 'July 1963'} to August 2026`}. PCA of the sample covariance matrix. A component is fixed only up to its sign: flipping it changes no share. Components 1 and 2 together are fixed only up to a rotation $\\omega$ inside their plane: their joint share stays the same.`}
+      caption={view === 'factors' ? `Data: ff25-size-bm-monthly and ff3-monthly (Kenneth French Data Library), value-weighted monthly returns of the 25 portfolios in excess of RF, ${latentSampleText}, against Mkt-RF, SMB and HML. PCA of the sample covariance matrix of the excess returns; each component is scaled to unit variance. Turning components 1 and 2 by $\\omega$, or flipping the signs, changes the plain correlations but no canonical correlation $\\mathit{cc}_k$.` : `Data: ${preset === 'gsw' ? 'gsw-zero-coupon (Gürkaynak, Sack and Wright (2007)), month-end 1- to 30-year zero-coupon yields, November 1985 to September 2026; PCA of their monthly changes, in basis points' : `ff25-size-bm-monthly (Kenneth French Data Library), value-weighted monthly returns, ${preset === 'ff25' ? 'July 1926' : 'July 1963'} to August 2026`}. PCA of the sample covariance matrix. A component is fixed only up to its sign: flipping it changes no share. Components 1 and 2 together are fixed only up to a rotation $\\omega$ inside their plane: their joint share stays the same.`}
     />
   );
 }
