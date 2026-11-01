@@ -10,6 +10,18 @@ export const percent = (v: number, digits = 0) => `${v < 0 ? '−' : v > 0 ? '+'
 export const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 export const count = (v: number) => Math.round(v).toLocaleString('en-US');
 
+const SUPERSCRIPT = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+/** 10 to an integer power, such as 10⁻³. */
+export const power = (k: number) => `10${k < 0 ? '⁻' : ''}${String(Math.abs(k)).split('').map((d) => SUPERSCRIPT[Number(d)]).join('')}`;
+/** A positive number in scientific notation with one decimal, such as 7.7 × 10⁻³; 0 stays 0. */
+export function scientific(v: number): string {
+  if (v === 0) return '0';
+  let k = Math.floor(Math.log10(v));
+  // 9.96 × 10⁻⁴ would round to 10.0 × 10⁻⁴; write it as 1.0 × 10⁻³.
+  if (v / 10 ** k >= 9.95) k += 1;
+  return `${(v / 10 ** k).toFixed(1)} × ${power(k)}`;
+}
+
 /** Round tick marks covering [lo, hi]: steps of 1, 2 or 5 × 10ⁿ, about `target` of them. */
 export function niceTicks(lo: number, hi: number, target = 5): number[] {
   const raw = (hi - lo) / Math.max(target, 1);

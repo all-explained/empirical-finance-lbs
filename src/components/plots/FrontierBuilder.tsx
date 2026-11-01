@@ -4,7 +4,7 @@ import { Button, Select, Slider } from '../ui/controls';
 import { RichText } from '../ui/Tex';
 import { WidgetFrame } from '../ui/WidgetFrame';
 import { annualMoments, capmSample, frontierView, PERIODS, useCapmData, type Portfolio } from './capmSample';
-import { niceTicks } from './format';
+import { niceTicks, scientific } from './format';
 import { Label, PlotFrame } from './PlotFrame';
 import { shrunkTangency, useShrinkageData } from './shrinkageSample';
 
@@ -240,7 +240,7 @@ function ShrunkFrontier() {
       title="The tangency portfolio, before and after it was chosen"
       ariaLabel={
         view
-          ? `Mean excess return against volatility, in percent a year. A line from the origin with slope ${sharpe(view.frontierSharpe)} is the in-sample frontier of 30 FF portfolios, ${view.first} to ${view.last} split at ${view.splitMonth}. With penalty ${penaltyOf(exponent).toPrecision(2)}, the shrunk tangency portfolio has Sharpe ratio ${sharpe(view.inSample.sharpe)} in the months that chose it (filled dot) and ${sharpe(view.outOfSample.sharpe)} after them (ring).`
+          ? `Mean excess return against volatility, in percent a year. A line from the origin with slope ${sharpe(view.frontierSharpe)} is the in-sample frontier of 30 FF portfolios, ${view.first} to ${view.last} split at ${view.splitMonth}. With penalty ${scientific(penaltyOf(exponent))}, the shrunk tangency portfolio has Sharpe ratio ${sharpe(view.inSample.sharpe)} in the months that chose it (filled dot) and ${sharpe(view.outOfSample.sharpe)} after them (ring).`
           : 'In-sample frontier and the shrunk tangency portfolio. The data is loading.'
       }
       plotHeight={HEIGHT}
@@ -254,7 +254,7 @@ function ShrunkFrontier() {
           step={0.1}
           color="var(--c-model)"
           onChange={setExponent}
-          format={(v) => (v <= LOG_MIN ? '0 (naive)' : `10^${v.toFixed(1)}`)}
+          format={(v) => (v <= LOG_MIN ? '0 (naive)' : scientific(10 ** v))}
         />
       }
       readout={

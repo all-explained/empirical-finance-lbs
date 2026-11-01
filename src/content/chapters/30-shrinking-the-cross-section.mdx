@@ -20,7 +20,7 @@ import { Quiz } from '../../components/ui/Quiz';
   with demeaned factors $\Factor{\tilde f_t} = \Factor{f_t} - \bar f$, and $\mathbb{E}[R^e] = \operatorname{Cov}(R^e, f')\,b$.
 - **Principal components** ([Chapter 6](../06-principal-components/)). $\Sigma = QLQ'$: the columns $q_j$ of $Q$ are
   the directions, and the diagonal matrix $L$ holds the variance $\ell_j$ along $q_j$, from largest to smallest.
-- **Why a good fit can mislead.** Chapter 28, "A skeptical look at asset pricing tests", shows how a model can fit
+- **Why a good fit can mislead** ([Chapter 28](../28-skeptical-look-at-asset-pricing-tests/)). A model can fit
   average returns in sample and still say little.
 </Callout>
 
@@ -32,7 +32,8 @@ not explain is left. Now stand in December 2004 and use every month since July 1
 portfolio of Chapter 7. In those months it earned a Sharpe ratio of 1.84 a year.
 
 Then hold the same weights from January 2005 to August 2026. The Sharpe ratio falls to 0.82. Repeat the exercise
-with 108 published anomaly portfolios, and the drop is bigger still: 8.85 a year before 2005, and 2.18 after.
+with 108 published anomaly portfolios, whose data end in December 2024, and the drop is bigger still: 8.85 a year
+before 2005, and 2.18 after.
 
 One caveat. The betas that remove the market use all the months, the later ones too. For the 30 portfolios, so
 does the scale of each one. So the months after 2004 are not fully unseen. Kozak, Nagel & Santosh (2020, p. 290)
@@ -297,8 +298,9 @@ $SR_{\text{prior}} = 0.158$ with a best $R^2_{CV}$ of 0.52. Five blocks pick 0.0
 0.112, with 0.24. The shape is the same each time, a hump, but its peak moves, and so does its height.
 
 <Callout type="key">With many factors, the naive SDF overfits through its low-variance directions. A prior that
-expects little from those directions gives a ridge, which fades each component by its variance. On 108 anomalies a
-handful of principal components prices the cross-section out of sample better than a handful of anomalies.</Callout>
+expects little from those directions gives a ridge, which fades each component by its variance. On 108 anomalies an
+elastic net that keeps 14 principal components prices the cross-section out of sample better than one that keeps
+20 anomalies: $R^2_{CV}$ of 0.44 against 0.29.</Callout>
 
 ## <span class="section-tag">Check yourself</span> Three questions
 
@@ -338,7 +340,7 @@ handful of principal components prices the cross-section out of sample better th
 - On 108 anomalies, $R^2_{CV}$ peaks at 0.52. On 30 FF portfolios since 1963 it never rises above zero. The
   chosen penalty moves with the number of blocks.
 
-**Next up:** Part VIII opens with "Latent and observable factors", which asks how far a few statistical factors
+**Next up:** Part VIII opens with *Latent and observable factors*, which asks how far a few statistical factors
 can stand in for the many observable ones.
 
 ### Further reading

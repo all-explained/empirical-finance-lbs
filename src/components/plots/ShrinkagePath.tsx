@@ -6,7 +6,7 @@ import { Segmented, Slider } from '../ui/controls';
 import { RichText } from '../ui/Tex';
 import { WidgetFrame } from '../ui/WidgetFrame';
 import { useTweened } from './animation';
-import { niceTicks } from './format';
+import { niceTicks, power, scientific } from './format';
 import { Label, PlotFrame } from './PlotFrame';
 import { ASSET_SETS, bestIndex, PRIOR_SCALES, SPACES, pathPoint, useShrinkageData, type PathPoint } from './shrinkageSample';
 
@@ -15,15 +15,7 @@ const R2_HEIGHT = 190;
 const LINES = 5;
 const LAST = PRIOR_SCALES.length - 1;
 
-const SUPERSCRIPT = '⁰¹²³⁴⁵⁶⁷⁸⁹';
-const power = (k: number) => `10${k < 0 ? '⁻' : ''}${String(Math.abs(k)).split('').map((d) => SUPERSCRIPT[Number(d)]).join('')}`;
 const num = (v: number, digits = 2) => `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(digits)}`;
-/** 7.7 × 10⁻³ */
-const sci = (v: number) => {
-  if (v === 0) return '0';
-  const k = Math.floor(Math.log10(v));
-  return `${(v / 10 ** k).toFixed(1)} × ${power(k)}`;
-};
 
 /**
  * Chapter 30: the shrinkage path of the SDF coefficients b̂ on 108 anomaly portfolios or 30 FF portfolios, in
@@ -133,7 +125,7 @@ export default function ShrinkagePath() {
       title="Shrink the SDF and score it out of sample"
       ariaLabel={
         view && at && assets
-          ? `Two panels against the penalty on a log scale, for the ${setWord} in the space of ${spaceWord}, with L1 share ${num(share, 1)}. Top: the ${LINES} largest SDF coefficients; they spread apart as the penalty falls and go to zero as it rises. Bottom: the cross-validated R², highest at ${num(points[best].r2, 3)} where the prior scale is ${num(points[best].priorScale, 3)} a month. The dashed marker is at penalty ${sci(at.penalty)}, with R² ${num(at.r2, 3)} and ${at.nonZero} of ${assets.names.length} coefficients not zero.`
+          ? `Two panels against the penalty on a log scale, for the ${setWord} in the space of ${spaceWord}, with L1 share ${num(share, 1)}. Top: the ${LINES} largest SDF coefficients; they spread apart as the penalty falls and go to zero as it rises. Bottom: the cross-validated R², highest at ${num(points[best].r2, 3)} where the prior scale is ${num(points[best].priorScale, 3)} a month. The dashed marker is at penalty ${scientific(at.penalty)}, with R² ${num(at.r2, 3)} and ${at.nonZero} of ${assets.names.length} coefficients not zero.`
           : 'Shrinkage path of SDF coefficients and the cross-validated R². The data is loading.'
       }
       plotHeight={B_HEIGHT + R2_HEIGHT}
@@ -145,7 +137,7 @@ export default function ShrinkagePath() {
           <Slider label="L1 share $s$ (0 is ridge)" value={share} min={0} max={0.9} step={0.1} onChange={(v) => setShare(Math.round(v * 10) / 10)} format={(v) => num(v, 1)} />
           <Slider
             label="Penalty $\nu_2 + \nu_1$" value={LAST - index} min={0} max={LAST} step={1} color="var(--text)"
-            onChange={(v) => setMarker(LAST - v)} format={(v) => (penalties.length ? sci(penalties[LAST - v]) : '')}
+            onChange={(v) => setMarker(LAST - v)} format={(v) => (penalties.length ? scientific(penalties[LAST - v]) : '')}
           />
         </>
       }
@@ -160,13 +152,13 @@ export default function ShrinkagePath() {
             </p>
             <dl className="readout-grid">
               <dt><RichText>{'Penalty $\\nu_2 + \\nu_1$: $\\nu_2$, $\\nu_1$'}</RichText></dt>
-              <dd>{sci(at.penalty)}: {sci(at.l2)}, {sci(at.l1)}</dd>
+              <dd>{scientific(at.penalty)}: {scientific(at.l2)}, {scientific(at.l1)}</dd>
               <dt><RichText>{'Prior scale $SR_{\\text{prior}}$'}</RichText></dt>
               <dd>{num(at.priorScale, 3)} a month ({num(annualiseSharpe(at.priorScale), 2)} a year)</dd>
               <dt><RichText>{'$R^2_{CV}$ at the marker'}</RichText></dt>
               <dd style={{ color: 'var(--c-model)' }}>{num(at.r2, 3)}</dd>
               <dt><RichText>{'Best $R^2_{CV}$ on the grid'}</RichText></dt>
-              <dd style={{ color: 'var(--c-model)' }}>{num(points[best].r2, 3)} at {sci(points[best].penalty)}</dd>
+              <dd style={{ color: 'var(--c-model)' }}>{num(points[best].r2, 3)} at {scientific(points[best].penalty)}</dd>
               <dt><RichText>{'Coefficients $\\hat b_i$ not zero'}</RichText></dt>
               <dd>{at.nonZero} of {assets.names.length}</dd>
               {view.lines.map((l, k) => (
