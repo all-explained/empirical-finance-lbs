@@ -91,7 +91,7 @@ export default function OmittedFactorBias({ initialStrength = 1, initialCorrelat
           <Line.Segment point1={[view.truth, 0]} point2={[view.truth, yTop * 0.82]} color="var(--text)" weight={1.5} style="dashed" />
           <Line.Segment point1={[panel.mean, 0]} point2={[panel.mean, yTop * 0.82]} color="var(--c-model)" weight={2.5} />
           <Line.Segment point1={[view.truth, yTop * 0.82]} point2={[panel.mean, yTop * 0.82]} color="var(--c-error)" weight={4} />
-          <Label x={xLo} y={yTop} attach="se" attachDistance={6} size={13} color="var(--text)">{panel.name}</Label>
+          <Label x={xHi} y={yTop} attach="sw" attachDistance={6} size={13} color="var(--text)">{panel.name}</Label>
           <Label x={Math.min(view.truth, panel.mean)} y={yTop * 0.82} attach="w" attachDistance={6} size={12} color="var(--text)">
             {panel.mean < view.truth ? 'mean' : 'true'}
           </Label>
