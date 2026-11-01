@@ -4,7 +4,7 @@
 
 - [x] Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX
   macro check.
-  Evidence: VERIFY_TEST. `shrinkage.test.ts` has 17 tests, about 2 s. Reference values per export:
+  Evidence: `npm ci && npm test && npm run build && git status --short` on `79f7499` (rebased on `origin/main` `5ef7bf4`) exited 0; `npm test`: 61 files, 641 tests passed, `tests/notation.test.ts` included. `shrinkage.test.ts` has 17 tests, about 2 s. Reference values per export:
   `ridgeSdf`: a 2 × 2 case by hand, $(\Sigma + I)^{-1}(1, 0)' = (3/8, -1/8)'$; with penalty 0 it equals
   `inverse(Σ)μ̄` and, scaled to sum to one, `tangencyWeights`, to 1e-10.
   `ridgePenalty`: $\operatorname{tr}\Sigma = 4$, $SR_{\text{prior}} = 0.5$, $T = 100$ give $\nu_2 = 0.16$.
@@ -22,7 +22,7 @@
   months, to 1e-12, and the weights are $\hat\Sigma^{-1}\bar\mu$.
   `assetPanel` and the pinned data values: see the tables below.
 - [x] `npm run build` passes (`astro check` reports 0 errors).
-  Evidence: VERIFY_BUILD.
+  Evidence: `Result (186 files): - 0 errors - 0 warnings - 1 hint`, `28 page(s) built`, `[build] Complete!`, exit 0, on `79f7499`. The hint is the unused `Matrix` import in `src/lib/finance/news.ts`, already reported as #88.
 - [x] `docs/STYLE_GUIDE.md` §3 has a Part VII block with the shrinkage symbols, and the outcome lists each with
   the clash it avoids.
   Evidence: the new heading `### Part VII: the factor zoo and shrinkage (Chapters 28–30)` with four rows:
@@ -39,7 +39,7 @@
   and $\ell_j$, or in words. The notation test in `npm test` passes, because the block names no macro.
 - [x] `git status --short` shows only `src/lib/finance/shrinkage.ts`, its test, `docs/STYLE_GUIDE.md` and this
   task's outcome file.
-  Evidence: VERIFY_STATUS.
+  Evidence: `git status --short` printed nothing after the build; `git diff --name-only origin/main...HEAD` lists exactly `docs/STYLE_GUIDE.md`, `goals/course-site/tasks/TASK-105.outcome.md`, `src/lib/finance/shrinkage.test.ts` and `src/lib/finance/shrinkage.ts`.
 
 ## Summary
 
@@ -100,7 +100,7 @@ not a bug: the formula is checked against the hand case and rotation invariance.
   uses a six-month, one-asset panel so that the fractions are exact. The repeated-call and rotation checks use
   the seeded panel.
 
-**Verified revision.** VERIFY_REV.
+**Verified revision.** `79f7499`, rebased on `origin/main` `5ef7bf4`. No other Part VII library task has merged yet, so this PR creates the Part VII block.
 
 **Proposed follow-ups.**
 - If TASK-108 shows the paper's pure out-of-sample test, add an option to `assetPanel` that estimates the
