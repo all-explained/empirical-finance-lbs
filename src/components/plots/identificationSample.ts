@@ -9,9 +9,6 @@ import { factorPanel, timeSeriesRegressions } from '../../lib/finance/timeSeries
 import { quantile, rejectionRate } from '../../lib/stats/stambaugh';
 import { quarterLabel, WINDOWS, type ConditionalData, type Window } from './conditionalSample';
 
-export { useConditionalData as useIdentificationData } from './conditionalSample';
-export type IdentificationData = ConditionalData;
-
 /** First month of the monthly panel; it runs to the end of the data. */
 export const START = '1963-07-01';
 export const USELESS_SEED = 1;
@@ -28,7 +25,7 @@ export interface MonthlySample {
 }
 
 /** The 25 size–B/M portfolios, monthly decimal excess returns from START, and the market's two-pass R². */
-export function monthlySample({ ff3, ff25 }: IdentificationData): MonthlySample {
+export function monthlySample({ ff3, ff25 }: ConditionalData): MonthlySample {
   const panel = factorPanel(ff3, ff25, { start: START, model: 'capm' });
   const { beta } = timeSeriesRegressions(panel.excess, panel.factors);
   const { r2 } = crossSectionalRegression(beta, sampleMeans(panel.excess), { intercept: true, weighting: 'ols' });
@@ -81,7 +78,7 @@ export interface ConsumptionSets {
 }
 
 /** The rank test, the 95% Wald sets and the 95% and 99% GRS-FAR sets for Δc on the quarterly 25 portfolios. */
-export function consumptionSets(data: IdentificationData, window: Window = 'full'): ConsumptionSets {
+export function consumptionSets(data: ConditionalData, window: Window = 'full'): ConsumptionSets {
   const panel = quarterlyPanel(data, WINDOWS[window]);
   return {
     first: quarterLabel(panel.dates[0]),

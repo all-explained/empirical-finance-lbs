@@ -392,7 +392,7 @@ Each chapter entry lists:
   $\Sigma^{-1}$ weights; for a traded factor, the restriction $\lambda = \mathbb{E}[f]$.
 - **Widgets:** `RandomFactorFit`: seeded factors that mix SMB, HML and noise, and the $R^2$ each one gets.
   `PCAExplorer` preset on the 25 portfolios.
-- **Data:** `ff25-size-bm-monthly`, `ff3-monthly`, simulated (seeded).
+- **Data:** `ff25-size-bm-monthly`, `ff30-industry-monthly`, `ff3-monthly`, simulated (seeded).
 - **Readings:** Lewellen, Nagel & Shanken (2010).
 - **Prereqs:** 6, 17.
 
@@ -1028,7 +1028,6 @@ simulated (seeded) data or the nearest listed dataset.
 | Data | Source | Chapters |
 |---|---|---|
 | Option-implied SVIX index | Ian Martin's website | 15 |
-| 30 or 49 industry portfolios | Kenneth French Data Library | 28 |
 | Published anomaly portfolios and signals | Open Source Asset Pricing (Chen & Zimmermann) | 21, 29, 30, 65 |
 | Firm characteristics panel | Open Source Asset Pricing, or CRSP/Compustat (licensed) | 32, 33 |
 | Cross-country consumption disasters | Barro–Ursúa macroeconomic data | 39 |

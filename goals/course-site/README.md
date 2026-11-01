@@ -163,6 +163,8 @@ flowchart TD
     TASK_099["TASK-099 Chapter 27: Identification: weak and useless factors"]
     TASK_100["TASK-100 Orchestrator reads Part VI and signs it off"]
     TASK_101["TASK-101 Raise the Vitest default timeout so load does not fail tests"]
+    TASK_110["TASK-110 Part VI prose and link fixes from the read-through (chapters 24, 26, 27)"]
+    TASK_111["TASK-111 Part VI widget cleanup: drop identification data aliases (chapter 27)"]
   end
   subgraph M_9["M-9 · Part VII: The factor zoo and shrinkage"]
     TASK_035["TASK-035 Plan: decompose M-9"]
@@ -319,6 +321,8 @@ flowchart TD
   TASK_097 --> TASK_100
   TASK_098 --> TASK_100
   TASK_099 --> TASK_100
+  TASK_110 --> TASK_100
+  TASK_111 --> TASK_100
   TASK_102 --> TASK_106
   TASK_103 --> TASK_106
   TASK_104 --> TASK_107

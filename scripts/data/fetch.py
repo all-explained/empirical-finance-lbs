@@ -613,6 +613,19 @@ def build_all(refresh: bool) -> list[dict]:
             refresh,
         ),
         french(
+            "30_Industry_Portfolios",
+            "ff30-industry-monthly",
+            "30 industry portfolios, value weighted",
+            [
+                "Food", "Beer", "Smoke", "Games", "Books", "Hshld", "Clths", "Hlth",
+                "Chems", "Txtls", "Cnstr", "Steel", "FabPr", "ElcEq", "Autos",
+                "Carry", "Mines", "Coal", "Oil", "Util", "Telcm", "Servs", "BusEq",
+                "Paper", "Trans", "Whlsl", "Rtail", "Meals", "Fin", "Other",
+            ],
+            refresh,
+            first_date="1926-07-01",
+        ),
+        french(
             "6_Portfolios_2x3",
             "ff6-size-bm-monthly",
             "6 size × book-to-market portfolios, value weighted",

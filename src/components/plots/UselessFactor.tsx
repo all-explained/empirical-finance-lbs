@@ -5,9 +5,10 @@ import { Button, Segmented, Slider } from '../ui/controls';
 import { RichText } from '../ui/Tex';
 import { WidgetFrame } from '../ui/WidgetFrame';
 import { useTweened } from './animation';
+import { useConditionalData } from './conditionalSample';
 import { extent, niceTicks } from './format';
 import {
-  monthlySample, T_CUTOFF, USELESS_SAMPLES, USELESS_SEED, useIdentificationData, uselessView, type UselessView,
+  monthlySample, T_CUTOFF, USELESS_SAMPLES, USELESS_SEED, uselessView, type UselessView,
 } from './identificationSample';
 import { Label, PlotFrame } from './PlotFrame';
 
@@ -39,7 +40,7 @@ interface Params { strength: number; seed: number }
  * the same portfolios. Strength 0 is a useless factor.
  */
 export default function UselessFactor({ initialStrength = 0 }: { initialStrength?: number }) {
-  const { data, failed } = useIdentificationData();
+  const { data, failed } = useConditionalData();
   const sample = useMemo(() => (data ? monthlySample(data) : null), [data]);
   const [params, setParams] = useState<Params>({ strength: initialStrength, seed: USELESS_SEED });
   const [kind, setKind] = useState<Kind>('fm');

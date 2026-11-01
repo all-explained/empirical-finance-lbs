@@ -40,7 +40,7 @@ are all small. At a bad guess some are large.
 GMM turns the four averages into one number, a weighted sum of their squares, and picks the pair that makes it
 smallest. The widget draws that number over a grid of guesses. Stronger shading means a smaller value. The lines
 are contours: each joins the guesses with the same value, like the height lines on a map. The dot labelled
-$\hat\theta$ is the lowest point, the estimate. The dot labelled $\theta_0$ is the truth.
+*minimum* is the lowest point, the estimate $\hat\theta$. The dot labelled $\theta_0$ is the truth.
 
 <GMMObjective client:visible />
 
@@ -240,8 +240,9 @@ $L = 0$ lags you get White's standard errors, and with $L > 0$ the Newey–West 
 
 **IV.** Suppose the error may be correlated with $x_t$, but a vector $z_t$ of **instruments** is not. Part V used
 $z_t$ for a state variable. Here it names the instruments, which work in a similar way: multiplying the error by
-$z_t$ creates more moment conditions, as a managed portfolio $z_tR^e_{i,t+1}$ creates more test assets.
-With $\dim z \ge \dim\beta$,
+$z_t$ creates more moment conditions, as a
+[managed portfolio](/empirical-finance-lbs/chapters/22-conditional-factor-models/) $z_tR^e_{i,t+1}$ creates more test
+assets. With $\dim z \ge \dim\beta$,
 
 $$
 g(x_t, \beta) = z_t\,(y_t - x_t'\beta), \qquad g_T(\beta) = \frac1T\big(Z'y - Z'X\beta\big).

@@ -51,6 +51,11 @@ export const seriesColumns = {
     'ME4-BM1', 'ME4-BM2', 'ME4-BM3', 'ME4-BM4', 'ME4-BM5',
     'ME5-BM1', 'ME5-BM2', 'ME5-BM3', 'ME5-BM4', 'ME5-BM5',
   ],
+  'ff30-industry-monthly': [
+    'Food', 'Beer', 'Smoke', 'Games', 'Books', 'Hshld', 'Clths', 'Hlth', 'Chems', 'Txtls',
+    'Cnstr', 'Steel', 'FabPr', 'ElcEq', 'Autos', 'Carry', 'Mines', 'Coal', 'Oil', 'Util',
+    'Telcm', 'Servs', 'BusEq', 'Paper', 'Trans', 'Whlsl', 'Rtail', 'Meals', 'Fin', 'Other',
+  ],
   'shiller-monthly': ['price', 'dividend', 'earnings', 'cpi', 'long_rate', 'cape'],
   'goyal-welch-annual': [
     'Index', 'D12', 'E12', 'b/m', 'tbl', 'AAA', 'BAA', 'lty', 'cay', 'ntis',

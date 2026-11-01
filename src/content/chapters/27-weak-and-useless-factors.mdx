@@ -77,8 +77,9 @@ the same means. That holds when the $N \times (K + 1)$ matrix $(\mathbf{1}, B)$ 
 $K + 1$.
 
 In the SDF form of Part VI, $M_t = 1 - b'\tilde f_t$ with $\tilde f_t = f_t - \bar f$, the moments are
-$\mathbb{E}[R^e] = \mathbb{E}[R^e\tilde f']\,b$. Chapter 26, *GMM for asset pricing models*, estimates $b$ from
-them. There, $b$ is identified when
+$\mathbb{E}[R^e] = \mathbb{E}[R^e\tilde f']\,b$.
+[Chapter 26](/empirical-finance-lbs/chapters/26-gmm-for-asset-pricing-models/), *GMM for asset pricing models*, estimates $b$
+from them. There, $b$ is identified when
 
 $$
 \operatorname{rank}\big(\mathbb{E}[\Ret{R^e}\Factor{\tilde f}']\big) = K .
@@ -206,8 +207,8 @@ does not reject at 5%, very large premia are accepted, and the set is **unbounde
 rays. KZ read an unbounded set as a sign of small betas (p. 528). If the model is rejected at every
 $\lambda^{\circ}$, the set is **empty**. For the market on the quarterly 25 portfolios, it is empty.
 
-The Wald set $\hat\lambda \pm 1.96\,\mathrm{se}$ is always bounded, so it can never give the right answer for
-weak betas: "almost anything". Its normal approximation fails when the betas are zero or close to it (KZ,
+The Wald set $\hat\lambda \pm 1.96\,\mathrm{se}$ is always bounded. With weak betas the right answer is "almost
+anything", so the Wald set is too narrow. Its normal approximation fails when the betas are zero or close to it (KZ,
 pp. 515–516).
 
 ## <span class="section-tag">Playground</span> Weak betas and consumption growth
