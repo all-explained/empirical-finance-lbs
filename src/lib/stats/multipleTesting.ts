@@ -20,7 +20,7 @@ export interface TestResult {
   /** One flag per test, in input order: true if its null is rejected (a discovery). */
   rejected: boolean[];
   count: number;
-  /** Smallest rejected |t|, read off the largest rejected p-value as Φ⁻¹(1 - p/2); null if none is rejected. */
+  /** Smallest rejected |t|, read off the largest rejected p-value as Φ⁻¹(1 - p/2); Infinity if that p is 0, null if none is rejected. */
   tCutoff: number | null;
 }
 
