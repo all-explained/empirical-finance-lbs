@@ -3,7 +3,7 @@ id: TASK-100
 title: Orchestrator reads Part VI and signs it off
 milestone: M-8
 state: approved
-depends_on: [TASK-096, TASK-097, TASK-098, TASK-099]
+depends_on: [TASK-096, TASK-097, TASK-098, TASK-099, TASK-110]
 delivery: pr
 kind: gate
 blocked: null
