@@ -19,7 +19,7 @@ import { Quiz } from '../../components/ui/Quiz';
 - **The linear SDF** ([Chapter 26](../26-gmm-for-asset-pricing-models/)). $\SDF{M_{t+1}} = 1 - b'\Factor{\tilde f_{t+1}}$
   with demeaned factors $\Factor{\tilde f_t} = \Factor{f_t} - \bar f$, and $\mathbb{E}[R^e] = \operatorname{Cov}(R^e, f')\,b$.
 - **Principal components** ([Chapter 6](../06-principal-components/)). $\Sigma = QLQ'$: the columns $q_j$ of $Q$ are
-  the directions, and $\ell_j$ is the variance along $q_j$, from largest to smallest.
+  the directions, and the diagonal matrix $L$ holds the variance $\ell_j$ along $q_j$, from largest to smallest.
 - **Why a good fit can mislead.** Chapter 28, "A skeptical look at asset pricing tests", shows how a model can fit
   average returns in sample and still say little.
 </Callout>
@@ -33,6 +33,11 @@ portfolio of Chapter 7. In those months it earned a Sharpe ratio of 1.84 a year.
 
 Then hold the same weights from January 2005 to August 2026. The Sharpe ratio falls to 0.82. Repeat the exercise
 with 108 published anomaly portfolios, and the drop is bigger still: 8.85 a year before 2005, and 2.18 after.
+
+One caveat. The betas that remove the market use all the months, the later ones too. For the 30 portfolios, so
+does the scale of each one. So the months after 2004 are not fully unseen. Kozak, Nagel & Santosh (2020, p. 290)
+estimate those betas on the earlier months only. We do not, so read the numbers after 2004 as a guide, not as a
+clean test.
 
 So here is the question. Asset pricing wants the stochastic discount factor, and with many factors the SDF
 coefficients are the tangency weights. If the estimate loses more than half its Sharpe ratio on new data, how
@@ -65,7 +70,7 @@ and 0.82 out of sample. Move it to $10^{-3}$. The in-sample Sharpe ratio falls t
 shrinkage. But the out-of-sample ratio falls too, to 0.55.</p>
 
 So on these 30 portfolios, shrinkage does not rescue the out-of-sample Sharpe ratio. Their average returns after
-2005 did not look like those before, and no estimate from the earlier months could know that.
+2005 did not look like those before, and shrinkage cannot correct a change of that kind.
 On the 108 anomalies the result is different. The same penalty of $10^{-3}$ raises the out-of-sample Sharpe
 ratio from 2.18 to 2.36. Shrinkage removes noise. It cannot create a premium that the later months do not have.
 
@@ -144,9 +149,9 @@ $$
 <details>
 <summary>The algebra: from the prior to the ridge</summary>
 
-Write $c = SR^2_{\text{prior}}/\operatorname{tr}\Sigma$. The prior is $\mu \sim N(0, c\Sigma^2)$ and the data
-say $\bar\mu \mid \mu \sim N(\mu, \Sigma/T)$. For two normal vectors like these, the posterior mean is the prior
-variance times the inverse of the total variance, times the data:
+Write $c = SR^2_{\text{prior}}/\operatorname{tr}\Sigma$, a constant here, not log consumption. The prior
+is $\mu \sim N(0, c\Sigma^2)$ and the data say $\bar\mu \mid \mu \sim N(\mu, \Sigma/T)$. For two normal vectors
+like these, the posterior mean is the prior variance times the inverse of the total variance, times the data:
 
 $$
 \mathbb{E}[\mu \mid \bar\mu] = c\Sigma^2\,\big(c\Sigma^2 + \Sigma/T\big)^{-1}\,\bar\mu.
@@ -250,7 +255,10 @@ returns in months it did not see. The benchmark is $\hat b = 0$, an SDF that pri
 $R^2_{OS}$, it can be negative.
 
 <Callout type="warning">The chosen penalty is itself an estimate. It comes from three blocks of one sample, and it
-would move with a different split. Treat the best $R^2_{CV}$ as optimistic, not as a promise.</Callout>
+would move with a different split. Treat the best $R^2_{CV}$ as optimistic, not as a promise. The withheld months
+are not fully unseen either: the betas that remove the market, and for the 30 FF portfolios the scale of each one,
+come from the whole sample. This leak affects every $R^2_{CV}$ and every Sharpe ratio after 2004 in this
+chapter.</Callout>
 
 ## <span class="section-tag">Playground</span> Shrink the SDF yourself
 
