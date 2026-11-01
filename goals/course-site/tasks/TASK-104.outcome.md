@@ -4,7 +4,7 @@
 
 - [x] Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX
   macro check.
-  Evidence: `npm test` on `625c7d7` (on `origin/main` `be4b470`): 61 files, 640 tests passed, exit 0, with
+  Evidence: `npm ci` then `npm test` on `cce2879` (on `origin/main` `a051159`): 61 files, 640 tests passed, exit 0, with
   `tests/notation.test.ts` green. `multipleTesting.test.ts` has 16 tests. Reference values per export:
   `pValues`: $t = \pm 1.96$ gives 0.05 to 1e-4, $t = 0$ gives 1.
   `bonferroni`, `holm`, `benjaminiHochberg`, `benjaminiHochbergYekutieli`: the ten $p$-values of Harvey, Liu &
@@ -27,7 +27,7 @@
   107 with $|t| > 3$; at $q = 0.05$ Bonferroni keeps 81 (cut-off $|t| = 3.643$), Holm 88 (3.453) and BHY 123
   (2.725). A separate Python script on the same JSON (stdlib only) gives the same numbers.
 - [x] `npm run build` passes (`astro check` reports 0 errors).
-  Evidence: `Result (186 files): - 0 errors`, `[build] Complete!`, exit 0, on `625c7d7`.
+  Evidence: `Result (186 files): - 0 errors - 0 warnings`, `28 page(s) built`, `[build] Complete!`, exit 0, on `cce2879`.
 - [x] `docs/STYLE_GUIDE.md` §3 has a Part VII block with the symbols for the number of tests and a $p$-value, and
   the outcome lists each with the clash it avoids.
   Evidence: the block "Part VII: the factor zoo and shrinkage (Chapters 28–30)" follows the Part VI block. Rows:
@@ -68,7 +68,7 @@ $2\Phi(-\text{cutoff})$.
 **Deviations.** `yekutieliConstant` is exported (and tested) so chapter 29 can print $c(n)$ without repeating the
 formula.
 
-**Verified revision.** `625c7d7` plus this file.
+**Verified revision.** `cce2879`; later commits touch only this file. At load averages of 30–100 (many parallel agents), `npm test` failed 13 times on 1–6 tests in other files (`chapter11`, `chapter14`, `chapter18` numbers tests and `cay.test.ts`), each with "Test timed out in 5000ms". With `--testTimeout=60000` all 640 passed; plain `npm test` passed once the load fell to 25. TASK-101 (PR #87) raises the default timeout.
 
 **Follow-ups.** Chapter 29 (TASK-107) must write the curriculum's $p_i \le \alpha/M$ and $M_0\,\alpha$ as
 $p_i \le q/n$ and $n_0$ times the test size; TASK-107's spec already asks for that.
