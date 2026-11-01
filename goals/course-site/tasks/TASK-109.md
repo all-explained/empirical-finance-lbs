@@ -3,7 +3,7 @@ id: TASK-109
 title: Orchestrator reads Part VII and signs it off
 milestone: M-9
 state: approved
-depends_on: [TASK-106, TASK-107, TASK-108, TASK-121, TASK-122]
+depends_on: [TASK-106, TASK-107, TASK-108, TASK-121, TASK-122, TASK-123]
 delivery: pr
 kind: gate
 route: {platform: claude, model: opus, effort: high}
