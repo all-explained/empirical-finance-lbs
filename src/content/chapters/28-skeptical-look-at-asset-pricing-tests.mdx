@@ -50,7 +50,9 @@ $R^2$ is high.
 
 The fit does not need the factor to be strong. A weak link with SMB and HML makes the betas small, but the second
 pass simply uses a larger premium $\lambda$ to stretch them. The $R^2$ only asks whether the points line up, not how
-large the slope is.
+large the slope is. Small betas are also the weak-factor problem of
+[Chapter 27](/empirical-finance-lbs/chapters/27-weak-and-useless-factors/): when they are small next to their sampling
+error, the premium is badly identified, yet the fit can still look good.
 
 Lewellen, Nagel & Shanken (2010), LNS below, make this argument. They write that a factor needs only a weak
 correlation with SMB or HML, and none with the small, idiosyncratic residuals of the portfolios (p. 2). Their page
@@ -80,12 +82,12 @@ returns only through $f_t$, so $\operatorname{Cov}(\varepsilon_t, f^{P\prime}_t)
 1. The covariance of the returns with the new factors is
    $\operatorname{Cov}(R^e, f^{P\prime}) = B\operatorname{Cov}(f, f^{P\prime}) + \operatorname{Cov}(\varepsilon, f^{P\prime}) = B\operatorname{Cov}(f, f^{P\prime})$.
 2. The betas on the new factors are that covariance times $\operatorname{Var}(f^P)^{-1}$:
-   $B_P = B\,Q$, with $Q = \operatorname{Cov}(f, f^{P\prime})\operatorname{Var}(f^P)^{-1}$, a $K \times K$ matrix.
-3. If the two sets of factors are correlated at all, $Q$ is invertible. Then
-   $\mathbb{E}[R^e] = B\lambda = B\,Q\,Q^{-1}\lambda = B_P\lambda_P$, with $\lambda_P = Q^{-1}\lambda$.
+   $B_P = B\,G$, with $G = \operatorname{Cov}(f, f^{P\prime})\operatorname{Var}(f^P)^{-1}$, a $K \times K$ matrix.
+3. If the two sets of factors are correlated at all, $G$ is invertible. Then
+   $\mathbb{E}[R^e] = B\lambda = B\,G\,G^{-1}\lambda = B_P\lambda_P$, with $\lambda_P = G^{-1}\lambda$.
 
 So expected returns are exactly linear in the new betas, and the population $R^2$ is 1. A weak correlation only
-makes $Q$ small and the premium $\lambda_P$ large. On the 25 portfolios, the market betas are all close to 1, so
+makes $G$ small and the premium $\lambda_P$ large. On the 25 portfolios, the market betas are all close to 1, so
 SMB and HML carry the cross-section, and two proposed factors are enough (LNS, fn. 1, p. 5). That is why the fake
 models of the Hook have two factors.
 
@@ -111,16 +113,16 @@ $\alpha'\Sigma^{-1}\alpha$. Its $R^2$ compares that minimum with what a constant
 $$
 \begin{aligned}
 R^2_{\text{GLS}} = 1 &- \Err{\hat\alpha}'\Sigma^{-1}\Err{\hat\alpha} \\
-&\big/ (\bar R^e - \mu_{\text{gmv}}\iota)'\Sigma^{-1}(\bar R^e - \mu_{\text{gmv}}\iota) ,
+&\big/ (\bar R^e - \mu_{\text{gmv}}\mathbf{1})'\Sigma^{-1}(\bar R^e - \mu_{\text{gmv}}\mathbf{1}) ,
 \end{aligned}
 $$
 
-where $\iota$ is the $N$-vector of ones and $\mu_{\text{gmv}} = \iota'\Sigma^{-1}\bar R^e / \iota'\Sigma^{-1}\iota$
+where $\mathbf{1}$ is the $N$-vector of ones and $\mu_{\text{gmv}} = \mathbf{1}'\Sigma^{-1}\bar R^e / \mathbf{1}'\Sigma^{-1}\mathbf{1}$
 is the mean excess return of the global minimum-variance portfolio. This $R^2$ has a clean reading in mean–variance
 terms (LNS, pp. 18–19, building on Kandel and Stambaugh). Measure Sharpe ratios against the zero-beta rate:
 $SR^2(\lambda_0) = (\mathbb{E}[R^e] - \lambda_0)^2/\sigma^2$, for a portfolio whose weights sum to one.
 
-1. For a portfolio $w$ with $\iota'w = 1$, write $\tilde\mu = \bar R^e - \lambda_0\iota$. Then
+1. For a portfolio $w$ with $\mathbf{1}'w = 1$, write $\tilde\mu = \bar R^e - \lambda_0\mathbf{1}$. Then
    $SR^2(\lambda_0) = (w'\tilde\mu)^2 / w'\Sigma w$.
 2. The highest value over all portfolios is $SR^2_{\text{tan}}(\lambda_0) = \tilde\mu'\Sigma^{-1}\tilde\mu$, reached at
    $w \propto \Sigma^{-1}\tilde\mu$, the tangency portfolio (proof in the box below).
@@ -133,7 +135,7 @@ $SR^2(\lambda_0) = (\mathbb{E}[R^e] - \lambda_0)^2/\sigma^2$, for a portfolio wh
    $\hat\alpha'\Sigma^{-1}\hat\alpha = SR^2_{\text{tan}}(\hat\lambda_0) - SR^2_f(\hat\lambda_0)$: the squared Sharpe
    ratio the model leaves on the table.
 6. With no factors, step 3 has no second term, and the best $\lambda_0$ minimises $\tilde\mu'\Sigma^{-1}\tilde\mu$. Setting its
-   derivative $-2\iota'\Sigma^{-1}(\bar R^e - \lambda_0\iota)$ to zero gives $\lambda_0 = \mu_{\text{gmv}}$. That is
+   derivative $-2\mathbf{1}'\Sigma^{-1}(\bar R^e - \lambda_0\mathbf{1})$ to zero gives $\lambda_0 = \mu_{\text{gmv}}$. That is
    the denominator.
 
 <details>
@@ -176,8 +178,9 @@ The model also says that $\lambda_0 = 0$, because these are excess returns. So $
 must equal the factor's mean excess return. A free second pass ignores this, and that is what lets the proposed
 factors fit. Take one true factor and one proposed factor $f^P_t$ that is a traded excess return (LNS, p. 6):
 
-1. From step 2 above, $Q = \operatorname{Cov}(f, f^P)/\operatorname{Var}(f^P)$, so the free premium is
-   $\lambda_P = \lambda/Q = \lambda\operatorname{Var}(f^P)/\operatorname{Cov}(f, f^P)$.
+1. With one factor of each kind, the matrix $G$ of the first list in this section is the number
+   $G = \operatorname{Cov}(f, f^P)/\operatorname{Var}(f^P)$, so the free premium is
+   $\lambda_P = \lambda/G = \lambda\operatorname{Var}(f^P)/\operatorname{Cov}(f, f^P)$.
 2. The true model prices $f^P$ too: $\mathbb{E}[f^P] = \lambda\operatorname{Cov}(f^P, f)/\operatorname{Var}(f)$.
 3. Divide step 1 by step 2:
    $\lambda_P/\mathbb{E}[f^P] = \operatorname{Var}(f)\operatorname{Var}(f^P)/\operatorname{Cov}(f, f^P)^2 = 1/\operatorname{corr}(f, f^P)^2$.
@@ -259,7 +262,7 @@ on the 55 assets, and on the 25 portfolios random factors come close to its high
   question="A proposed two-factor model touches the 25 portfolios only through their common factors, and its correlation with SMB and HML is weak. What does the second pass find in population?"
   options={["An $R^2$ of 1, with large premia $\\lambda_P$", "An $R^2$ near 0, because the correlation is weak", "An $R^2$ of 1, with premia equal to the factor means", "A zero-beta rate of exactly zero"]}
   answer={0}
-  explanation="The new betas are $B_P = BQ$, so expected returns are $B_P\lambda_P$ with $\lambda_P = Q^{-1}\lambda$. A weak correlation makes $Q$ small and $\lambda_P$ large, but the fit stays perfect."
+  explanation="The new betas are $B_P = BG$, so expected returns are $B_P\lambda_P$ with $\lambda_P = G^{-1}\lambda$. A weak correlation makes $G$ small and $\lambda_P$ large, but the fit stays perfect."
 />
 
 <Quiz
