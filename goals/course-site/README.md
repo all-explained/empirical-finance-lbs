@@ -182,6 +182,7 @@ flowchart TD
     TASK_124["TASK-124 Library: re-estimate assetPanel betas on the pre-2005 window (chapter 30)"]
   end
   subgraph M_10["M-10 · Part VIII: Latent factors and large cross-sections"]
+    DEC_003{{"DEC-003 Add a `factors` option to simulateOmittedFactor (then resume to add the PC slider), or ship the widget without it?"}}
     TASK_036["TASK-036 Plan: decompose M-10"]
     TASK_112["TASK-112 Library: PCA factors, rotations, canonical correlations and latent-factor risk premia"]
     TASK_113["TASK-113 Library: instrumented PCA by alternating least squares, managed portfolios and the alpha test"]
@@ -352,6 +353,7 @@ flowchart TD
   TASK_113 --> TASK_117
   TASK_114 --> TASK_118
   TASK_115 --> TASK_119
+  DEC_003 --> TASK_119
   TASK_116 --> TASK_120
   TASK_117 --> TASK_120
   TASK_118 --> TASK_120
@@ -372,6 +374,7 @@ flowchart TD
   class TASK_092 cancelled
   class DEC_001 decision
   class DEC_002 decision
+  class DEC_003 decision
 ```
 <!-- goal:graph:end -->
 

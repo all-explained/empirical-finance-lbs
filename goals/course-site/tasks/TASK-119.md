@@ -3,7 +3,7 @@ id: TASK-119
 title: 'Chapter 34: Risk premia with omitted factors'
 milestone: M-10
 state: approved
-depends_on: [TASK-115]
+depends_on: [TASK-115, DEC-003]
 delivery: pr
 route: {platform: claude, model: opus, effort: high}
 ---
