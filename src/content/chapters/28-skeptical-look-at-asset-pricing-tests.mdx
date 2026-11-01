@@ -1,0 +1,297 @@
+---
+title: "A skeptical look at asset pricing tests"
+part: 7
+chapter: 28
+difficulty: 3
+prerequisites: [6, 17]
+summary: "The 25 size–value portfolios have so strong a factor structure that almost any factor correlated with SMB and HML fits them, so test models on more assets, price traded factors, report the GLS R² and give R² a confidence interval."
+---
+
+import PCAExplorer from '../../components/plots/PCAExplorer';
+import RandomFactorFit from '../../components/plots/RandomFactorFit';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> A model made of noise fits almost as well
+
+Take the 25 portfolios sorted on size and book-to-market, monthly, from 1963-07 to 2026-08: 758 months of Kenneth
+French's data. Run the two-pass regression of
+[Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/) with an intercept.
+The Fama–French three-factor model (FF3) gets a cross-sectional $R^2$ of 0.663. The CAPM gets 0.078. That gap is
+the usual case for FF3.
+
+Now build a fake model. Each of its two factors is a random mix of SMB and HML, the size and value factors of
+[Chapter 19](/empirical-finance-lbs/chapters/19-size-and-value/), plus noise. The noise is three quarters of the
+factor's variance, so the factor is mostly noise. Draw 200 such models with a fixed seed and run the same two-pass
+regression on each. The median $R^2$ is 0.613. In 87.5% of the draws, the fake model explains more than half of the
+spread in average returns.
+
+None of these factors was built to explain anything. So, **if a model made of noise fits the 25 portfolios almost as
+well as FF3, what does a high $R^2$ on them prove?**
+
+## <span class="section-tag">Intuition</span> Few directions, so every factor lines up
+
+[Chapter 6](/empirical-finance-lbs/chapters/06-principal-components/) showed that the 25 portfolios move in very few
+directions. The widget below opens on their scree plot from July 1963. The first principal component carries 83.2%
+of the variance, the second 6.3% and the third 3.5%. Three directions carry almost everything, and they are close
+to the market, size and value.
+
+<PCAExplorer client:visible initialPreset="ff25-1963" initialView="scree" />
+
+<p class="try-this"><strong>Try this:</strong> switch to "loadings". Component 1 loads with the same sign on every
+portfolio, like the market. Components 2 and 3 tilt small against big and growth against value, like SMB and
+HML.</p>
+
+Now think about a new factor and its betas. A beta is a covariance with the factor, scaled. The portfolios differ
+from each other almost only through the three common directions. So any factor that moves with those directions,
+even weakly, gives the 25 portfolios betas that follow the same pattern as their betas on SMB and HML. The average
+returns follow that pattern too: that is why FF3 fits. So the new betas line up with the average returns, and the
+$R^2$ is high.
+
+The fit does not need the factor to be strong. A weak link with SMB and HML makes the betas small, but the second
+pass simply uses a larger premium $\lambda$ to stretch them. The $R^2$ only asks whether the points line up, not how
+large the slope is.
+
+Lewellen, Nagel & Shanken (2010), LNS below, make this argument. They write that a factor needs only a weak
+correlation with SMB or HML, and none with the small, idiosyncratic residuals of the portfolios (p. 2). Their page
+numbers are those of the 2006 NBER working paper.
+
+<Callout type="key">The 25 portfolios have a few strong common directions. Any factor that touches those directions
+gets betas that line up with the average returns, so a high cross-sectional $R^2$ on these portfolios is a low
+hurdle.</Callout>
+
+## <span class="section-tag">Formalisation</span> Why the fit is easy, and four fixes
+
+### Expected returns are linear in almost any betas
+
+Let a true model with $K$ factors $\Factor{f_t}$ price the $N$ assets. Write the returns as
+
+$$
+\begin{aligned}
+\Ret{R^e_t} &= \mathbb{E}[R^e] + B(\Factor{f_t} - \mathbb{E}f) + \Err{\varepsilon_t}, \\
+\mathbb{E}[R^e] &= B\lambda ,
+\end{aligned}
+$$
+
+where row $i$ of the $N \times K$ matrix $B$ is $\beta_i'$, and $\varepsilon_t$ is uncorrelated with $f_t$. A
+researcher proposes $K$ other factors $\Factor{f^P_t}$ ($P$ for "proposed"). Assume they are correlated with the
+returns only through $f_t$, so $\operatorname{Cov}(\varepsilon_t, f^{P\prime}_t) = 0$ (LNS, Observation 1, p. 5).
+
+1. The covariance of the returns with the new factors is
+   $\operatorname{Cov}(R^e, f^{P\prime}) = B\operatorname{Cov}(f, f^{P\prime}) + \operatorname{Cov}(\varepsilon, f^{P\prime}) = B\operatorname{Cov}(f, f^{P\prime})$.
+2. The betas on the new factors are that covariance times $\operatorname{Var}(f^P)^{-1}$:
+   $B_P = B\,Q$, with $Q = \operatorname{Cov}(f, f^{P\prime})\operatorname{Var}(f^P)^{-1}$, a $K \times K$ matrix.
+3. If the two sets of factors are correlated at all, $Q$ is invertible. Then
+   $\mathbb{E}[R^e] = B\lambda = B\,Q\,Q^{-1}\lambda = B_P\lambda_P$, with $\lambda_P = Q^{-1}\lambda$.
+
+So expected returns are exactly linear in the new betas, and the population $R^2$ is 1. A weak correlation only
+makes $Q$ small and the premium $\lambda_P$ large. On the 25 portfolios, the market betas are all close to 1, so
+SMB and HML carry the cross-section, and two proposed factors are enough (LNS, fn. 1, p. 5). That is why the fake
+models of the Hook have two factors.
+
+### The OLS cross-sectional $R^2$
+
+The second pass regresses the $N$ average excess returns on a constant and the estimated betas,
+$\bar R^e_i = \lambda_0 + \hat\beta_i'\lambda + \alpha_i$. Its $R^2$ compares the squared pricing errors with the
+spread of the average returns around their cross-sectional mean $\bar{\bar R}^e = \tfrac1N\sum_i \bar R^e_i$:
+
+$$
+R^2_{\text{OLS}} = 1 - \frac{\sum_i \Err{\hat\alpha_i}^2}{\sum_i \big(\Data{\bar R^e_i} - \bar{\bar R}^e\big)^2} .
+$$
+
+It counts every asset equally. A noisy portfolio and a quiet one get the same weight, and the $R^2$ does not ask
+whether the premia make economic sense.
+
+### The GLS $R^2$ and the mean–variance frontier
+
+GLS, as in Chapter 17, weights the pricing errors by $\Sigma^{-1}$, the inverse covariance matrix of the returns
+(here the sample one, with divisor $T$). It chooses $\lambda_0$ and $\lambda$ to minimise
+$\alpha'\Sigma^{-1}\alpha$. Its $R^2$ compares that minimum with what a constant alone leaves:
+
+$$
+\begin{aligned}
+R^2_{\text{GLS}} = 1 &- \Err{\hat\alpha}'\Sigma^{-1}\Err{\hat\alpha} \\
+&\big/ (\bar R^e - \mu_{\text{gmv}}\iota)'\Sigma^{-1}(\bar R^e - \mu_{\text{gmv}}\iota) ,
+\end{aligned}
+$$
+
+where $\iota$ is the $N$-vector of ones and $\mu_{\text{gmv}} = \iota'\Sigma^{-1}\bar R^e / \iota'\Sigma^{-1}\iota$
+is the mean excess return of the global minimum-variance portfolio. This $R^2$ has a clean reading in mean–variance
+terms (LNS, pp. 18–19, building on Kandel and Stambaugh). Measure Sharpe ratios against the zero-beta rate:
+$SR^2(\lambda_0) = (\mathbb{E}[R^e] - \lambda_0)^2/\sigma^2$, for a portfolio whose weights sum to one.
+
+1. For a portfolio $w$ with $\iota'w = 1$, write $\tilde\mu = \bar R^e - \lambda_0\iota$. Then
+   $SR^2(\lambda_0) = (w'\tilde\mu)^2 / w'\Sigma w$.
+2. The highest value over all portfolios is $SR^2_{\text{tan}}(\lambda_0) = \tilde\mu'\Sigma^{-1}\tilde\mu$, reached at
+   $w \propto \Sigma^{-1}\tilde\mu$, the tangency portfolio (proof in the box below).
+3. Fix $\lambda_0$ and choose $\lambda$. The GLS minimum of $(\tilde\mu - \hat\beta\lambda)'\Sigma^{-1}(\tilde\mu - \hat\beta\lambda)$ is
+   $\tilde\mu'\Sigma^{-1}\tilde\mu - \tilde\mu'\Sigma^{-1}\hat\beta(\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}\tilde\mu$.
+4. The second term is $SR^2_f(\lambda_0)$, the highest squared Sharpe ratio among the factors' mimicking
+   portfolios: the portfolios $w = \Sigma^{-1}\hat\beta\vartheta$, whose covariances with the assets, $\Sigma w = \hat\beta\vartheta$,
+   are combinations of the betas.
+5. So at the GLS zero-beta rate $\hat\lambda_0$, the numerator is
+   $\hat\alpha'\Sigma^{-1}\hat\alpha = SR^2_{\text{tan}}(\hat\lambda_0) - SR^2_f(\hat\lambda_0)$: the squared Sharpe
+   ratio the model leaves on the table.
+6. With no factors, step 3 has no second term, and the best $\lambda_0$ minimises $\tilde\mu'\Sigma^{-1}\tilde\mu$. Setting its
+   derivative $-2\iota'\Sigma^{-1}(\bar R^e - \lambda_0\iota)$ to zero gives $\lambda_0 = \mu_{\text{gmv}}$. That is
+   the denominator.
+
+<details>
+<summary>The algebra of steps 2 to 4</summary>
+
+Step 2. Put $\tilde w = \Sigma^{1/2}w$. Then $(w'\tilde\mu)^2 = \big(\tilde w'\Sigma^{-1/2}\tilde\mu \big)^2 \le (\tilde w'\tilde w)(\tilde\mu'\Sigma^{-1}\tilde\mu)$ by the
+Cauchy–Schwarz inequality, and $\tilde w'\tilde w = w'\Sigma w$. So $(w'\tilde\mu)^2/w'\Sigma w \le \tilde\mu'\Sigma^{-1}\tilde\mu$, with equality when
+$\tilde w \propto \Sigma^{-1/2}\tilde\mu$, that is $w \propto \Sigma^{-1}\tilde\mu$. The ratio does not change when $w$ is rescaled, so
+the bound holds for weights that sum to one.
+
+Step 3. The GLS slope is $\hat\lambda = (\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}\tilde\mu$. Expand the
+quadratic at $\hat\lambda$: the cross term is $-2\hat\lambda'\hat\beta'\Sigma^{-1}\tilde\mu$ and the square term is
+$\hat\lambda'\hat\beta'\Sigma^{-1}\hat\beta\hat\lambda = \hat\lambda'\hat\beta'\Sigma^{-1}\tilde\mu$. Together they give
+$-\tilde\mu'\Sigma^{-1}\hat\beta(\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}\tilde\mu$.
+
+Step 4. For $w = \Sigma^{-1}\hat\beta\vartheta$, $w'\tilde\mu = \vartheta'\hat\beta'\Sigma^{-1}\tilde\mu$ and
+$w'\Sigma w = \vartheta'\hat\beta'\Sigma^{-1}\hat\beta\vartheta$. Apply step 2 to the vector $\vartheta$, with
+$\hat\beta'\Sigma^{-1}\hat\beta$ in place of $\Sigma$ and $\hat\beta'\Sigma^{-1}\tilde\mu$ in place of $\tilde\mu$. The highest
+value is the second term of step 3.
+
+</details>
+
+So $R^2_{\text{GLS}}$ measures how close the model's mimicking portfolios come to the mean–variance frontier. It is
+1 only if some mix of them sits on the frontier, and 0 if they do no better than a constant. The OLS $R^2$ has no
+such link. A random mix of SMB,
+HML and noise can line its betas up with the average returns and still have mimicking portfolios far from the
+frontier. LNS find population GLS $R^2$s far below the OLS ones for artificial factors (Figure 4, pp. 19–20).
+
+### Traded factors must price themselves
+
+When a factor $f_{k,t}$ is itself an excess return, like the market, SMB or HML, the model must also price it. In a
+regression on all $K$ factors, the beta of $f_k$ is 1 on itself and 0 on the others. Put the factor into
+$\mathbb{E}[R^e_i] = \lambda_0 + \beta_i'\lambda$:
+
+$$
+\mathbb{E}[\Factor{f_k}] = \lambda_0 + \lambda_k .
+$$
+
+The model also says that $\lambda_0 = 0$, because these are excess returns. So $\lambda = \mathbb{E}[f]$: each premium
+must equal the factor's mean excess return. A free second pass ignores this, and that is what lets the proposed
+factors fit. Take one true factor and one proposed factor $f^P_t$ that is a traded excess return (LNS, p. 6):
+
+1. From step 2 above, $Q = \operatorname{Cov}(f, f^P)/\operatorname{Var}(f^P)$, so the free premium is
+   $\lambda_P = \lambda/Q = \lambda\operatorname{Var}(f^P)/\operatorname{Cov}(f, f^P)$.
+2. The true model prices $f^P$ too: $\mathbb{E}[f^P] = \lambda\operatorname{Cov}(f^P, f)/\operatorname{Var}(f)$.
+3. Divide step 1 by step 2:
+   $\lambda_P/\mathbb{E}[f^P] = \operatorname{Var}(f)\operatorname{Var}(f^P)/\operatorname{Cov}(f, f^P)^2 = 1/\operatorname{corr}(f, f^P)^2$.
+
+So the free premium is larger than the factor's mean unless the correlation is 1. The restriction
+$\lambda_P = \mathbb{E}[f^P]$ would reject every proposed factor that is not the true one. Following LNS
+(Prescription 4, p. 21), we add the factors to the test assets and test $\hat\lambda - \bar f = 0$ and
+$\hat\lambda_0 = 0$.
+
+The standard errors come from the monthly slopes, as in Fama–MacBeth. Under the restriction, the month-$t$ slope
+minus the factor's own return, $\hat\lambda_t - f_t$, is a fixed mix of that month's residuals $\varepsilon_t$: the
+factor shock cancels. The betas are estimated, so we scale the standard errors by $\sqrt{1 + \zeta}$, the Shanken
+correction of [Chapter 18](/empirical-finance-lbs/chapters/18-errors-in-variables-and-shanken/), with
+$\zeta = \bar f'\Sigma_f^{-1}\bar f$.
+
+### A confidence interval for $R^2$
+
+A sample $R^2$ is one draw from a wide sampling distribution. To see its spread, we bootstrap months: draw $T$
+months with replacement, keep each month's returns and factors together, rerun both passes and record the $R^2$.
+Repeat 100 times with a fixed seed. The 95% interval runs from the 2.5th to the 97.5th percentile of the 100 values.
+
+This interval is centred on the sample $R^2$, which is biased up (LNS, p. 21). So read it as the sampling spread,
+not as a range for the true $R^2$. LNS go one step further. They simulate the sample $R^2$ for each candidate true
+$R^2$ and keep the true values that could have produced the one they see (pp. 21–22).
+
+## <span class="section-tag">Playground</span> Random factors against FF3
+
+Each draw of the widget builds two factors, $\Factor{f_{k,t}} = \sqrt{1 - s}\,\text{mix}_{k,t} + \sqrt{s}\,\text{noise}_{k,t}$. Here
+the mix is a random mix of SMB and HML, standardised, and the noise is fresh standard normal noise. The slider sets the noise
+share $s$. At $s = 0.75$, the default, each factor has a time-series $R^2$ of 0.25 on its SMB–HML mix, as in LNS's
+noisy factors (p. 13). The bars show the $R^2$ of 200 draws; the lines mark the CAPM and FF3 on the same assets.
+
+<RandomFactorFit client:visible />
+
+<p class="try-this"><strong>Try this:</strong> drag the noise share to 1. Now the factors are pure noise, the
+useless factors of [Chapter 27](/empirical-finance-lbs/chapters/27-weak-and-useless-factors/), and the median OLS
+$R^2$ falls to 0.232. Back at 0.75, switch to the GLS $R^2$. FF3 falls to 0.204, and the median draw to 0.120.
+Then add the 30 industries.</p>
+
+With the 30 industry portfolios added, there are 55 test assets (LNS, Prescription 1, p. 15). At $s = 0.75$, the
+median OLS $R^2$ of the draws falls from 0.613 to 0.192. But FF3 falls too, from 0.663 to 0.221, and 23.5% of the
+draws now beat it. The industries do not move with SMB and HML, so neither the fake factors nor FF3 can explain
+them.
+
+### What our data show
+
+The table applies the fixes to the CAPM and FF3, monthly, 1963-07 to 2026-08. Each $R^2$ has its 95% bootstrap
+interval. The zero-beta rate $\hat\lambda_0$ comes from the test with the factors among the assets. It is in
+percent a year (monthly times 12), with its Shanken $t$-statistic in brackets.
+
+| Model, assets | $R^2_{\text{OLS}}$ | $R^2_{\text{GLS}}$ | Zero-beta rate (t-stat) |
+|---|---|---|---|
+| CAPM, 25 | 0.078 [0.000, 0.536] | 0.061 [0.001, 0.159] | 13.3% (3.00) |
+| FF3, 25 | 0.663 [0.367, 0.838] | 0.204 [0.057, 0.340] | 0.6% (2.76) |
+| CAPM, 55 | 0.005 [0.000, 0.202] | 0.011 [0.000, 0.048] | 7.7% (2.90) |
+| FF3, 55 | 0.221 [0.035, 0.479] | 0.076 [0.021, 0.143] | 3.6% (3.82) |
+
+Plainly, the four fixes say this.
+
+1. **More assets.** With the industries, FF3's $R^2$ falls from 0.663 to 0.221, and its interval reaches down to
+   0.035.
+2. **Traded factors.** On the 25 portfolios, the CAPM's premium is $-3.9\%$ a year, against a market mean of 7.2%:
+   a gap of $-11.1\%$ with $t = -2.54$. FF3's premia are close to the factor means, with gaps of $-0.9\%$, $-0.2\%$
+   and $0.4\%$ a year. The market gap is small but precise ($t = -2.72$); the others are not significant ($t$ of
+   $-0.65$ and $1.55$). On the 55 assets, the gaps grow to $-3.3\%$, $-0.8\%$ and $-1.7\%$ ($t$ of $-3.60$, $-2.13$
+   and $-3.59$). Every $\hat\lambda_0$ in the table is more than two standard errors from zero.
+3. **GLS.** FF3's $R^2_{\text{GLS}}$ is 0.204 on the 25 portfolios and 0.076 on the 55: its mimicking portfolios stay
+   far from the frontier.
+4. **Intervals.** The CAPM's interval on the 25 portfolios runs from 0.000 to 0.536, and FF3's from 0.367 to 0.838.
+   One sample $R^2$ says little.
+
+FF3 beats the CAPM on every line. But no line says that FF3 prices these assets: its premia and zero-beta rate fail
+on the 55 assets, and on the 25 portfolios random factors come close to its high $R^2$.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A proposed two-factor model touches the 25 portfolios only through their common factors, and its correlation with SMB and HML is weak. What does the second pass find in population?"
+  options={["An $R^2$ of 1, with large premia $\\lambda_P$", "An $R^2$ near 0, because the correlation is weak", "An $R^2$ of 1, with premia equal to the factor means", "A zero-beta rate of exactly zero"]}
+  answer={0}
+  explanation="The new betas are $B_P = BQ$, so expected returns are $B_P\lambda_P$ with $\lambda_P = Q^{-1}\lambda$. A weak correlation makes $Q$ small and $\lambda_P$ large, but the fit stays perfect."
+/>
+
+<Quiz
+  client:visible
+  question="On the 25 portfolios, with the market among the test assets, the CAPM's second pass gives a market premium of $-3.9\%$ a year. The market's mean excess return is 7.2% a year. What does this say?"
+  options={["The restriction $\\lambda = \\mathbb{E}[f]$ fails, which is evidence against the CAPM", "The market premium is negative", "The OLS $R^2$ is too low to say anything", "Nothing: the second pass may choose any slope"]}
+  answer={0}
+  explanation="A traded factor must price itself, so its premium should equal its mean. The gap of $-11.1\%$ a year has a Shanken $t$ of $-2.54$."
+/>
+
+<Quiz
+  client:visible
+  question="Why is a high GLS $R^2$ a harder hurdle than a high OLS $R^2$?"
+  options={["It is high only if the factors' mimicking portfolios come close to the highest Sharpe ratio among the test assets", "It uses more test assets", "It ignores the zero-beta rate", "It is always lower, by construction"]}
+  answer={0}
+  explanation="The GLS pricing errors leave $SR^2_{\text{tan}}(\hat\lambda_0) - SR^2_f(\hat\lambda_0)$ unexplained. Betas that only line up with the means are not enough; the mimicking portfolios must sit near the frontier."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- The 25 size–value portfolios move in few directions. Any factor that touches them, even weakly, has betas that
+  line up with the average returns, so a high $R^2$ on them is a low hurdle.
+- On our data, two-factor models of SMB, HML and 75% noise have a median OLS $R^2$ of 0.613, against FF3's 0.663.
+- Four fixes make the test harder: add other assets, ask traded factors to price themselves ($\lambda = \mathbb{E}[f]$,
+  $\lambda_0 = 0$), report $R^2_{\text{GLS}}$, which measures distance to the frontier, and give $R^2$ an interval.
+- With these fixes, FF3 is better than the CAPM but still rejected: its premia drift from the factor means on 55
+  assets, and its zero-beta rates are not zero.
+
+**Next up:** Chapter 29, *Multiple testing*, asks what happens when hundreds of researchers try hundreds of
+factors, and how high a $t$-statistic must be before you believe one. Chapter 30, *Shrinking the cross-section*,
+then estimates many factor premia at once.
+
+### Further reading
+
+- Lewellen, Nagel & Shanken (2010)
