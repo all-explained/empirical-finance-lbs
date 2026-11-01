@@ -181,6 +181,15 @@ The parameter vector $\theta$ and the statistic $J$ are in the Probability and s
 | $\delta_{\text{HJ}}$ | — | Hansen–Jagannathan distance, $\delta_{\text{HJ}} = \sqrt{g_T'\,\mathbb{E}_T[RR']^{-1}g_T}$. It always keeps its subscript, so it never reads as the time-discount factor $\delta$ |
 | $\lambda^{\circ}$ | — | A hypothesised value of the risk premia $\lambda$, tested by the GRS-FAR statistic and collected into a confidence set (Chapter 27). Not $\lambda_0$, which is the zero-beta rate of Chapter 17 |
 
+### Part VII: the factor zoo and shrinkage (Chapters 28–30)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $\nu_2$, $\nu_1$ | — | L2 and L1 penalties of the shrinkage SDF estimates (Chapter 30): the ridge estimate is $\hat b = (\Sigma + \nu_2 I)^{-1}\bar\mu$, and the elastic net minimises $(\bar\mu - \Sigma b)'\Sigma^{-1}(\bar\mu - \Sigma b) + \nu_2 b'b + \nu_1\sum_i\lvert b_i\rvert$. Kozak, Nagel & Santosh (2020) write $\gamma$, $\gamma_2$, $\gamma_1$; here $\gamma$ is risk aversion. Each $\nu$ always carries its subscript |
+| $SR_{\text{prior}}$ | — | Prior scale (Chapter 30): the root expected maximum squared Sharpe ratio under the prior, $SR^2_{\text{prior}} = \mathbb{E}[\mu'\Sigma^{-1}\mu]$. It sets $\nu_2 = \operatorname{tr}\Sigma/(SR^2_{\text{prior}}\,T)$. The paper writes $\kappa$, a Campbell–Shiller constant here, and $\tau$ for $\operatorname{tr}\Sigma$, the option life here |
+| $R^2_{CV}$ | — | Cross-validated cross-sectional $R^2$ (Chapter 30): the mean over folds of $1 - \lVert\bar\mu_{\text{out}} - \Sigma_{\text{out}}\hat b\rVert^2/\lVert\bar\mu_{\text{out}}\rVert^2$, with $\bar\mu_{\text{out}}$ and $\Sigma_{\text{out}}$ from the withheld fold and $\hat b$ from the others. Not $R^2_{OS}$, the forecast $R^2$ of Chapter 13 |
+| $K_{CV}$ | — | Number of folds in the cross-validation, each a block of consecutive months; 3, as in the paper. Bare $K$ is the number of factors |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |
