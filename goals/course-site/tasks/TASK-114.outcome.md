@@ -38,7 +38,14 @@
   that ruled out $c$ or $g$ "as a slope on characteristics" ($\zeta$, $g(x_t,\theta)$, $c$ (prior)) lost that
   clause, since neither letter is a slope now.
 - [x] `git status --short` shows only `src/lib/finance/mimicking.ts`, its test, `docs/STYLE_GUIDE.md` and this
-  outcome file. Evidence: see the PR description for the final `git status --short` before commit.
+  outcome file. Evidence: before the first commit, `git status --short` printed ` M docs/STYLE_GUIDE.md` and `??`
+  for `goals/course-site/tasks/TASK-114.outcome.md`, `src/lib/finance/mimicking.test.ts` and
+  `src/lib/finance/mimicking.ts`. After the commit, `git status --short` prints nothing (exit 0), and
+  `git diff --name-only origin/main...HEAD` lists exactly those four files.
+
+Verified revision: `aada72b`, rebased on `origin/main` `e8857a0`. The run was `npm ci` (exit 0), `npm test`
+(`Test Files 67 passed (67)`, `Tests 707 passed (707)`), `npm run build` (exit 0, `Result (202 files): 0 errors,
+0 warnings, 1 hint`, `31 page(s) built`), `git status --short` (empty, exit 0).
 
 ## Pinned values on the committed data
 
