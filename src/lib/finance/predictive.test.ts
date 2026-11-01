@@ -187,7 +187,7 @@ describe('AR(1) horizon model', () => {
     }
     // Absolute tolerance 0.003: at most 7.5% of b1, across 200 independent 8000-month samples.
     means.forEach((mean, j) => expect(Math.abs(mean - impliedHorizonSlope(0.04, 0.8, horizons[j]))).toBeLessThan(0.003));
-  }, 15_000);
+  });
 
   it.each([
     { T: 0 }, { T: 1.5 }, { phi: 1 }, { phi: -1 }, { sigmaR: -1 },
