@@ -1,13 +1,13 @@
 # TASK-100 outcome: Orchestrator reads Part VI and signs it off
 
-Verified revision: `origin/main` at `f3e9813` (it contains the merges of TASK-096 to TASK-099 and of TASK-101).
+Verified revision: `origin/main` at `9da048e` (it contains the merges of TASK-096 to TASK-099 and of TASK-101).
 
 ## Acceptance
 
 - [x] `npm test` and `npm run build` pass on merged `main`; `astro check` reports 0 errors, 0 warnings.
-  Evidence, tests: `npm ci` exit 0; `npm test` exit 0, "Test Files 61 passed (61)", "Tests 637 passed (637)", 27.5 s.
+  Evidence, tests: `npm ci` exit 0; `npm test` exit 0, "Test Files 62 passed (62)", "Tests 654 passed (654)".
   `vitest.config.ts` (TASK-101) sets `testTimeout` to 30000, so the 5 s timeouts of earlier runs do not occur.
-  Evidence, build: `npm run build` exit 0, "Result (187 files): 0 errors, 0 warnings, 1 hint", "28 page(s) built", "Complete!".
+  Evidence, build: `npm run build` exit 0, "Result (189 files): 0 errors, 0 warnings, 1 hint", "28 page(s) built", "Complete!".
   The hint is `'Matrix' is declared but its value is never read` in `src/lib/finance/news.ts`, outside Part VI.
 - [x] `npm run screenshots` and `npm run clickthrough` pass for chapters 24 to 27.
   Evidence, screenshots: exit 0 for each of the four chapters, with ✓ for dark-desktop, dark-phone, light-desktop and
