@@ -4,7 +4,7 @@
 
 - [x] Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX
   macro check.
-  Evidence: after `npm ci`, `npm test` printed `TEST_FILES`, `TESTS`; this includes `tests/notation.test.ts`.
+  Evidence: after `npm ci`, `npm test` printed `Test Files 70 passed (70)`, `Tests 752 passed (752)`; this includes `tests/notation.test.ts`.
   `src/lib/finance/threePass.test.ts` has 15 tests:
   - `threePass`: equals eq. 8 written out by hand (V̂ from the T × T matrix R̃R̃' of eq. 7, β̂ = T⁻¹R̃V̂') on a seeded
     T = 60, N = 8 panel to 1e-12; with `zeroBeta` equals eq. 9 by hand (λ̂_0 and λ̂_χ, with M_β̂ and M_ι) to 1e-12;
@@ -18,7 +18,9 @@
     equal to the factor volatility the same bands hold for the attenuation bias. The band is three standard
     errors of a mean over 100 samples (0.04/√300/√100 = 0.023%). These tests have a 60 s timeout (issue #67).
 - [x] `npm run build` passes (`astro check` reports 0 errors).
-  Evidence: `BUILD`.
+  Evidence: `npm run build` exited 0 (`31 page(s) built`, `Complete!`); `astro check` printed
+  `Result (208 files): 0 errors, 0 warnings, 1 hint`. The hint is the unused import in `src/lib/finance/news.ts`,
+  outside this task and already reported as #88.
 - [x] `docs/STYLE_GUIDE.md` §3 has the three-pass symbols in the Part VIII block, each with the clash it avoids:
 
   | Symbol | Replaces | Clash it avoids |
@@ -32,9 +34,15 @@
 
   The code keeps the clashing letters out of its names: `betaChi`, `lambda`, `se`, no `eta`, `gamma` or `g`.
 - [x] `git status --short` shows only `src/lib/finance/threePass.ts`, its test, `docs/STYLE_GUIDE.md` and this
-  outcome file. Evidence: STATUS
+  outcome file. Evidence: before the first commit, `git status --short` printed ` M docs/STYLE_GUIDE.md` and `??`
+  for `goals/course-site/tasks/TASK-115.outcome.md`, `src/lib/finance/threePass.test.ts` and
+  `src/lib/finance/threePass.ts`. After the commit it prints nothing (exit 0), and
+  `git diff --name-only origin/main...HEAD` lists exactly those four files.
 
-VERIFIED
+Verified revision: `ac3dc4f`, rebased on `origin/main` `27bf5a5`. The run was `npm ci` (exit 0), `npm test`
+(`Test Files 70 passed (70)`, `Tests 752 passed (752)`, exit 0), `npm run build` (exit 0, `Result (208 files):
+0 errors, 0 warnings, 1 hint`, `31 page(s) built`), `git status --short` (empty, exit 0). This outcome file is
+the only change after it.
 
 ## Pinned values on the committed data
 
