@@ -13,15 +13,17 @@ import Callout from '../../components/ui/Callout.astro';
 import { Quiz } from '../../components/ui/Quiz';
 
 <Callout type="note" title="What you need from earlier chapters">
-- **The tangency portfolio** ([Chapter 7](../07-mean-variance-and-the-capm/)). With expected excess returns $\mu$
-  and covariance matrix $\Sigma$, the best risky portfolio holds $\Sigma^{-1}\mu$, and its squared Sharpe ratio is
-  $\mu'\Sigma^{-1}\mu$.
-- **The linear SDF** ([Chapter 26](../26-gmm-for-asset-pricing-models/)). $\SDF{M_{t+1}} = 1 - b'\Factor{\tilde f_{t+1}}$
-  with demeaned factors $\Factor{\tilde f_t} = \Factor{f_t} - \bar f$, and $\mathbb{E}[R^e] = \operatorname{Cov}(R^e, f')\,b$.
-- **Principal components** ([Chapter 6](../06-principal-components/)). $\Sigma = QLQ'$: the columns $q_j$ of $Q$ are
-  the directions, and the diagonal matrix $L$ holds the variance $\ell_j$ along $q_j$, from largest to smallest.
-- **Why a good fit can mislead** ([Chapter 28](../28-skeptical-look-at-asset-pricing-tests/)). A model can fit
-  average returns in sample and still say little.
+- **The tangency portfolio** ([Chapter 7](/empirical-finance-lbs/chapters/07-mean-variance-and-the-capm/)).
+  With expected excess returns $\mu$ and covariance matrix $\Sigma$, the best risky portfolio holds
+  $\Sigma^{-1}\mu$, and its squared Sharpe ratio is $\mu'\Sigma^{-1}\mu$.
+- **The linear SDF** ([Chapter 26](/empirical-finance-lbs/chapters/26-gmm-for-asset-pricing-models/)).
+  $\SDF{M_{t+1}} = 1 - b'\Factor{\tilde f_{t+1}}$ with demeaned factors $\Factor{\tilde f_t} = \Factor{f_t} - \bar f$,
+  and $\mathbb{E}[R^e] = \operatorname{Cov}(R^e, f')\,b$.
+- **Principal components** ([Chapter 6](/empirical-finance-lbs/chapters/06-principal-components/)).
+  $\Sigma = QLQ'$: the columns $q_j$ of $Q$ are the directions, and the diagonal matrix $L$ holds the variance
+  $\ell_j$ along $q_j$, from largest to smallest.
+- **Why a good fit can mislead** ([Chapter 28](/empirical-finance-lbs/chapters/28-skeptical-look-at-asset-pricing-tests/)).
+  A model can fit average returns in sample and still say little.
 </Callout>
 
 ## <span class="section-tag">Hook</span> The best portfolio you could not have held
@@ -251,8 +253,8 @@ R^2_{CV} = 1 - \frac{\lVert \Data{\bar\mu_{\text{out}}} - \Sigma_{\text{out}}\ha
 $$
 
 averaged over the three choices of the withheld block (p. 279). This is not the forecast $R^2_{OS}$ of
-[Chapter 13](../13-out-of-sample-predictability/). It scores how well the SDF prices the cross-section of mean
-returns in months it did not see. The benchmark is $\hat b = 0$, an SDF that prices nothing, which scores 0. Like
+[Chapter 13](/empirical-finance-lbs/chapters/13-out-of-sample-predictability/). It scores how well the SDF prices
+the cross-section of mean returns in months it did not see. The benchmark is $\hat b = 0$, an SDF that prices nothing, which scores 0. Like
 $R^2_{OS}$, it can be negative.
 
 <Callout type="warning">The chosen penalty is itself an estimate. It comes from three blocks of one sample, and it
