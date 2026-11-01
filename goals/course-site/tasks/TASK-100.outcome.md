@@ -1,19 +1,14 @@
 # TASK-100 outcome: Orchestrator reads Part VI and signs it off
 
-Verified revision: `origin/main` at `d09bfc2` (it contains the merges of TASK-096 to TASK-099).
+Verified revision: `origin/main` at `f3e9813` (it contains the merges of TASK-096 to TASK-099 and of TASK-101).
 
 ## Acceptance
 
-- [ ] `npm test` and `npm run build` pass on merged `main`; `astro check` reports 0 errors, 0 warnings.
-  Evidence, build: `npm run build` exit 0, "Result (184 files): 0 errors, 0 warnings", "28 page(s) built", "Complete!".
-  Evidence, tests: **not met as written.** `npm ci` exit 0. The plain `npm test` failed in 6 of 6 runs, each time with
-  one 5 s timeout in a prose-number test of Part III or Part IV, never in a Part VI file. Run 1 failed
-  `tests/chapter14-numbers.test.ts > playground: full-sample against real-time weights`. Runs 3 to 6 failed
-  `tests/chapter18-numbers.test.ts > playground: the default world and a short sample`. For run 2 I kept only the totals.
-  Each run ended "Test Files 1 failed | 59 passed (60), Tests 1 failed | 623 passed (624)". The machine load average was
-  35 to 42 in runs 1 to 5 (other agents ran at the same time) and 7.7 in run 6, which still timed out at 5.0 s. Run alone, both files pass (`npx vitest run tests/chapter14-numbers.test.ts
-  tests/chapter18-numbers.test.ts`, exit 0, 5.2 s). With a longer timeout the whole suite passes:
-  `npm test -- --testTimeout=30000` gave "Test Files 60 passed (60), Tests 624 passed (624)". Change 5 below fixes the cause.
+- [x] `npm test` and `npm run build` pass on merged `main`; `astro check` reports 0 errors, 0 warnings.
+  Evidence, tests: `npm ci` exit 0; `npm test` exit 0, "Test Files 61 passed (61)", "Tests 637 passed (637)", 27.5 s.
+  `vitest.config.ts` (TASK-101) sets `testTimeout` to 30000, so the 5 s timeouts of earlier runs do not occur.
+  Evidence, build: `npm run build` exit 0, "Result (187 files): 0 errors, 0 warnings, 1 hint", "28 page(s) built", "Complete!".
+  The hint is `'Matrix' is declared but its value is never read` in `src/lib/finance/news.ts`, outside Part VI.
 - [x] `npm run screenshots` and `npm run clickthrough` pass for chapters 24 to 27.
   Evidence, screenshots: exit 0 for each of the four chapters, with ✓ for dark-desktop, dark-phone, light-desktop and
   light-phone. Evidence, click-through: exit 0 for each chapter, every widget reported at 1280px and 360px:
@@ -24,13 +19,6 @@ Verified revision: `origin/main` at `d09bfc2` (it contains the merges of TASK-09
   Evidence: the sections "Voice", "Widgets", "Shared code and notation" and "Links across Parts", then `## Sign-off`.
 - [x] `git diff --name-only origin/main` lists only this task's outcome file.
   Evidence: the command prints `goals/course-site/tasks/TASK-100.outcome.md` and nothing else.
-
-## Blocked
-
-Acceptance item 1 needs plain `npm test` to pass on `main`. It fails on one 5 s timeout in `tests/chapter18-numbers.test.ts`
-(and earlier in `tests/chapter14-numbers.test.ts`), in 6 of 6 runs. The fix is a longer `testTimeout` (Sign-off change 5, issue
-all-explained/empirical-finance-lbs#67). Item 4 allows only this outcome file in the PR, so I cannot make that fix here. The
-orchestrator must merge change 5 first, then re-run `npm test`. Every other check passes.
 
 ## Summary
 
@@ -102,7 +90,7 @@ Part VI links the earlier Parts and points on, and the sentences about other cha
 
 ## Sign-off
 
-Five changes. Each becomes an M-8 task for claude opus high, and this PR is merged after they are.
+Four changes. Each becomes an M-8 task for claude opus high, and this PR is merged after they are.
 
 1. **Chapter 24, `src/content/chapters/24-generalized-method-of-moments.mdx` (Intuition, lines 42–43).** The text says "The dot
    labelled $\hat\theta$ is the lowest point … The dot labelled $\theta_0$ is the truth". The widget labels read "minimum" and
@@ -120,8 +108,5 @@ Five changes. Each becomes an M-8 task for claude opus high, and this PR is merg
    Chapter 26 names Chapters 24 and 25 (line 72) in plain text, and Chapter 27 names Chapter 26 (line 80) in plain text. Add the Part V bridge in one sentence each: in Chapter 24's
    IV paragraph, link "managed portfolio" to Chapter 22; in Chapter 26, after the linear SDF, say that the scaled models of
    Chapter 22 are linear SDFs with extra factors, so the same moments and tests apply.
-5. **`package.json` / a new `vitest.config.ts`.** Several prose-number tests (Chapter 14 once and Chapter 18 four times in 6 runs) need
-   close to the 5 s default of Vitest under parallel load, so `npm test` fails on a busy machine. Fix: set `testTimeout` to 30000 in a
-   Vitest config (or find why those two playground tests take 2 to 5 s). This is outside Part VI; it is reported in all-explained/empirical-finance-lbs#67.
 
-Part VI reads well, apart from the five changes above.
+Part VI reads well, apart from the four changes above.
