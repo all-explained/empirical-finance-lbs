@@ -77,14 +77,14 @@ export function assetPanel(set: AssetSet, { ff3, ff5, mom, ff25, osap }: AssetSe
   }
   if (!osap) throw new RangeError("assetPanel: 'osap' needs osap-ls-monthly");
   const signals = betweenDates(osap, start, end);
-  const marketRows = betweenDates(ff3, start, end).rows;
+  const marketSlice = betweenDates(ff3, start, end);
   const dates = signals.rows.map(([date]) => date);
-  if (marketRows.length !== dates.length || marketRows.some(([date], t) => date !== dates[t])) {
+  if (marketSlice.rows.length !== dates.length || marketSlice.rows.some(([date], t) => date !== dates[t])) {
     throw new RangeError('assetPanel: ff3-monthly dates do not line up with osap-ls-monthly');
   }
   const names = signals.columns.slice(1).map(({ name }) => name as ColumnName<'osap-ls-monthly'>)
     .filter((name) => getColumn(signals, name).every((value) => value !== null));
-  const market = percent(getColumn(betweenDates(ff3, start, end), 'Mkt-RF'), 'market');
+  const market = percent(getColumn(marketSlice, 'Mkt-RF'), 'market');
   const raw = names.map((name) => percent(getColumn(signals, name), name));
   return { dates, names, returns: fromColumns(removeMarket(raw, market)) };
 }
