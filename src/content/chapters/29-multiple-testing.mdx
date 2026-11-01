@@ -1,0 +1,334 @@
+---
+title: "Multiple testing"
+part: 7
+chapter: 29
+difficulty: 3
+prerequisites: [21]
+summary: "When hundreds of strategies are tried, a t-statistic above 2 is no longer evidence; this chapter controls the family-wise error rate and the false discovery rate, counts true and false discoveries in a seeded search, and reads the case for a bar near t = 3."
+---
+
+import MultipleTesting from '../../components/plots/MultipleTesting';
+import ZooChart from '../../components/plots/ZooChart';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Forty discoveries, and twelve of them are luck
+
+A colleague shows you a trading strategy with a $t$-statistic of 2.5. Is it real? The textbook answer is yes:
+2.5 is above 1.96, so the mean return is significant at 5%. But you should ask one more question first: how many
+other strategies did your colleague try before this one?
+
+Here is a search where we know the truth. We simulate 300 strategies, each with 50 years of monthly returns. Thirty
+of them have a real alpha, with a Sharpe ratio of 0.5 a year. The other 270 have a true mean of exactly zero. Now
+apply the textbook rule to every strategy and keep each one with $|t| > 1.96$. You keep 40 strategies. Twelve of
+the 40 have no alpha at all, so 30% of your "discoveries" are luck.
+
+The finance literature runs the same kind of search, on a larger scale. Harvey, Liu & Zhu (2016, p. 8) catalogue 316
+published factors, and they argue that a new factor now needs a $t$-statistic above 3 (p. 5). In
+[Chapter 21](/empirical-finance-lbs/chapters/21-anomalies-and-the-factor-zoo/) you counted the published
+predictors above 1.96 and above 3. This chapter asks which line to draw, and what each line promises.
+
+## <span class="section-tag">Intuition</span> Two rows of strategies and one line
+
+The widget shows the search of the Hook. Each point is one strategy, placed at the $t$-statistic of its mean
+monthly return. The top row holds the 30 strategies with a true alpha. The bottom row holds the 270 without one.
+The solid vertical line is the bar: a strategy with $|t|$ above it is a **discovery**, and its point is filled. The
+dashed line marks the same bar on the negative side, because the test is two-sided. You can drag the line, set it
+with the slider, or snap it to a rule.
+
+<MultipleTesting client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the line opens at 1.96. Count the filled points in the bottom row:
+there are 12 false discoveries, next to 28 true ones. Now snap the line to "|t| = 3". The false discoveries fall to
+1, but the misses (hollow points in the top row) rise from 2 to 9. Press "New seed" a few times and watch how the
+counts move from one search to the next.</p>
+
+Two facts explain the picture.
+
+**The bottom row is centred on zero.** A strategy without alpha has a $t$-statistic close to a standard normal.
+Each one passes 1.96 with a probability of 5%. With 270 of them, you expect $270 \times 0.05 = 13.5$ false
+discoveries. This search drew 12. No single false discovery looks different from a true one. Each of them has a
+real $t$-statistic above 1.96, computed in the right way. The problem is only the number of tries.
+
+**The top row is centred to the right.** A strategy with an annual Sharpe ratio of 0.5 has an expected $t$-statistic
+of $0.5 \times \sqrt{600/12} = 3.54$, as you saw in Chapter 21. Most of the top row clears 1.96, and most of it
+clears 3. But some true strategies are unlucky, and fall short of a high bar.
+
+So a line trades one mistake for another. Move it right, and you lose false discoveries and true ones. To choose a
+line, you must first say which mistake you want to control. There are two common choices.
+
+1. **The family-wise error rate (FWER)** is the probability of making even one false discovery. It suits a short
+   list where any mistake is costly.
+2. **The false discovery rate (FDR)** is the expected share of false discoveries among all discoveries. It accepts
+   a few mistakes in a long list, as long as they stay a small share of it.
+
+<Callout type="key">With many tries, a fixed bar such as 1.96 lets the number of false discoveries grow with the
+number of tests. A rule for many tests chooses its bar from the number of tests and from the whole set of
+$p$-values.</Callout>
+
+## <span class="section-tag">Formalisation</span> Two error rates and the rules that control them
+
+### The setting
+
+There are $n$ tests: here, $n$ strategies. For test $i$, the null hypothesis is that the strategy's true mean
+return is zero. Its two-sided $p$-value is
+
+$$
+p_i = 2\,\Phi(-|t_i|).
+$$
+
+Of the $n$ nulls, $n_0$ are true, but you do not know which ones. We write $q$ for the level of a rule, such as 5%.
+The letter is not $\alpha$, because $\alpha$ is a pricing error in this course.
+
+A simplification is in play. With $T = 600$ months, the $t$-statistic of a null strategy follows a Student $t$
+distribution, which is very close to the normal. We treat it as normal. Then a true null's $p$-value is uniform on
+$[0, 1]$. For any $u$ between 0 and 1, let $t^\ast = \Phi^{-1}(1 - u/2)$ be the bar on $|t|$ whose two-sided
+size is $u$. The steps are
+
+$$
+\begin{aligned}
+\Pr(p_i \le u) &= \Pr(|t_i| \ge t^\ast) \\
+&= 2\,\Phi(-t^\ast) = u.
+\end{aligned}
+$$
+
+The first step holds because $p_i$ falls as $|t_i|$ rises. The second uses the symmetry of the normal. Every proof
+below uses this one fact.
+
+### The expected number of false discoveries
+
+Fix a bar $t^\ast$ on $|t|$. Write $n_{\text{false}}$ for the number of true nulls with $|t_i| > t^\ast$. It is a sum of
+indicators, one for each true null. The expected value of a sum is the sum of the expected values, with or without
+independence. So
+
+$$
+\mathbb{E}[n_{\text{false}}] = n_0 \times 2\,\Phi(-t^\ast).
+$$
+
+In words: the number of true nulls times the size of one test. At $t^\ast = 1.96$ and $n_0 = 270$, this is 13.5. At
+$t^\ast = 3$, the size is 0.27%, and the expected count is 0.73. This is the "expected false" row of the widget.
+
+### The family-wise error rate and Bonferroni
+
+The family-wise error rate is $\text{FWER} = \Pr(n_{\text{false}} \ge 1)$. It is never larger than the expected
+count. The reason is that $n_{\text{false}}$ is a whole number: when it is at least 1, it is at least 1, and when it
+is 0, the indicator is 0 too. So $\mathbf{1}\{n_{\text{false}} \ge 1\} \le n_{\text{false}}$, and taking
+expectations,
+
+$$
+\text{FWER} \le \mathbb{E}[n_{\text{false}}].
+$$
+
+**Bonferroni's rule** rejects test $i$ when $p_i \le q/n$. Each test then has size $q/n$. By the expected count above,
+
+$$
+\text{FWER} \le n_0 \times \frac{q}{n} \le q.
+$$
+
+The last step uses $n_0 \le n$. No step assumed that the tests are independent. Harvey, Liu & Zhu (2016, p. 18) make
+the same point. The price is a high bar. With $n = 300$ and $q = 5\%$, the rule needs $p_i \le 0.000167$, which is
+$|t_i| > 3.76$. In the widget, snap the line to "Bonferroni": it finds 12 of the 30 true strategies and no false
+one.
+
+### Holm's step-down rule
+
+Bonferroni treats every test alike. Holm's rule uses the ordered $p$-values,
+$p_{(1)} \le p_{(2)} \le \dots \le p_{(n)}$. It walks up from the smallest:
+
+1. Compare $p_{(j)}$ with $q/(n + 1 - j)$, for $j = 1, 2, \dots$
+2. Stop at the first $j$ where $p_{(j)}$ is larger. Call it $k$.
+3. Reject the tests of $p_{(1)}, \dots, p_{(k-1)}$.
+
+The first bar is $q/n$, the same as Bonferroni's. Each later bar is a little looser: $q/(n-1)$, then $q/(n-2)$.
+
+**Holm is never less powerful than Bonferroni.** Suppose that Bonferroni rejects $m$ tests. These are the $m$
+smallest $p$-values, and each one is at most $q/n$. For every $j \le m$,
+$p_{(j)} \le q/n \le q/(n + 1 - j)$. So Holm does not stop before step $m + 1$, and it rejects at least the same $m$
+tests (Harvey, Liu & Zhu 2016, p. 20).
+
+**Holm still controls the FWER at $q$.** Take the smallest $p$-value among the $n_0$ true nulls, and call its rank
+$j^*$. At most $n - n_0$ tests rank before it, so $j^* \le n - n_0 + 1$, which gives $n + 1 - j^* \ge n_0$. Holm
+makes a false discovery only if it reaches rank $j^*$ and rejects there. That needs
+
+$$
+p_{(j^*)} \le \frac{q}{n + 1 - j^*} \le \frac{q}{n_0}.
+$$
+
+So a false discovery needs some true null with $p_i \le q/n_0$. By the expected count, the probability of that is at
+most $n_0 \times q/n_0 = q$.
+
+In this search, Holm finds the same 12 strategies as Bonferroni. Holm gains only when many tests are clearly
+rejected, because each early rejection loosens the next bar. Raise the share of true strategies to 50% and compare
+the two rules: Bonferroni finds 67 and Holm finds 71.
+
+### The false discovery rate and BHY
+
+The false discovery proportion of one search is
+
+$$
+\text{FDP} = \frac{n_{\text{false}}}{n_{\text{disc}}},
+$$
+
+where $n_{\text{disc}}$ is the number of discoveries, and FDP is 0 when there are none. The false discovery rate is
+its expected value, $\text{FDR} = \mathbb{E}[\text{FDP}]$ (Harvey, Liu & Zhu 2016, p. 14). The FDP is at most 1, and
+it is 0 unless $n_{\text{false}} \ge 1$. So $\text{FDP} \le \mathbf{1}\{n_{\text{false}} \ge 1\}$, and
+$\text{FDR} \le \text{FWER}$. A rule that controls the FWER also controls the FDR, but the converse fails.
+
+The **Benjamini–Hochberg rule** walks down from the largest $p$-value instead:
+
+1. Find the largest $k$ with $p_{(k)} \le kq/n$.
+2. Reject the tests of $p_{(1)}, \dots, p_{(k)}$.
+
+It controls the FDR when the tests are independent or positively dependent (Harvey, Liu & Zhu
+2016, p. 21). Strategies in one market are seldom independent. The fix is the
+constant of Benjamini and Yekutieli,
+
+$$
+c(n) = \sum_{j=1}^{n} \frac1j.
+$$
+
+The **BHY rule** divides every bar by it: in step 1, find the largest $k$ with $p_{(k)} \le kq/(n\,c(n))$.
+This makes the rule valid under any dependence (pp. 20–21). For $n = 300$, $c(n) = 6.28$. The first bar, $q/(n\,c(n))$, is stricter than Bonferroni's. But the bars rise with $k$, so BHY
+finds more when many tests are real. In the search, BHY finds 15 true strategies and no false one. At a true share
+of 50%, it finds 111 true and 1 false, against Holm's 71.
+
+<details>
+<summary>Why $c(n)$ makes the rule valid under any dependence</summary>
+
+Write the FDP as a sum over the true nulls: $\text{FDP} = \sum_{i \text{ null}} \mathbf{1}\{i \text{ rejected}\}/n_{\text{disc}}$.
+Split each term by the number of discoveries $k$:
+
+$$
+\begin{aligned}
+\text{FDR} &= \sum_{i \text{ null}} \sum_{k=1}^{n} \frac1k \\
+&\quad \times \Pr(i \text{ rejected}, n_{\text{disc}} = k).
+\end{aligned}
+$$
+
+If test $i$ is rejected and there are $k$ discoveries, then $p_i \le p_{(k)} \le kq/(n\,c(n))$. Cut the interval
+from 0 to $kq/(n\,c(n))$ into $k$ bands of width $q/(n\,c(n))$, and call $B_j$ the event that $p_i$ falls in
+the $j$-th one. Then
+
+$$
+\begin{aligned}
+&\Pr(i \text{ rejected}, n_{\text{disc}} = k) \\
+&\quad \le \sum_{j=1}^{k} \Pr(B_j, n_{\text{disc}} = k).
+\end{aligned}
+$$
+
+Put this into the double sum and swap the order of the sums over $j$ and $k$. Each pair has $k \ge j$, so
+$1/k \le 1/j$:
+
+$$
+\begin{aligned}
+&\sum_{k=1}^{n} \frac1k \sum_{j=1}^{k} \Pr(B_j, n_{\text{disc}} = k) \\
+&\le \sum_{j=1}^{n} \frac1j \sum_{k=j}^{n} \Pr(B_j, n_{\text{disc}} = k) \\
+&\le \sum_{j=1}^{n} \frac1j \Pr(B_j).
+\end{aligned}
+$$
+
+The last step holds because the events $n_{\text{disc}} = k$ for different $k$ do not overlap. Since $p_i$ is
+uniform, $\Pr(B_j) = q/(n\,c(n))$ for every band. The sum $\sum_{j=1}^{n} 1/j$ is $c(n)$, so each true null adds
+at most $c(n) \times q/(n\,c(n)) = q/n$, and
+
+$$
+\text{FDR} \le n_0 \times \frac{q}{n} \le q.
+$$
+
+No step used independence, only the uniform $p$-value of each true null. For the Benjamini–Hochberg rule, the
+bands have width $q/n$, and the same steps give only $c(n)\,n_0 q/n$. Under independence, a sharper argument
+gives $n_0 q/n$ for that rule too.
+
+</details>
+
+<Callout type="key">Bonferroni and Holm keep the chance of any false discovery below $q$. BHY keeps the expected
+share of false discoveries below $q$, whatever the dependence. Both bars rise with the number of tests $n$.</Callout>
+
+## <span class="section-tag">Playground</span> The published zoo against a higher bar
+
+Now return to real data. The chart is the one of Chapter 21: the 165 published predictors of the Open Source Asset
+Pricing data, each at the year of its paper and the $t$-statistic of its long–short return. This time the line
+opens at 3. In the papers' own samples, 107 of the 165 are above it, against 158 above 1.96.
+
+<ZooChart client:visible initialLine={3} />
+
+<p class="try-this"><strong>Try this:</strong> drag the line to 2.72. Now 123 predictors are above it. That is
+the count that BHY at 5% keeps among these 165 tests. Then move it to 3.45 and to 3.64. You see 88 and 81, the
+counts of Holm and Bonferroni. Switch the window to "After the sample" and see how few of the survivors clear each
+bar.</p>
+
+We ran the three rules at $q = 5\%$ on the 165 original-sample $t$-statistics. Bonferroni keeps 81 predictors, and
+its weakest one has $|t| = 3.64$. Holm keeps 88, down to 3.45. BHY keeps 123, down to 2.73. Even on this list of
+survivors, the bar for the false discovery rate is far above 1.96.
+
+Harvey, Liu & Zhu (2016) run BHY on their full catalogue of factors. At 5%, the bar is 2.78 for the factors
+published by 2012 (p. 26). But many tried factors were never published. When they estimate how many are missing,
+the bar rises to 3.18 (p. 28). That is the basis of their case for $t > 3$. Hou, Xue & Zhang (2020, p. 2019)
+rebuild 452 anomalies: 65% of them fail $|t| \ge 1.96$, and the failure rate rises to 82% at the bar of 2.78.
+
+### What our count can and cannot show
+
+The 165 predictors are survivors twice over. Each was published because it passed a test in its paper. And the data
+project keeps only the predictors with clear evidence in the original paper. The tests that failed are not here,
+so the true $n$ is larger than 165, and nobody observes it. A larger $n$ raises every bar.
+
+So the 123 that clear BHY are not "123 real predictors", and $1 - 123/165$ is not the false discovery rate of the
+literature. A rule promises a bound only when it sees every test that was tried. What the count does show is that
+a bar near 3 is not extreme. It is roughly what a rule for many tests asks of even this selected list.
+
+Two more limits. The 165 predictors are not independent: many sort on related variables, and their samples
+overlap. BHY allows for this, but Bonferroni's bound becomes very loose. And these $t$-statistics test raw mean
+returns, not alphas against a model.
+
+<p class="try-this"><strong>Try this too:</strong> in the strategy search, set the share with a true alpha to 0%.
+Snap to "|t| = 1.96": 14 false discoveries appear, and every discovery is false. Then snap to "Bonferroni": none
+appear.</p>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="You test 500 strategies with Bonferroni at $q = 5\%$. Which $p$-value must a strategy beat?"
+  options={["$p_i \\le 0.05$", "$p_i \\le 0.01$", "$p_i \\le 0.0001$", "$p_i \\le 0.025$"]}
+  answer={2}
+  explanation="Bonferroni rejects when $p_i \le q/n = 0.05/500 = 0.0001$. Then the expected number of false discoveries is at most $0.05$, so the chance of any false discovery is at most 5%."
+/>
+
+<Quiz
+  client:visible
+  question="A search uses BHY at $q = 5\%$ and finds 40 strategies. What does the rule promise?"
+  options={["None of the 40 is false", "On average, at most 5% of the discoveries are false", "The chance of any false discovery is at most 5%", "Exactly 2 of the 40 are false"]}
+  answer={1}
+  explanation="BHY controls the false discovery rate: the expected share of false discoveries, averaged over searches. It allows a few false ones in a long list. The chance of at least one false discovery is the FWER, which Bonferroni and Holm control."
+/>
+
+<Quiz
+  client:visible
+  question="Of the 165 published predictors, 123 clear BHY at 5%. Does this show that about a quarter of published predictors are false?"
+  options={["Yes: $42/165$ is the false discovery rate", "Yes, if the predictors are independent", "No: BHY is only valid for independent tests", "No: the data hold only survivors, so the number of tests tried is unknown"]}
+  answer={3}
+  explanation="The rules promise a bound only when they see every test that was tried. Failed tests were never published, so the true number of tests is larger than 165, and the kept count is not the literature's false discovery rate."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- A fixed bar such as $|t| > 1.96$ gives about $n_0 \times 5\%$ false discoveries, so the false ones grow with the
+  number of tests.
+- The FWER is the chance of any false discovery. Bonferroni ($p_i \le q/n$) and Holm's step-down rule control it at
+  $q$ under any dependence, and Holm always finds at least as many.
+- The FDR is the expected share of false discoveries. BHY, the Benjamini–Hochberg rule with every bar divided by
+  $c(n) = \sum_j 1/j$, controls it at $q$ under any dependence.
+- On the 165 published predictors, BHY at 5% needs $|t| > 2.73$. With the unpublished tries, Harvey, Liu & Zhu
+  argue for a bar near 3.
+- A count of survivors is not a false discovery rate: the tests that failed are missing.
+
+**Next up:** Chapter 30, *Shrinking the cross-section*, stops testing factors one by one and estimates the weights
+of many factors at once, pulling each towards zero.
+
+### Further reading
+
+- Harvey, Liu & Zhu (2016)
+- Hou, Xue & Zhang (2020)
+- Holm (1979), Benjamini & Hochberg (1995) and Benjamini & Yekutieli (2001), as presented in Harvey, Liu & Zhu
+  (2016), Section 3.4
+- Chen & Zimmermann (2022), for the Open Source Asset Pricing data
