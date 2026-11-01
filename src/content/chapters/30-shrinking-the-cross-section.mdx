@@ -29,18 +29,14 @@ import { Quiz } from '../../components/ui/Quiz';
 ## <span class="section-tag">Hook</span> The best portfolio you could not have held
 
 Take 30 well-known long–short portfolios: the 25 size and book-to-market portfolios of Fama and French, with the
-factors SMB, HML, RMW, CMA and momentum. Remove the market from each one, so that only the part the market does
-not explain is left. Now stand in December 2004 and use every month since July 1963 to build the tangency
-portfolio of Chapter 7. In those months it earned a Sharpe ratio of 1.84 a year.
+factors SMB, HML, RMW, CMA and momentum. Now stand in December 2004, with only the months since July 1963. Remove
+the market from each portfolio, so that only the part the market does not explain is left, and build the
+tangency portfolio of Chapter 7. In those months it earned a Sharpe ratio of 1.84 a year.
 
-Then hold the same weights from January 2005 to August 2026. The Sharpe ratio falls to 0.82. Repeat the exercise
+Then hold the same weights from January 2005 to August 2026. The Sharpe ratio falls to 0.84. Repeat the exercise
 with 108 published anomaly portfolios, whose data end in December 2024, and the drop is bigger still: 8.85 a year
-before 2005, and 2.18 after.
-
-One caveat. The betas that remove the market use all the months, the later ones too. For the 30 portfolios, so
-does the scale of each one. So the months after 2004 are not fully unseen. Kozak, Nagel & Santosh (2020, p. 290)
-estimate those betas on the earlier months only. We do not, so read the numbers after 2004 as a guide, not as a
-clean test.
+before 2005, and 2.18 after. No estimate in these numbers uses a month after 2004, the betas that remove the
+market included, as in Kozak, Nagel & Santosh (2020, p. 290).
 
 So here is the question. Asset pricing wants the stochastic discount factor, and with many factors the SDF
 coefficients are the tangency weights. If the estimate loses more than half its Sharpe ratio on new data, how
@@ -69,13 +65,13 @@ penalty $\nu_2$ that pulls the weights toward zero.
 <FrontierBuilder client:visible preset="shrinkage" />
 
 <p class="try-this"><strong>Try this:</strong> the slider starts at $\nu_2 = 0$, the naive estimate: 1.84 in sample
-and 0.82 out of sample. Move it to $10^{-3}$. The in-sample Sharpe ratio falls to 1.64, which is the price of
-shrinkage. But the out-of-sample ratio falls too, to 0.55.</p>
+and 0.84 out of sample. Move it to $10^{-3}$. The in-sample Sharpe ratio falls to 1.65, which is the price of
+shrinkage. But the out-of-sample ratio falls too, to 0.58.</p>
 
 So on these 30 portfolios, shrinkage does not rescue the out-of-sample Sharpe ratio. Their average returns after
 2005 did not look like those before, and shrinkage cannot correct a change of that kind.
 On the 108 anomalies the result is different. The same penalty of $10^{-3}$ raises the out-of-sample Sharpe
-ratio from 2.18 to 2.36. Shrinkage removes noise. It cannot create a premium that the later months do not have.
+ratio from 2.18 to 2.33. Shrinkage removes noise. It cannot create a premium that the later months do not have.
 
 <Callout type="key">The naive SDF estimate puts its largest weights on the directions with the least variance,
 where sample means are least reliable. Shrinkage pulls those weights back.</Callout>
@@ -258,10 +254,10 @@ the cross-section of mean returns in months it did not see. The benchmark is $\h
 $R^2_{OS}$, it can be negative.
 
 <Callout type="warning">The chosen penalty is itself an estimate. It comes from three blocks of one sample, and it
-would move with a different split. Treat the best $R^2_{CV}$ as optimistic, not as a promise. The withheld months
-are not fully unseen either: the betas that remove the market, and for the 30 FF portfolios the scale of each one,
-come from the whole sample. This leak affects every $R^2_{CV}$ and every Sharpe ratio after 2004 in this
-chapter.</Callout>
+would move with a different split. Treat the best $R^2_{CV}$ as optimistic, not as a promise. The withheld block
+is not fully unseen either: the betas that remove the market, and for the 30 FF portfolios the scale of each one,
+come from the whole sample. This leak affects every $R^2_{CV}$ in this chapter. The Sharpe ratios before and after
+2005 do not have it.</Callout>
 
 ## <span class="section-tag">Playground</span> Shrink the SDF yourself
 

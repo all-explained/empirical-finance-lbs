@@ -35,7 +35,7 @@ describe('chapter 30 prose numbers', () => {
     expect([data.ff.names.length, data.osap.names.length]).toEqual([30, 108]);
     const ff = shrunkTangency(data.ff, 0, TARGET);
     expect([ff.first, ff.splitMonth, ff.last]).toEqual(['1963-07', '2005-01', '2026-08']);
-    expect([fixed(ff.frontierSharpe, 2), fixed(ff.inSample.sharpe, 2), fixed(ff.outOfSample.sharpe, 2)]).toEqual(['1.84', '1.84', '0.82']);
+    expect([fixed(ff.frontierSharpe, 2), fixed(ff.inSample.sharpe, 2), fixed(ff.outOfSample.sharpe, 2)]).toEqual(['1.84', '1.84', '0.84']);
     const anomalies = shrunkTangency(data.osap, 0, TARGET);
     expect(anomalies.last).toBe('2024-12');
     expect([fixed(anomalies.inSample.sharpe, 2), fixed(anomalies.outOfSample.sharpe, 2)]).toEqual(['8.85', '2.18']);
@@ -44,8 +44,8 @@ describe('chapter 30 prose numbers', () => {
   test('intuition: variance of the PCs and the shrunk tangency portfolio at 10^-3', () => {
     expect(fixed(varianceShare(data.ff.returns, 3) * 100, 1)).toBe('70.5');
     const ff = shrunkTangency(data.ff, 1e-3, TARGET);
-    expect([fixed(ff.inSample.sharpe, 2), fixed(ff.outOfSample.sharpe, 2)]).toEqual(['1.64', '0.55']);
-    expect(fixed(shrunkTangency(data.osap, 1e-3, TARGET).outOfSample.sharpe, 2)).toBe('2.36');
+    expect([fixed(ff.inSample.sharpe, 2), fixed(ff.outOfSample.sharpe, 2)]).toEqual(['1.65', '0.58']);
+    expect(fixed(shrunkTangency(data.osap, 1e-3, TARGET).outOfSample.sharpe, 2)).toBe('2.33');
   });
 
   test('formalisation: shrink factors of the ridge at the best penalty on the anomalies', () => {

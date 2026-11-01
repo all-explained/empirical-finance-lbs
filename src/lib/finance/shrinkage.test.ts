@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { betweenDates, getColumn, loadSeries } from '../data/series';
+import { betweenDates, getColumn, loadSeries, type Series } from '../data/series';
 import { inverse } from '../math/linalg';
 import { normalRng } from '../math/rng';
 import { betas, maxSharpeSquared, sampleCovariance, sampleMeans, tangencyWeights } from './portfolio';
@@ -15,6 +15,9 @@ const [ff3, ff5, mom, ff25, osap] = await Promise.all([
 ]);
 const ff = assetPanel('ff', { ff3, ff5, mom, ff25 });
 const zoo = assetPanel('osap', { ff3, osap });
+const SPLIT = '2005-01-01';
+const ffSplit = assetPanel('ff', { ff3, ff5, mom, ff25 }, { estimateBefore: SPLIT });
+const zooSplit = assetPanel('osap', { ff3, osap }, { estimateBefore: SPLIT });
 
 // Seeded panel: T = 120 months, N = 6 correlated assets with means from 0.2% to 0.7% a month.
 function seededReturns(seed: number, T = 120, N = 6): number[][] {
@@ -146,6 +149,37 @@ describe('splitSampleSharpe', () => {
   });
 });
 
+describe('assetPanel', () => {
+  // Four months of one signal (2, 4, 5, 1 %) and the market (1, 3, 2, 0 %). Over all four months β = 6/5 = 1.2;
+  // over the first three, with means 11/3 and 2, β = (5/3 + 1/3 + 0)/(1 + 1 + 0) = 1. F_t = signal_t - β market_t.
+  const months = ['1963-07-01', '1963-08-01', '1963-09-01', '1963-10-01'];
+  const series = <I extends 'ff3-monthly' | 'osap-ls-monthly'>(name: string, values: number[]) => ({
+    columns: [{ name: 'date' }, { name }], rows: months.map((date, t) => [date, values[t]]),
+  }) as unknown as Series<I>;
+  const tiny = { ff3: series<'ff3-monthly'>('Mkt-RF', [1, 3, 2, 0]), osap: series<'osap-ls-monthly'>('AM', [2, 4, 5, 1]) };
+
+  it('removes the market with whole-window betas by default, and with earlier-month betas on request', () => {
+    const column = (panel: { returns: number[][] }) => panel.returns.map(([value]) => value);
+    [0.008, 0.004, 0.026, 0.01].forEach((v, t) => expect(column(assetPanel('osap', tiny))[t]).toBeCloseTo(v, 15));
+    [0.01, 0.01, 0.03, 0.01].forEach((v, t) => {
+      expect(column(assetPanel('osap', tiny, { estimateBefore: '1963-10-01' }))[t]).toBeCloseTo(v, 15);
+    });
+    expect(() => assetPanel('osap', tiny, { estimateBefore: '1963-09-01' })).toThrow(RangeError);
+  });
+
+  it('with estimateBefore, zeroes the betas and matches the market volatility in the earlier months only (KNS p. 290)', () => {
+    const before = (rows: number[][]) => rows.slice(0, 498);
+    const market = getColumn(betweenDates(ff5, '1963-07-01', '2004-12-01'), 'Mkt-RF').map((v) => (v as number) / 100);
+    betas(before(ffSplit.returns), market).forEach((beta) => expect(Math.abs(beta)).toBeLessThan(1e-12));
+    ffSplit.returns[0].forEach((_, j) => {
+      expect(sampleVariance(before(ffSplit.returns).map((row) => row[j]))).toBeCloseTo(sampleVariance(market), 14);
+    });
+    const zooMarket = getColumn(betweenDates(ff3, '1963-07-01', '2004-12-01'), 'Mkt-RF').map((v) => (v as number) / 100);
+    betas(before(zooSplit.returns), zooMarket).forEach((beta) => expect(Math.abs(beta)).toBeLessThan(1e-12));
+    expect([ffSplit.dates, zooSplit.dates]).toEqual([ff.dates, zoo.dates]);
+  });
+});
+
 describe('the committed data', () => {
   it('builds the FF set: 30 assets from 1963-07 to 2026-08, market removed and rescaled (KNS p. 280)', () => {
     expect([ff.dates[0], ff.dates.at(-1), ff.dates.length, ff.names.length]).toEqual(['1963-07-01', '2026-08-01', 758, 30]);
@@ -162,8 +196,8 @@ describe('the committed data', () => {
     betas(zoo.returns, market).forEach((beta) => expect(Math.abs(beta)).toBeLessThan(1e-12));
   });
 
-  // The split at 2005-01 follows the paper's withheld sample (KNS p. 289); it is month 498 in both sets.
-  // Sharpe ratios are monthly. Pinned on the default grid of 21 prior scales and K = 3.
+  // The split at 2005-01 follows the paper's withheld sample (KNS p. 289); it is month 498 in both sets. The
+  // split-sample Sharpe ratios use the panels with betas and scales from before the split. They are monthly. Pinned on the default grid of 21 prior scales and K = 3.
   it('pins the FF set: R²_CV peaks at the heaviest shrinkage of the grid', () => {
     // Every penalty does worse than b̂ = 0 in the 2005–2026 fold, so the best SR_prior is the grid's smallest, 0.01.
     const path = shrinkagePath(ff.returns);
@@ -171,14 +205,14 @@ describe('the committed data', () => {
     expect(best).toBe(0);
     expect(path.penalties[best]).toBeCloseTo(0.786539, 6);
     expect(path.r2[best]).toBeCloseTo(-0.006015, 6);
-    const split = ff.dates.indexOf('2005-01-01');
+    const split = ff.dates.indexOf(SPLIT);
     expect(split).toBe(498);
-    const plain = splitSampleSharpe(ff.returns, { split });
-    expect(plain.inSample.sharpe).toBeCloseTo(0.529950, 6);
-    expect(plain.outOfSample.sharpe).toBeCloseTo(0.236763, 6);
-    const shrunk = splitSampleSharpe(ff.returns, { split, penalty: path.penalties[best] });
-    expect(shrunk.inSample.sharpe).toBeCloseTo(0.261963, 6);
-    expect(shrunk.outOfSample.sharpe).toBeCloseTo(0.022318, 6);
+    const plain = splitSampleSharpe(ffSplit.returns, { split });
+    expect(plain.inSample.sharpe).toBeCloseTo(0.532520, 6);
+    expect(plain.outOfSample.sharpe).toBeCloseTo(0.242931, 6);
+    const shrunk = splitSampleSharpe(ffSplit.returns, { split, penalty: path.penalties[best] });
+    expect(shrunk.inSample.sharpe).toBeCloseTo(0.271365, 6);
+    expect(shrunk.outOfSample.sharpe).toBeCloseTo(0.039040, 6);
   }, 20000);
 
   it('pins the OSAP set: R²_CV peaks at SR_prior ≈ 0.158 a month', () => {
@@ -188,13 +222,13 @@ describe('the committed data', () => {
     expect(path.priorScales[best]).toBeCloseTo(0.158489, 6);
     expect(path.penalties[best]).toBeCloseTo(0.00772691, 8);
     expect(path.r2[best]).toBeCloseTo(0.520071, 6);
-    const split = zoo.dates.indexOf('2005-01-01');
+    const split = zoo.dates.indexOf(SPLIT);
     expect(split).toBe(498);
-    const plain = splitSampleSharpe(zoo.returns, { split });
-    expect(plain.inSample.sharpe).toBeCloseTo(2.555409, 6);
-    expect(plain.outOfSample.sharpe).toBeCloseTo(0.630102, 6);
-    const shrunk = splitSampleSharpe(zoo.returns, { split, penalty: path.penalties[best] });
-    expect(shrunk.inSample.sharpe).toBeCloseTo(1.330832, 6);
-    expect(shrunk.outOfSample.sharpe).toBeCloseTo(0.630282, 6);
+    const plain = splitSampleSharpe(zooSplit.returns, { split });
+    expect(plain.inSample.sharpe).toBeCloseTo(2.553388, 6);
+    expect(plain.outOfSample.sharpe).toBeCloseTo(0.628921, 6);
+    const shrunk = splitSampleSharpe(zooSplit.returns, { split, penalty: path.penalties[best] });
+    expect(shrunk.inSample.sharpe).toBeCloseTo(1.323400, 6);
+    expect(shrunk.outOfSample.sharpe).toBeCloseTo(0.634406, 6);
   }, 20000);
 });

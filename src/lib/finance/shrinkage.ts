@@ -49,10 +49,18 @@ const percent = (cells: readonly (number | null)[], what: string) => cells.map((
   return value / 100;
 });
 
-// F_i = F̃_i - β_i R_m with full-sample betas (p. 280, fn. 9, for the FF25; p. 282–283 for the anomalies).
-function removeMarket(cols: readonly (readonly number[])[], market: readonly number[]): number[][] {
-  const slopes = betas(fromColumns(cols), market);
+// F_i = F̃_i - β_i R_m, β_i from the first `months` months (p. 280, fn. 9, for the FF25; p. 282–283 for the anomalies).
+function removeMarket(cols: readonly (readonly number[])[], market: readonly number[], months: number): number[][] {
+  const slopes = betas(fromColumns(cols.map((col) => col.slice(0, months))), market.slice(0, months));
   return cols.map((col, i) => col.map((value, t) => value - slopes[i] * market[t]));
+}
+
+// Months before `before`, or all of them; at least three, so that a beta with an intercept has residuals.
+function estimationMonths(dates: readonly string[], before?: string): number {
+  if (before === undefined) return dates.length;
+  const months = dates.filter((date) => date < before).length;
+  if (months < 3) throw new RangeError('assetPanel: estimateBefore must leave at least three months to estimate on');
+  return months;
 }
 
 /**
@@ -60,10 +68,13 @@ function removeMarket(cols: readonly (readonly number[])[], market: readonly num
  * RMW, CMA (ff5-monthly) and Mom as traded assets, 30 in all; Mkt-RF of ff5-monthly is the market, and each
  * asset is rescaled to the market's standard deviation, as the paper does for the FF25 (p. 280). 'osap': the
  * long–short predictors of assetWindows.osap against Mkt-RF of ff3-monthly; the paper does not rescale its
- * anomaly portfolios (p. 282–283). The betas, and so the rescaling, use the whole window: a split-sample test
- * on these returns sees the future through them (the paper re-estimates betas before 2005, p. 290, fn. 22).
+ * anomaly portfolios (p. 282–283). The betas and the scales use the whole window, or with `estimateBefore` only
+ * the months before that date, applied to every month: the paper's split-sample test re-estimates them on the
+ * months before 2005 (p. 290, fn. 22).
  */
-export function assetPanel(set: AssetSet, { ff3, ff5, mom, ff25, osap }: AssetSeries): AssetPanel {
+export function assetPanel(
+  set: AssetSet, { ff3, ff5, mom, ff25, osap }: AssetSeries, { estimateBefore }: { estimateBefore?: string } = {},
+): AssetPanel {
   const { start, end } = assetWindows[set];
   if (set === 'ff') {
     if (!ff5 || !mom || !ff25) throw new RangeError("assetPanel: 'ff' needs ff5-monthly, mom-monthly and ff25-size-bm-monthly");
@@ -71,8 +82,12 @@ export function assetPanel(set: AssetSet, { ff3, ff5, mom, ff25, osap }: AssetSe
     const carhart = modelPanel({ ff3, mom }, ff25, { start, end, model: 'carhart' });
     const market = five.factors.map((row) => row[0]);
     const raw = [...columns(five.excess), ...columns(five.factors).slice(1), carhart.factors.map((row) => row[3])];
-    const sd = Math.sqrt(sampleVariance(market));
-    const rescaled = removeMarket(raw, market).map((col) => col.map((value) => value * sd / Math.sqrt(sampleVariance(col))));
+    const months = estimationMonths(five.dates, estimateBefore);
+    const sd = (col: readonly number[]) => Math.sqrt(sampleVariance(col.slice(0, months)));
+    const rescaled = removeMarket(raw, market, months).map((col) => {
+      const scale = sd(market) / sd(col);
+      return col.map((value) => value * scale);
+    });
     return { dates: five.dates, names: [...five.names, ...five.factorNames.slice(1), 'Mom'], returns: fromColumns(rescaled) };
   }
   if (!osap) throw new RangeError("assetPanel: 'osap' needs osap-ls-monthly");
@@ -86,7 +101,7 @@ export function assetPanel(set: AssetSet, { ff3, ff5, mom, ff25, osap }: AssetSe
     .filter((name) => getColumn(signals, name).every((value) => value !== null));
   const market = percent(getColumn(marketSlice, 'Mkt-RF'), 'market');
   const raw = names.map((name) => percent(getColumn(signals, name), name));
-  return { dates, names, returns: fromColumns(removeMarket(raw, market)) };
+  return { dates, names, returns: fromColumns(removeMarket(raw, market, estimationMonths(dates, estimateBefore))) };
 }
 
 function requirePenalty(value: number, name: string): void {
