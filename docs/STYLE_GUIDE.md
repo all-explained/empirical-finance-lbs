@@ -197,6 +197,15 @@ The parameter vector $\theta$ and the statistic $J$ are in the Probability and s
 | $\mu_{\text{gmv}}$; $\iota$ | — | Mean excess return of the global minimum-variance portfolio, $\mu_{\text{gmv}} = \iota'\Sigma^{-1}\bar R^e / \iota'\Sigma^{-1}\iota$, and the $N$-vector of ones. Not $\lambda_0$, the zero-beta rate a model estimates |
 | $SR^2(\lambda_0)$; $SR^2_{\text{tan}}(\lambda_0)$, $SR^2_f(\lambda_0)$ | — | Squared Sharpe ratio measured against the zero-beta rate, $(\mathbb{E}[R^e] - \lambda_0)^2/\sigma^2$, for a portfolio whose weights sum to one; the highest one among the test assets and among the factors' mimicking portfolios (Chapter 28). The GLS pricing errors leave $SR^2_{\text{tan}}(\hat\lambda_0) - SR^2_f(\hat\lambda_0)$ unexplained. Lewellen, Nagel & Shanken write $\theta^2$; not $\theta$, which is the GMM parameter vector |
 
+### Part VIII: latent factors and large cross-sections (Chapters 31–34)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $H$ | — | Invertible $K \times K$ rotation of latent factors (Chapters 31 and 34): $(\beta, f_t) \to (\beta H^{-1}, H f_t)$ leaves the fit $\beta f_t$ unchanged. Giglio & Xiu (2021) use the same letter. Not $Q$, the orthonormal eigenvectors, because $H$ need not be orthogonal, nor the angle $\omega$ of Chapter 6, which turns one plane only. An upright $\text{H}$ is the high-B/M sort letter, as in $\text{HML}$ and $v_{\text{H},t}$ |
+| $\mathit{cc}_k$ | — | $k$-th canonical correlation of two blocks of series (Chapter 31), $1 \ge \mathit{cc}_1 \ge \dots \ge \mathit{cc}_{\min(K_X, K_Y)} \ge 0$: the highest $\operatorname{corr}(Xw^X, Yw^Y)$ among combinations uncorrelated with the first $k - 1$ pairs. No rotation of either block changes it. Not the textbook $\rho_k$: $\rho$ is the Campbell–Shiller constant, and a correlation is never $\rho$. Italic letters, as in $\mathit{cw}_t$ |
+| $w^X_k$, $w^Y_k$ | — | Canonical weights (Chapter 31): the combinations $Xw^X_k$ and $Yw^Y_k$ have unit variance and correlation $\mathit{cc}_k$. Not the textbook $a_k$, $b_k$, which here are a first-pass intercept and SDF loadings. The superscript names the block, so they never read as portfolio weights $w$, which have none, or as log wealth $w_t$ |
+| $X$, $Y$; $K_X$, $K_Y$ | — | The two blocks of series that canonical correlations compare (Chapter 31), $T \times K_X$ and $T \times K_Y$, such as the first three PCs and Mkt-RF, SMB, HML. $X$ never carries a date, so it is not the payoff $X_{t+1}$. $K$ with a block subscript counts that block's series, as bare $K$ counts factors |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |
