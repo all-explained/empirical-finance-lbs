@@ -1,0 +1,372 @@
+format: goal-proposal/v1
+task: TASK-036
+add:
+  - ref: lib-latent-factors
+    title: 'Library: PCA factors, rotations, canonical correlations and latent-factor risk premia'
+    milestone: M-10
+    why: >-
+      SC-7 and M-10. Chapter 31 compares the factors that theory picks (MKT, SMB, HML) with the factors that PCA
+      extracts from the 25 size–value portfolios. It shows that latent factors are fixed only up to a rotation, prices
+      the portfolios with latent factors as the APT allows, and compares the two factor sets by their canonical
+      correlations, which no rotation changes. `src/lib/stats/pca.ts` has PCA, but no factor scores in the
+      $R^e_t = \beta f_t + \varepsilon_t$ form, no rotation and no canonical correlations. Chapter 34's three-pass
+      estimator reuses the PCA factors of this library.
+    scope: |-
+      Add `src/lib/finance/latentFactors.ts` and `src/lib/finance/latentFactors.test.ts`. Read first: the entries of chapters 31 and 34 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3 (with the Part VII block), `src/lib/stats/pca.ts` (`pca`, `scores`, `ff25Returns`), `src/lib/math/linalg.ts` (`symmetricEigen`, `solve`, `inverse`), `src/lib/finance/crossSection.ts` (`crossSectionalRegression`), `src/lib/finance/timeSeriesTests.ts` (`factorPanel`, `timeSeriesRegressions`), `src/lib/finance/portfolio.ts` and `src/components/plots/pcaSample.ts` (how chapters 6 and 28 build the 25-portfolio panel). Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/GiglioXiu2021.pdf` (Giglio & Xiu (2021), published version) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/Nagel2013.pdf` (Nagel (2013), NBER working paper 18554) with `pdftotext -layout` and cite pages in doc comments for anything you take from them: the PCA normalisation of Giglio & Xiu (eq. 7, p. 1959), their rotation-invariance argument (pp. 1956–1957), and Nagel's reading of the APT and of the factor structure of the 25 portfolios. No paper in `source/papers/` defines canonical correlations; use the textbook definition and cite no reading for it.
+
+      Functions (decimal excess returns, $T \times N$; factors, $T \times K$):
+      - `pcaFactors(excess, K)`: the first $K$ principal components of the demeaned returns as factors and their loadings, in the form $R^e_t - \bar R^e = \beta f_t + \varepsilon_t$, with a stated normalisation (state which: unit factor variances, or orthonormal loadings, and how it relates to eq. 7 of Giglio & Xiu), the share of variance each factor explains, and the residuals. Reuse `pca` and `scores`; do not repeat the eigen step.
+      - `rotateFactors(beta, factors, H)`: $(\beta, f) \to (\beta H^{-1}, H f)$ for an invertible $K \times K$ matrix $H$; the fitted values $\beta f_t$ do not change.
+      - `canonicalCorrelations(X, Y)`: the $\min(p, q)$ canonical correlations of two blocks of series ($T \times p$ and $T \times q$), in descending order, with the canonical weights of both blocks, from the eigenvalues of $\Sigma_{XX}^{-1}\Sigma_{XY}\Sigma_{YY}^{-1}\Sigma_{YX}$ through `symmetricEigen` on a symmetric form. They do not change under a rotation of either block.
+      - `latentRiskPremia(excess, K)`: the two-pass cross-sectional regression of mean excess returns on the loadings of `pcaFactors`, with an intercept and without, giving $\hat\lambda$ and the OLS cross-sectional $R^2$ (reuse `crossSectionalRegression`, the one $R^2$ definition of chapter 28), so chapter 31 can compare $K = 1, \dots, 5$ PCs with CAPM and FF3 on the same assets.
+      Every estimate here uses the whole sample: say so in a doc comment, because the PCs are chosen with the same returns they then price (chapters 28 and 30 make this point).
+
+      Notation. §3 has $f_t$, $\beta$, $\lambda$, $K$ and $\varepsilon$. Choose symbols for the rotation matrix (the curriculum's $H$), the canonical correlations (for example $\rho_k$; check that §3 leaves it free) and the canonical weights, check each against §3, and add them to one "Part VIII" block of the §3 table, each with the clash it avoids. The other three Part VIII library tasks add rows to the same block: whichever merges first creates the block heading; rebase on `origin/main` before you finish and keep every row. Keep the KaTeX macro check in `npm test` green.
+
+      Tests against reference values, each stated in the test: `pcaFactors` with $K = N$ reproduces the demeaned returns exactly, and its variance shares match `pca`'s eigenvalues; `rotateFactors` leaves fitted values unchanged to 1e-10 for a seeded random $H$; `canonicalCorrelations` of a block with itself is all ones, of two independent seeded blocks is near zero (state the band), equals the absolute correlation when $p = q = 1$, and is unchanged to 1e-10 when either block is rotated; `latentRiskPremia` with the factors' own loadings gives the same $\hat\lambda$ as `crossSectionalRegression` called directly; and pinned values on the committed `ff25-size-bm-monthly` and `ff3-monthly` data from 1963-07: the variance shares of the first five PCs, the three canonical correlations between the first three PCs and [Mkt-RF, SMB, HML], and the cross-sectional $R^2$ with an intercept for $K = 1, \dots, 5$ PCs, CAPM and FF3. Reuse `pca`, `scores`, `ff25Returns`, `symmetricEigen`, `solve`, `inverse`, `sampleMeans`, `sampleCovariance`, `factorPanel`, `crossSectionalRegression` and the RNG helpers of `src/lib/math/rng.ts`; do not copy them. Out of scope: chapters, widgets, and edits to files other than those named.
+    acceptance:
+      - 'Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.'
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`docs/STYLE_GUIDE.md` §3 has a Part VIII block with the rotation and canonical-correlation symbols, and the outcome lists each with the clash it avoids.'
+      - '`git status --short` shows only `src/lib/finance/latentFactors.ts`, its test, `docs/STYLE_GUIDE.md` and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-ipca
+    title: 'Library: instrumented PCA by alternating least squares, managed portfolios and the alpha test'
+    milestone: M-10
+    why: >-
+      SC-7 and M-10. Chapter 32 lets betas depend on firm characteristics, $\beta_{i,t} = z_{i,t}'\Gamma_\beta$, and
+      estimates the model by alternating least squares, as Kelly, Pruitt & Su (2019) do. It needs a seeded
+      characteristics panel, the managed portfolios $Z_t'r_{t+1}$, the ALS fit with its iteration history, the two
+      $R^2$ measures of the paper and the bootstrap test of $\Gamma_\alpha = 0$. Nothing in `src/lib` does this.
+    scope: |-
+      Add `src/lib/finance/ipca.ts` and `src/lib/finance/ipca.test.ts`. Read first: the entry of chapter 32 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3 (with the Part V block, where $z_t$ is a state variable, and the Part VII block), `src/lib/stats/pca.ts`, `src/lib/math/linalg.ts` (`symmetricEigen`, `solve`, `inverse`), `src/lib/finance/crossSection.ts` (`famaMacBeth`) and `src/lib/math/rng.ts`. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/KellyPruittSu2018.pdf` (Kelly, Pruitt & Su, NBER working paper of April 2018; published in the *Journal of Financial Economics* in 2019) with `pdftotext -layout` and cite working-paper pages in doc comments for the model (pp. 10–12), the first-order conditions (eqs. 6–7), the normalisation (p. 13), the managed portfolios and the start value (eq. 9, p. 14), the case $K = L$ (p. 15), the rank transform of characteristics, the total and predictive $R^2$ (eqs. 14–15), the ALS method of its Appendix A and the residual bootstrap of $W_\alpha$ (section 3.1). Where the paper differs from this spec, follow the paper and report the difference in the outcome.
+
+      Functions:
+      - `simulateIpcaPanel(seed, { N, T, L, K, alphaShare, noise })`: a seeded panel of $N$ firms over $T$ months with $L$ persistent characteristics (a constant included), rank-transformed each month to $[-0.5, 0.5]$ as the paper does, true $\Gamma_\beta$ ($L \times K$), true $\Gamma_\alpha$ (zero when `alphaShare` is 0), factors and returns. State every parameter's default in a doc comment and keep the defaults small enough for a widget.
+      - `managedPortfolios(Z, r)`: $x_{t+1} = Z_t'r_{t+1}$ and $W_t = Z_t'Z_t$ for every month (state whether you divide by the number of firms, as the paper does or does not).
+      - `ipcaFit(managed, { K, alpha, tolerance, maxIterations })`: alternating least squares on the managed portfolios and $W_t$ alone. The first-order conditions need only these two, because $\sum_t [Z_t \otimes f_t']'[Z_t \otimes f_t'] = \sum_t W_t \otimes f_t f_t'$ and $\sum_t [Z_t \otimes f_t']' r_t = \sum_t x_t \otimes f_t$; show this in a doc comment. Start from the first $K$ eigenvectors of $\sum_t x_t x_t'$, impose the paper's normalisation after convergence, and return $\Gamma_\beta$, $\Gamma_\alpha$ (when `alpha` is true), the factors, the risk-price estimate $\hat\lambda$ (the factor means) and the history of the objective and of the largest change per iteration, for the convergence animation.
+      - `ipcaR2(panel, fit)`: the total and predictive $R^2$ of the paper, on the firm-level panel.
+      - `alphaTest(seed, managed, fit, { bootstraps })`: $W_\alpha = \hat\Gamma_\alpha'\hat\Gamma_\alpha$ and its $p$-value from the paper's residual (wild) bootstrap of the managed portfolios under $\Gamma_\alpha = 0$. Keep the default `bootstraps` small enough that the unit tests finish in a few seconds (the paper uses 1,000); give long tests an explicit timeout (issue #67).
+
+      Notation. §3 uses $z_t$ for a state variable (Part V), $x_t$ for a predictor or signal and $W$ for a GMM weighting matrix. Choose symbols for the characteristics $z_{i,t}$ and $Z_t$, the managed portfolios, $\Gamma_\beta$, $\Gamma_\alpha$, the number of characteristics $L$ (§3 has $L$ for Newey–West lags and an eigenvalue matrix), the cross-product $Z_t'Z_t$ and the statistic $W_\alpha$; check each against §3, and add them to one "Part VIII" block of the §3 table, each with the clash it avoids. If the curriculum's letter is taken, keep it out of the code names too. The other three Part VIII library tasks add rows to the same block: whichever merges first creates the block heading; rebase on `origin/main` before you finish and keep every row. Keep the KaTeX macro check in `npm test` green.
+
+      Tests against reference values, each stated in the test: `managedPortfolios` matches a hand computation on a three-firm, two-characteristic case; with $K = L$ the IPCA factors equal the period-by-period Fama–MacBeth slopes of `famaMacBeth` on the same characteristics (p. 15); on a large seeded panel with known $\Gamma_\beta$ the fit recovers its column space (state the measure and the tolerance) and the objective never rises across iterations; the normalisation holds ($\Gamma_\beta'\Gamma_\beta = I$, diagonal factor covariance in descending order, non-negative factor means); `ipcaR2` is 1 on a noiseless panel; `alphaTest` gives the same output for the same seed, a large $p$-value when the true $\Gamma_\alpha$ is zero and a small one when `alphaShare` is large (state both). Reuse `symmetricEigen`, `solve`, `inverse`, `famaMacBeth` and the RNG helpers; do not copy them. Out of scope: chapters, widgets, real data, and edits to files other than those named.
+    acceptance:
+      - 'Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.'
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`docs/STYLE_GUIDE.md` §3 has a Part VIII block with the IPCA symbols, and the outcome lists each with the clash it avoids.'
+      - '`git status --short` shows only `src/lib/finance/ipca.ts`, its test, `docs/STYLE_GUIDE.md` and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-mimicking
+    title: 'Library: characteristic portfolios from cross-sectional regressions, and factor-mimicking portfolios'
+    milestone: M-10
+    why: >-
+      SC-7 and M-10. Chapter 33 turns a characteristic into a tradable portfolio, by sorting or by a cross-sectional
+      regression whose slope is itself a portfolio return, and builds a portfolio that mimics a non-traded factor
+      (consumption growth) by projecting it on the 25 size–value portfolios. `src/lib` has Fama–MacBeth slopes and a
+      quarterly panel with consumption growth, but not the slope weights, sort weights or the mimicking projection.
+    scope: |-
+      Add `src/lib/finance/mimicking.ts` and `src/lib/finance/mimicking.test.ts`. Read first: the entry of chapter 33 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3 (with the Part V and Part VII blocks), `docs/DATA.md`, `src/lib/finance/crossSection.ts` (`famaMacBeth`), `src/lib/stats/ols.ts`, `src/lib/finance/conditional.ts` (`quarterlyPanel`: quarterly excess returns of the 25 portfolios, FF3 and consumption growth `dc`, the series chapters 22 and 26 use), `src/lib/finance/factors.ts`, `src/lib/finance/timeSeriesTests.ts` (`factorPanel`) and `src/components/plots/sizeValueSample.ts` (the 5×5 grid of chapter 19). Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/FamaFrench1992.pdf` (Fama & French (1992), published version) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/KellyPruittSu2018.pdf` (Kelly, Pruitt & Su, NBER working paper of 2018) with `pdftotext -layout` and cite pages in doc comments for the Fama–MacBeth regressions on size and book-to-market and for the reading of cross-sectional slopes as managed portfolios. Giglio & Xiu (2021) discuss the omitted-variable bias of mimicking portfolios built on a few base assets (`/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/GiglioXiu2021.pdf`, pp. 1954–1955); cite it where a doc comment makes that point.
+
+      Functions:
+      - `slopeWeights(Z)`: for an $N \times L$ characteristics matrix with a constant, the rows of $(Z'Z)^{-1}Z'$; each row is a portfolio with unit exposure to its own characteristic and zero exposure to the others.
+      - `slopePortfolios(returns, Z)`: the per-period cross-sectional slopes, which equal the slope-weight portfolio returns; with time-varying $Z_t$ use the characteristics known at $t$ for the return at $t+1$.
+      - `ff25Characteristics()`: the size and book-to-market quintile scores of the 25 portfolios, read from the column names (`ME1 BM1`, …), centred, with a constant, in the column order of `ff25-size-bm-monthly`.
+      - `sortWeights(scores, { long, short })`: the weights of a long–short sort on one score (for example the value column minus the growth column, each equally weighted), so the chapter can set them next to `slopeWeights`.
+      - `mimickingPortfolio(factor, baseExcess, { split })`: the projection $f_t = c + w'R^e_t + e_t$ by OLS, with the weights $w$, the mimicking return $w'R^e_t$, its correlation with the factor in sample, and, when `split` is set, the correlation on the later months of weights estimated on the earlier ones (say in the doc comment that 25 regressors on a few hundred quarters overfit).
+      Real data: the 25 portfolios monthly from 1963-07 for the slope portfolios, and `quarterlyPanel` (from 1963-Q3) for the consumption-growth projection. The curriculum's data line names `fred-consumption-quarterly`; use the `dc` of `quarterlyPanel` instead, so chapters 22, 26 and 33 show one consumption series, and report the mismatch in the outcome.
+
+      Notation. The curriculum writes $\hat\gamma_t$ for the slopes, $Z_t$ for characteristics and $c$, $w$, $e_t$ for the projection; §3 has $\gamma$ as risk aversion, $c_t$ as log consumption, $e$ as a chapter 19 residual and $w$ as portfolio weights. Use the Part VIII symbols for the characteristics if the IPCA library has merged (rebase first); otherwise choose them. Choose free letters for the slopes and the projection, check each against §3, and add them to one "Part VIII" block of the §3 table, each with the clash it avoids. The other three Part VIII library tasks add rows to the same block: whichever merges first creates the block heading; rebase on `origin/main` before you finish and keep every row. Keep the KaTeX macro check in `npm test` green.
+
+      Tests against reference values, each stated in the test: `slopeWeights(Z)` times $Z$ is the identity; `slopePortfolios` equals the slopes of `famaMacBeth` on the same panel to 1e-10; `ff25Characteristics` gives the scores of a hand-written table for four corner portfolios; `sortWeights` sums to zero and has unit exposure to its score; `mimickingPortfolio` on a factor that is an exact portfolio of the base assets returns those weights and a correlation of 1; and pinned values on the committed data: the correlation of the book-to-market slope portfolio with HML (monthly, 1963-07 on) and its mean and $t$-statistic, the in-sample correlation of `dc` with its mimicking portfolio on the 25 portfolios, the same with the three FF3 factors as base assets, and the split-sample correlation (state the split). Reuse `famaMacBeth`, `ols`, `quarterlyPanel`, `factorPanel`, `sampleMeans` and `sampleCovariance`; do not copy them. Out of scope: chapters, widgets, and edits to files other than those named.
+    acceptance:
+      - 'Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.'
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`docs/STYLE_GUIDE.md` §3 has a Part VIII block with the slope and projection symbols, and the outcome lists each with the clash it avoids.'
+      - '`git status --short` shows only `src/lib/finance/mimicking.ts`, its test, `docs/STYLE_GUIDE.md` and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-three-pass
+    title: 'Library: the three-pass estimator and a seeded economy with an omitted factor'
+    milestone: M-10
+    after: [lib-latent-factors]
+    why: >-
+      SC-7 and M-10. Chapter 34 estimates the risk premium of an observed factor when the model omits other factors,
+      with the three-pass estimator of Giglio & Xiu (2021): PCA, then a cross-sectional regression on the PCA
+      loadings, then a time-series projection of the factor on the latent factors. It needs the estimator, the
+      omitted-variable bias of the two-pass estimate in a seeded economy, and the estimates on the committed data.
+      The PCA step reuses `pcaFactors` of the latent-factor library.
+    scope: |-
+      Add `src/lib/finance/threePass.ts` and `src/lib/finance/threePass.test.ts`. Read first: the entry of chapter 34 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3 (with the Part VII and Part VIII blocks), `src/lib/finance/latentFactors.ts` (`pcaFactors`, `rotateFactors`, `latentRiskPremia`, from the library task this task depends on), `src/lib/finance/crossSection.ts` (`crossSectionalRegression`, `simulateTwoPass`), `src/lib/stats/ols.ts`, `src/lib/finance/timeSeriesTests.ts` (`factorPanel`) and `src/lib/math/rng.ts`. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/GiglioXiu2021.pdf` (Giglio & Xiu (2021), published version) with `pdftotext -layout` and cite pages in doc comments for the two-factor example of omitted-variable bias (section II), the model (eqs. 1–2, p. 1956), rotation invariance (pp. 1956–1957), the three steps and their compact form (eqs. 7–8, p. 1959), the version with a zero-beta rate (p. 1960), the asymptotic distribution you use for standard errors, and the point that the estimate stays consistent when more PCs than the true number are used (p. 1972). Where the paper differs from this spec, follow the paper and report the difference in the outcome.
+
+      Functions (decimal excess returns $T \times N$; observed factors $T \times d$):
+      - `threePass(excess, observed, { factors, zeroBeta })`: the three steps with `factors` PCs (the paper's $\hat p$): the PCA factors and loadings from `pcaFactors`, the cross-sectional slopes on the loadings, the time-series slopes of each observed factor on the PCs with the $R^2$ of that regression, and the product, the risk premium of each observed factor. Return a standard error from the paper's asymptotic distribution if the PDF gives every piece it needs; otherwise leave it out and say why.
+      - `twoPass(excess, observed)`: the usual two-pass estimate with only the observed factors, through `crossSectionalRegression`; write no new regression code.
+      - `simulateOmittedFactor(seed, { N, T, strength, correlation, noise, samples })`: a seeded economy with two priced factors, an observed proxy of the first (with measurement error `noise`), and a second, omitted factor of strength `strength` whose loadings correlate with the first's by `correlation`, as in the paper's section II. For each draw return the two-pass and three-pass estimates of the observed factor's premium and the true value, and summaries (mean bias, root mean squared error). Keep the default `samples` small enough for the widget and the unit tests; give long tests an explicit timeout (issue #67).
+      Every estimate on real data uses the whole sample; say so in a doc comment.
+
+      Notation. The curriculum writes $R^e_t = \beta v_t + u_t$, $g_t = \xi + \eta v_t + z_t$ and $\gamma_g = \eta\gamma_v$; in §3, $\gamma$ is risk aversion (risk premia are $\lambda$), $g$ is the GMM moment, $\eta$ the intercept of a conditional SDF (Chapter 22), $z_t$ a state variable and $u_t$, $v_t$ second-equation shocks. Use the Part VIII symbols that the latent-factor library added, choose free letters for the rest (the observed factor, its loading on the latent factors, its measurement error and its risk premium), check each against §3, and add them to the Part VIII block of the §3 table, each with the clash it avoids. If the curriculum's letter is taken, keep it out of the code names too. Rebase on `origin/main` before you finish and keep every row. Keep the KaTeX macro check in `npm test` green.
+
+      Tests against reference values, each stated in the test: `threePass` is unchanged to 1e-10 when the PCA factors are rotated with `rotateFactors` before steps 2 and 3; it matches the compact form of eq. 8 written out by hand on a small seeded case; when the observed factor is itself one of the PCs, its premium equals that PC's cross-sectional slope; in `simulateOmittedFactor` with `strength` 0 the two-pass and three-pass estimates agree on average, and with a strong omitted factor the two-pass estimate is biased and the three-pass estimate is not (state the bias of each and the band); the simulation gives the same output for the same seed; and pinned values on the committed `ff25-size-bm-monthly` and `ff3-monthly` data from 1963-07, and on the 25 portfolios with the 30 industries of `ff30-industry-monthly` added: the three-pass premia of Mkt-RF, SMB and HML for 3 to 7 PCs, their two-pass premia, and their sample means (for a traded factor the premium should be close to its mean). Reuse `pcaFactors`, `rotateFactors`, `crossSectionalRegression`, `ols`, `factorPanel`, `sampleMeans` and the RNG helpers; do not copy them. Out of scope: chapters, widgets, and edits to files other than those named.
+    acceptance:
+      - 'Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.'
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - '`docs/STYLE_GUIDE.md` §3 has the three-pass symbols in the Part VIII block, and the outcome lists each with the clash it avoids.'
+      - '`git status --short` shows only `src/lib/finance/threePass.ts`, its test, `docs/STYLE_GUIDE.md` and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: chapter-31
+    title: 'Chapter 31: Latent and observable factors'
+    milestone: M-10
+    after: [lib-latent-factors]
+    why: >-
+      SC-7 and M-10. Part VIII opens by setting the factors of theory next to the factors that PCA finds in the
+      returns: the APT says any factors that span the common variation can price the assets, latent factors are fixed
+      only up to a rotation, and canonical correlations compare two factor sets whatever their rotation. This chapter
+      follows the pattern of the Part I to Part VII chapters.
+    scope: |-
+      Write chapter 31 of `docs/CURRICULUM.md`, "Latent and observable factors", as `src/content/chapters/31-latent-and-observable-factors.mdx`, with its widget. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md` (with the Part VII and Part VIII blocks of §3), `docs/DATA.md`, the finished chapters `src/content/chapters/06-principal-components.mdx` (PCA and `PCAExplorer`), `src/content/chapters/17-cross-sectional-regressions-and-fama-macbeth.mdx` and `src/content/chapters/28-skeptical-look-at-asset-pricing-tests.mdx` (the factor structure of the 25 portfolios; build on it and do not repeat it), and the library code named below: `src/lib/finance/latentFactors.ts` (from the library task this task depends on), `src/lib/stats/pca.ts` and `src/components/plots/pcaSample.ts`.
+
+      Readings. Open these PDFs with `pdftotext -layout` and name the page for any number or fact you take from them: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/Nagel2013.pdf` (Nagel (2013), NBER working paper 18554; cite the 2013 *Annual Review* article and name working-paper pages), `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/GiglioXiu2021.pdf` (Giglio & Xiu (2021), published version) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/KellyPruittSu2018.pdf` (Kelly, Pruitt & Su, NBER working paper of 2018; cite the 2019 *Journal of Financial Economics* article, report the mismatch with the curriculum's 2018, and name working-paper pages). Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper.
+
+      Data. `ff25-size-bm-monthly` and `ff3-monthly`, 1963-07 on, loaded through one hook in `src/components/plots/latentSample.ts` built on the existing loaders (`usePcaData` of `pcaSample.ts` and `loadSeries`); write no new loading code that an existing hook already covers.
+
+      Chapter:
+      - Frontmatter: `part: 8`, `chapter: 31`, `difficulty: 3`, `prerequisites: [6, 17]`, a one-sentence `summary`. Link chapters 6, 17 and 28. Every sentence about another chapter must be true of the merged site; name chapters 32 to 34 only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: the factor model $R^e_t = \beta f_t + \varepsilon_t$ and the APT's $\mathbb{E}[R^e] = \beta\lambda$ (what "approximately" and "no near-arbitrage" mean), why PCs of the test assets price them almost by construction, the rotation $(\beta, f) \to (\beta H^{-1}, Hf)$ that leaves the fit unchanged (in the Part VIII symbols of §3), and canonical correlations as the rotation-free way to compare the first three PCs with MKT, SMB and HML. Say plainly what our data show, and teach the limit: the PCs are estimated on the same returns they price.
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter31-numbers.test.ts` that recomputes each one, as `tests/chapter16-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above:
+      - `PCAExplorer` preset: add one optional view (for example `initialView="factors"`, with a matching option in its view control) that, for the 25 portfolios from 1963-07, shows the canonical correlations between the first $K$ PCs and [Mkt-RF, SMB, HML] as bars, and the plain correlation of each PC with each factor as a small table. A `Slider` for $K$ (1 to 5) and a `Slider` for a rotation angle inside the plane of PCs 1 and 2 (reuse the existing $\omega$ rotation) show that the plain correlations move and the canonical correlations do not. The readout gives the canonical correlations and the variance share of the $K$ PCs. The default views stay unchanged, and chapters 6 and 28 must render as before (run their screenshots and click-through). No other task in this Part edits `PCAExplorer`.
+      Follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout (break wide display math so it fits a 375px phone), `prefers-reduced-motion`. In `options={[...]}` strings, double every backslash. Use plain `<details>`, not `<Details>`.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` (report mismatches in the outcome), changes to shared code other than the `PCAExplorer` view above. A symbol the chapter needs that §3 lacks goes into the Part VIII block of `docs/STYLE_GUIDE.md` §3 in this PR, with the clash it avoids (rebase first and keep every row); where the curriculum's Key math and §3 disagree, follow §3 and report the mismatch. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 31-latent-and-observable-factors`, `npm run screenshots -- 06-principal-components` and `npm run screenshots -- 28-skeptical-look-at-asset-pricing-tests` pass in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 31-latent-and-observable-factors`, `npm run clickthrough -- 06-principal-components` and `npm run clickthrough -- 28-skeptical-look-at-asset-pricing-tests` pass and report every widget of each chapter.'
+      - 'The six `section-tag` headings are in template order.'
+      - 'No hex colour in the chapter or its widgets.'
+      - 'The widget uses real data (`ff25-size-bm-monthly`, `ff3-monthly`), and the default views of `PCAExplorer` are unchanged.'
+      - 'The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.'
+      - 'The prose is 1,500–3,000 words (give the command).'
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 31-latent-and-observable-factors
+      npm run screenshots -- 06-principal-components
+      npm run screenshots -- 28-skeptical-look-at-asset-pricing-tests
+      npm run clickthrough -- 31-latent-and-observable-factors
+      npm run clickthrough -- 06-principal-components
+      npm run clickthrough -- 28-skeptical-look-at-asset-pricing-tests
+      grep -n 'section-tag' src/content/chapters/31-latent-and-observable-factors.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/31-latent-and-observable-factors.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-32
+    title: 'Chapter 32: Characteristics are covariances: IPCA'
+    milestone: M-10
+    after: [lib-ipca]
+    why: >-
+      SC-7 and M-10. Betas need not be constant: in instrumented PCA they move with firm characteristics, the model is
+      fitted by alternating least squares on characteristic-managed portfolios, and a bootstrap test asks whether
+      characteristics predict returns beyond their effect on betas. This chapter follows the pattern of the Part I to
+      Part VII chapters.
+    scope: |-
+      Write chapter 32 of `docs/CURRICULUM.md`, "Characteristics are covariances: IPCA", as `src/content/chapters/32-characteristics-are-covariances-ipca.mdx`, with its widget. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md` (with the Part VII and Part VIII blocks of §3), the finished chapters `src/content/chapters/06-principal-components.mdx`, `src/content/chapters/17-cross-sectional-regressions-and-fama-macbeth.mdx` (Fama–MacBeth slopes, which IPCA with $K = L$ reproduces), `src/content/chapters/22-conditional-factor-models.mdx` (betas that move with a state variable) and `src/content/chapters/24-generalized-method-of-moments.mdx` (`GMMObjective`, whose heat-map shading the loadings map should copy), chapter 31 if it is merged, and the library code named below: `src/lib/finance/ipca.ts` (from the library task this task depends on).
+
+      Readings. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/KellyPruittSu2018.pdf` (Kelly, Pruitt & Su, NBER working paper of 2018; cite the 2019 *Journal of Financial Economics* article, report the mismatch with the curriculum's 2018, and name working-paper pages) with `pdftotext -layout` and name the page for any number or fact you take from it. The paper's own estimates use CRSP and Compustat firm data that the site does not have: you may report a number from the paper with its page, but say that it is the paper's and not ours. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our simulations is read from library output, never from a paper.
+
+      Data. Simulated (seeded), as the curriculum says: `simulateIpcaPanel` with the settings the widget and the numbers test share, in `src/components/plots/ipcaSample.ts`. Teach the limit honestly: a seeded panel shows how the method works, not what it finds in real stocks.
+
+      Chapter:
+      - Frontmatter: `part: 8`, `chapter: 32`, `difficulty: 3`, `prerequisites: [17, 31]`, a one-sentence `summary`. Link chapters 17 and 22. Link chapter 31 if it is merged when you finish; otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site; name chapters 33 and 34 only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: the model with $\beta_{i,t}$ and $\alpha_{i,t}$ linear in characteristics (in the Part VIII symbols of §3), why the characteristics are rank-transformed, the managed portfolios and why the fit needs only them and $Z_t'Z_t$, alternating least squares and its start from the PCs of the managed portfolios, the normalisation that removes the rotation (link the rotation of chapter 31), the case $K = L$ as Fama–MacBeth, the total and predictive $R^2$, and the bootstrap test of $\Gamma_\alpha = 0$. Write the curriculum's letters in the §3 symbols and report each replacement.
+      - Every number in the prose is read from library output on the seeded panel, never typed from memory. Add `tests/chapter32-numbers.test.ts` that recomputes each one, as `tests/chapter16-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the library above:
+      - `IPCAFit`: the seeded panel's ALS iterations converging (the objective against the iteration, stepped with a `Button` or played with `useTweened`, and still under `prefers-reduced-motion`), and the estimated $\Gamma_\beta$ next to the true one as two heat maps ($L$ characteristics × $K$ factors, shaded as `GMMObjective` shades, with each cell's value on hover or focus). Controls: a `Segmented` or `Slider` for $K$, a `Slider` for the alpha share of the seeded panel, and a `Button` for a new seed. The readout gives the iteration count, the total and predictive $R^2$, $W_\alpha$ and its bootstrap $p$-value (compute the bootstrap after the slider stops, as `UselessFactor` does). Do not let colour be the only cue in the heat maps.
+      Follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout (break wide display math so it fits a 375px phone), `prefers-reduced-motion`. In `options={[...]}` strings, double every backslash. Use plain `<details>`, not `<Details>`.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` (report mismatches in the outcome), changes to shared code. A symbol the chapter needs that §3 lacks goes into the Part VIII block of `docs/STYLE_GUIDE.md` §3 in this PR, with the clash it avoids (rebase first and keep every row); a new colour goes into §4 the same way. Where the curriculum's Key math and §3 disagree, follow §3 and report the mismatch. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 32-characteristics-are-covariances-ipca` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 32-characteristics-are-covariances-ipca` passes and reports every widget of the chapter.'
+      - 'The six `section-tag` headings are in template order.'
+      - 'No hex colour in the chapter or its widgets.'
+      - 'The widget uses seeded simulations from `src/lib/math/rng.ts` through `simulateIpcaPanel`.'
+      - 'The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.'
+      - 'The prose is 1,500–3,000 words (give the command).'
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 32-characteristics-are-covariances-ipca
+      npm run clickthrough -- 32-characteristics-are-covariances-ipca
+      grep -n 'section-tag' src/content/chapters/32-characteristics-are-covariances-ipca.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/32-characteristics-are-covariances-ipca.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-33
+    title: 'Chapter 33: Characteristic-based mimicking portfolios'
+    milestone: M-10
+    after: [lib-mimicking]
+    why: >-
+      SC-7 and M-10. A characteristic becomes a tradable factor by a sort or by a cross-sectional regression whose
+      slope is a portfolio return, and a non-traded factor such as consumption growth gets a traded stand-in by
+      projecting it on returns. This chapter follows the pattern of the Part I to Part VII chapters.
+    scope: |-
+      Write chapter 33 of `docs/CURRICULUM.md`, "Characteristic-based mimicking portfolios", as `src/content/chapters/33-characteristic-based-mimicking-portfolios.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md` (with the Part V, Part VII and Part VIII blocks of §3), `docs/DATA.md`, the finished chapters `src/content/chapters/17-cross-sectional-regressions-and-fama-macbeth.mdx`, `src/content/chapters/19-size-and-value.mdx` (`SortGrid` and `FactorBuilder`), `src/content/chapters/22-conditional-factor-models.mdx` and `src/content/chapters/26-gmm-for-asset-pricing-models.mdx` (the consumption CAPM on quarterly data), and the library code named below: `src/lib/finance/mimicking.ts` (from the library task this task depends on), `src/lib/finance/conditional.ts` (`quarterlyPanel`) and `src/components/plots/sizeValueSample.ts`.
+
+      Readings. Open these PDFs with `pdftotext -layout` and name the page for any number or fact you take from them: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/FamaFrench1992.pdf` (Fama & French (1992), published version) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/KellyPruittSu2018.pdf` (Kelly, Pruitt & Su, NBER working paper of 2018; cite the 2019 *Journal of Financial Economics* article, report the mismatch with the curriculum's 2018, and name working-paper pages). You may also cite `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/GiglioXiu2021.pdf` (pp. 1954–1955) for the bias of a mimicking portfolio built on too few base assets. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper.
+
+      Data. `ff25-size-bm-monthly` and `ff3-monthly` from 1963-07, and the quarterly panel of `quarterlyPanel` (25 portfolios, FF3 and consumption growth from `fred-cay-quarterly`), loaded through one hook in `src/components/plots/mimickingSample.ts` built on the existing loaders (`useModelData` of `sizeValueSample.ts`, and the loading of `conditionalSample.ts` or `sdfGmmSample.ts` for the quarterly panel); write no new loading code that an existing hook already covers. The curriculum's data line names `fred-consumption-quarterly`; report that the chapter uses the consumption growth of chapters 22 and 26 instead.
+
+      Chapter:
+      - Frontmatter: `part: 8`, `chapter: 33`, `difficulty: 3`, `prerequisites: [17, 19]`, a one-sentence `summary`. Link chapters 17, 19 and 26. Link chapter 32 if it is merged when you finish (the managed portfolios); otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site; name chapter 34 only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: Fama–MacBeth slopes as portfolio returns, with weights the rows of $(Z_t'Z_t)^{-1}Z_t'$ (unit exposure to one characteristic, none to the others), a sort against a regression as two ways to weight the same assets, and the projection of a non-traded factor on returns with its mimicking return. Write the curriculum's $\hat\gamma_t$, $c$, $w$ and $e_t$ in the Part VIII symbols of §3 and report each replacement. Teach the limits honestly: the 25 portfolios stand in for firms, and a projection on 25 assets over a few hundred quarters overfits (show the split-sample correlation).
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter33-numbers.test.ts` that recomputes each one, as `tests/chapter16-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above:
+      - `SortGrid` preset: add one optional view (for example `initialMeasure="weights"`, with a matching option in its measure control) that shades the 5×5 grid by the weight each portfolio gets in a long–short sort and in the cross-sectional slope portfolio (`sortWeights` and `slopeWeights`), with a `Segmented` for the characteristic (size, book-to-market) and one for the method (sort, regression). The readout gives the chosen portfolio's mean, $t$-statistic and correlation with SMB or HML. The default views stay unchanged, and chapter 19 must render as before (run its screenshots and click-through). No other task in this Part edits `SortGrid`.
+      - `MimickingPortfolio`: consumption growth and its mimicking return over time (quarterly), with a `Segmented` for the base assets (the 25 portfolios; the three FF3 factors), a `Segmented` for in sample against split sample, and a `Slider` for the split date. The readout gives the correlation achieved and the largest weights.
+      Both follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout (break wide display math so it fits a 375px phone), `prefers-reduced-motion`. In `options={[...]}` strings, double every backslash. Use plain `<details>`, not `<Details>`.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` (report mismatches in the outcome), changes to shared code other than the `SortGrid` view above. A symbol the chapter needs that §3 lacks goes into the Part VIII block of `docs/STYLE_GUIDE.md` §3 in this PR, with the clash it avoids (rebase first and keep every row); where the curriculum's Key math and §3 disagree, follow §3 and report the mismatch. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 33-characteristic-based-mimicking-portfolios` and `npm run screenshots -- 19-size-and-value` pass in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 33-characteristic-based-mimicking-portfolios` and `npm run clickthrough -- 19-size-and-value` pass and report every widget of each chapter.'
+      - 'The six `section-tag` headings are in template order.'
+      - 'No hex colour in the chapter or its widgets.'
+      - 'The widgets use real data (`ff25-size-bm-monthly`, `ff3-monthly` and the quarterly panel of `quarterlyPanel`), and the default views of `SortGrid` are unchanged.'
+      - 'The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.'
+      - 'The prose is 1,500–3,000 words (give the command).'
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 33-characteristic-based-mimicking-portfolios
+      npm run screenshots -- 19-size-and-value
+      npm run clickthrough -- 33-characteristic-based-mimicking-portfolios
+      npm run clickthrough -- 19-size-and-value
+      grep -n 'section-tag' src/content/chapters/33-characteristic-based-mimicking-portfolios.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/33-characteristic-based-mimicking-portfolios.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-34
+    title: 'Chapter 34: Risk premia with omitted factors'
+    milestone: M-10
+    after: [lib-three-pass]
+    why: >-
+      SC-7 and M-10. Part VIII closes with the risk premium of an observed factor when the model leaves out other
+      factors: the two-pass estimate picks up the omitted factors' premia, and the three-pass estimator of Giglio &
+      Xiu (2021) removes the bias through rotation invariance. This chapter follows the pattern of the Part I to Part
+      VII chapters.
+    scope: |-
+      Write chapter 34 of `docs/CURRICULUM.md`, "Risk premia with omitted factors", as `src/content/chapters/34-risk-premia-with-omitted-factors.mdx`, with its widget. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md` (with the Part VII and Part VIII blocks of §3), `docs/DATA.md`, the finished chapters `src/content/chapters/17-cross-sectional-regressions-and-fama-macbeth.mdx`, `src/content/chapters/18-errors-in-variables-and-shanken.mdx` and `src/content/chapters/27-weak-and-useless-factors.mdx` (a seeded-economy widget to copy), chapter 31 if it is merged, and the library code named below: `src/lib/finance/threePass.ts` (from the library task this task depends on), `src/lib/finance/latentFactors.ts` and `src/lib/finance/crossSection.ts`.
+
+      Readings. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/GiglioXiu2021.pdf` (Giglio & Xiu (2021), published version) with `pdftotext -layout` and name the page for any number or fact you take from it. The paper's estimates use 647 portfolios that the site does not have: you may report a number from the paper with its page, but say that it is the paper's and not ours. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data or simulations is read from library output, never from a paper.
+
+      Data. `ff25-size-bm-monthly`, `ff3-monthly` and `ff30-industry-monthly` from 1963-07, and seeded simulations from `simulateOmittedFactor`, loaded through one hook in `src/components/plots/threePassSample.ts` built on the existing loaders (`useFactorData` of `factorTestSample.ts` and `loadSeries`, or the hook of `skepticalSample.ts`, which already loads the industries); write no new loading code that an existing hook already covers. The curriculum's data line does not name the industries; report the addition.
+
+      Chapter:
+      - Frontmatter: `part: 8`, `chapter: 34`, `difficulty: 3`, `prerequisites: [17, 31]`, a one-sentence `summary`. Link chapters 17, 18 and 27. Link chapter 31 if it is merged when you finish; otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site; name Part IX's first chapter only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: the model of returns on latent factors and of the observed factor on the latent factors, the omitted-variable bias of the two-pass estimate, rotation invariance of the observed factor's premium, the three passes, and why using more PCs than the true number does no harm. Write the curriculum's $v_t$, $u_t$, $g_t$, $\xi$, $\eta$, $z_t$ and $\gamma$ in the Part VIII symbols of §3 and report each replacement. Apply both estimators to Mkt-RF, SMB and HML on the 25 portfolios and on the 25 portfolios with the 30 industries, and say plainly what our data show; for a traded factor, compare the premium with its sample mean.
+      - Every number in the prose is read from library output on the committed data or the seeded simulations, never typed from memory. Add `tests/chapter34-numbers.test.ts` that recomputes each one, as `tests/chapter16-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above:
+      - `OmittedFactorBias`: the seeded economy of `simulateOmittedFactor`, with the two-pass and three-pass estimates across draws as two histograms (or strips) against the true premium, a `Slider` for the omitted factor's strength, a `Slider` for the correlation of its loadings with the observed factor's, a `Slider` for the number of PCs, and a `Button` for a new seed. The readout gives the mean bias and the root mean squared error of each estimator. Compute after the slider stops, as `UselessFactor` does. Do not let colour be the only cue between the two estimators.
+      Follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout (break wide display math so it fits a 375px phone), `prefers-reduced-motion`. In `options={[...]}` strings, double every backslash. Use plain `<details>`, not `<Details>`.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` (report mismatches in the outcome), changes to shared code. A symbol the chapter needs that §3 lacks goes into the Part VIII block of `docs/STYLE_GUIDE.md` §3 in this PR, with the clash it avoids (rebase first and keep every row); where the curriculum's Key math and §3 disagree, follow §3 and report the mismatch. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 34-risk-premia-with-omitted-factors` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 34-risk-premia-with-omitted-factors` passes and reports every widget of the chapter.'
+      - 'The six `section-tag` headings are in template order.'
+      - 'No hex colour in the chapter or its widgets.'
+      - 'The widget uses seeded simulations from `src/lib/math/rng.ts`, and the prose numbers use the committed `ff25-size-bm-monthly`, `ff3-monthly` and `ff30-industry-monthly` data.'
+      - 'The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.'
+      - 'The prose is 1,500–3,000 words (give the command).'
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 34-risk-premia-with-omitted-factors
+      npm run clickthrough -- 34-risk-premia-with-omitted-factors
+      grep -n 'section-tag' src/content/chapters/34-risk-premia-with-omitted-factors.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/34-risk-premia-with-omitted-factors.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: part-8-signoff
+    title: Orchestrator reads Part VIII and signs it off
+    milestone: M-10
+    kind: gate
+    after: [chapter-31, chapter-32, chapter-33, chapter-34]
+    why: >-
+      SC-7 and M-10. The orchestrator judges how Part VIII reads before the next Parts copy its pattern. No owner
+      approval is needed (owner decision, 2026-10-23).
+    scope: |-
+      A read-through of chapters 31–34 (latent factors and large cross-sections) on merged `main`, delivered as a report in this task's outcome. The worker changes no chapter, widget, library or doc; the only file in the PR is this task's outcome file under `goals/course-site/tasks/`.
+
+      1. Run the Verify commands and paste their tails in the outcome.
+      2. Read each chapter in the browser (`npm run dev`, then `http://localhost:4321/empirical-finance-lbs/`) in both themes at desktop and 360px width, and use every widget control.
+      3. Judge four things and write one short section on each: does the voice work for a reader who starts from zero, at the Part's ●●● level (`docs/STYLE_GUIDE.md` §1); does each widget teach what its caption says; do the chapters reuse the shared widgets without forking them (one `PCAExplorer` whose default views still render chapters 6 and 28, one `SortGrid` whose default views still render chapter 19) and share the Part VIII notation block of §3 (report any duplicate loading code, any symbol used two ways, and any rotation or PCA step written twice instead of reused from `latentFactors.ts`); does Part VIII link the factor zoo and shrinkage of Part VII to the consumption models of Part IX, with every sentence about another chapter true of the merged site.
+      4. End with `## Sign-off`: either "Part VIII reads well" or a numbered list of changes, each naming the chapter, the file and the fix.
+
+      The orchestrator reads the report and the chapters. It signs off by merging this PR. Each listed change becomes a new M-10 task routed to claude opus high, and the orchestrator merges this PR only after those changes are merged.
+    acceptance:
+      - '`npm test` and `npm run build` pass on merged `main`; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots` and `npm run clickthrough` pass for `31-latent-and-observable-factors`, `32-characteristics-are-covariances-ipca`, `33-characteristic-based-mimicking-portfolios`, `34-risk-premia-with-omitted-factors`, `06-principal-components`, `19-size-and-value` and `28-skeptical-look-at-asset-pricing-tests`.'
+      - 'The outcome holds the four judgements and a `## Sign-off` section with "Part VIII reads well" or a numbered list of changes.'
+      - '`git diff --name-only origin/main` lists only this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 31-latent-and-observable-factors
+      npm run screenshots -- 32-characteristics-are-covariances-ipca
+      npm run screenshots -- 33-characteristic-based-mimicking-portfolios
+      npm run screenshots -- 34-risk-premia-with-omitted-factors
+      npm run screenshots -- 06-principal-components
+      npm run screenshots -- 19-size-and-value
+      npm run screenshots -- 28-skeptical-look-at-asset-pricing-tests
+      npm run clickthrough -- 31-latent-and-observable-factors
+      npm run clickthrough -- 32-characteristics-are-covariances-ipca
+      npm run clickthrough -- 33-characteristic-based-mimicking-portfolios
+      npm run clickthrough -- 34-risk-premia-with-omitted-factors
+      npm run clickthrough -- 06-principal-components
+      npm run clickthrough -- 19-size-and-value
+      npm run clickthrough -- 28-skeptical-look-at-asset-pricing-tests
+      git diff --name-only origin/main
+link:
+  - {id: TASK-037, after: [chapter-31]}
