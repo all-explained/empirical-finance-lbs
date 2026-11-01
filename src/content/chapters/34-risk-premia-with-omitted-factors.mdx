@@ -1,0 +1,315 @@
+---
+title: "Risk premia with omitted factors"
+part: 8
+chapter: 34
+difficulty: 3
+prerequisites: [17, 31]
+summary: "A two-pass estimate of one factor's premium picks up the premia of the factors the model leaves out, and the three-pass estimator of Giglio & Xiu (2021) removes that bias by pricing the whole latent factor space and then projecting the factor on it."
+---
+
+import OmittedFactorBias from '../../components/plots/OmittedFactorBias';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Three answers for one premium
+
+Take the 25 portfolios sorted on size and book-to-market, in Kenneth French's monthly data from 1963-07 to
+2026-08: 758 months. You want the risk premium of the value factor, HML. HML is itself a portfolio, so you already
+have one answer: its mean excess return is 0.294% a month.
+
+Now run the two-pass regression of
+[Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/) with HML as the only
+factor. The first pass gives each portfolio's beta on HML. The second pass regresses the 25 mean excess returns on
+those betas, with no intercept. The slope, the estimated premium, is −0.140% a month. Value now looks like a hedge
+that you pay for. Run the same test with SMB alone, and its premium is 0.640% a month, more than four times its mean
+of 0.147%.
+
+Put Mkt-RF, SMB and HML into the regression together, and the premia become 0.560%, 0.144% and 0.353% a month,
+close to the three means. So the premium of HML depends on which *other* factors you happen to include.
+
+That is a problem far beyond value. Suppose you care about a factor that is not a portfolio, such as a liquidity
+shock or consumption growth. You do not have its mean as a check, and nobody can give you the full list of the other
+priced factors. **Can you estimate one factor's premium without knowing all the others?**
+
+## <span class="section-tag">Intuition</span> Price the whole space, then project
+
+Why did HML alone go wrong? The second pass fits mean returns with one beta. But the means of the 25 portfolios
+also reward other risks, such as the market and size. When the loadings on those omitted risks line up, across the
+portfolios, with the loadings on HML, the slope on HML takes their reward as its own. When they line up against
+HML's loadings, the slope is pushed down. It is the omitted-variable bias of any regression, here in the second pass.
+
+The widget shows the same thing in an economy that we build, so that we know the truth. It has two priced factors,
+each with a premium of 6% a year. You observe only the first one, $\Factor{\chi_t}$. The second one is omitted. Its
+strength $s$ scales its loadings, and $c$ sets how they correlate, across the 25 assets, with the loadings on the
+first factor. Each panel shows one estimator over 100 seeded samples of 600 months.
+
+<OmittedFactorBias client:visible initialStrength={1} initialCorrelation={0.5} />
+
+At $s = 1$ and $c = 0.5$, the two-pass estimates sit to the right of the truth. Their mean bias is +2.77% a year,
+close to the +3.00% that the algebra below predicts, and their root mean squared error is 3.65%. The three-pass
+estimates centre on the truth. Their mean bias is −0.27% a year and their root mean squared error is 1.88%.
+
+The three-pass estimator of Giglio & Xiu (2021) does not try to name the omitted factor. It works in three moves:
+
+1. Find the space in which all the returns move, with principal components (PCA,
+   [Chapter 31](/empirical-finance-lbs/chapters/31-latent-and-observable-factors/)). The components span the
+   omitted factor too, even though nobody named it.
+2. Price that whole space with a cross-sectional regression on the components' loadings. No priced factor is left
+   out, so this regression has no omitted variable.
+3. Ask how much of the space your factor is, with a time-series regression of $\Factor{\chi_t}$ on the components,
+   and add up the premia in those amounts.
+
+Chapter 31 showed that the components are fixed only up to a rotation. Step 3 makes that harmless: whatever arrows
+PCA draws on the "sheet" of factors, the factor's position on the sheet stays the same, and so does its premium.
+
+<Callout type="key">The two-pass estimate of one factor's premium absorbs the premia of omitted factors whose
+loadings correlate with its own. The three-pass estimator prices the full latent factor space and then projects the
+factor on it, so no priced factor is left out.</Callout>
+
+## <span class="section-tag">Formalisation</span> The model, the bias and the three passes
+
+### Returns on latent factors, and the observed factor on them
+
+Write the $N$ excess returns at month $t$ as a vector $\Ret{R^e_t}$, driven by $K$ latent factors $\Factor{f_t}$
+with mean zero, so they are the factors' innovations:
+
+$$
+\Ret{R^e_t} = \beta\lambda + \beta\Factor{f_t} + \Err{\varepsilon_t} .
+$$
+
+Here $\beta$ is the $N \times K$ matrix of loadings, $\lambda$ the $K$ premia, and the residuals $\varepsilon_t$ have
+mean zero and are uncorrelated with $f_t$. So $\mathbb{E}[R^e] = \beta\lambda$. The observed factor is one series,
+related to the latent ones by a time-series regression:
+
+$$
+\Factor{\chi_t} = a + \beta_\chi'\Factor{f_t} + \Err{\varepsilon_{\chi,t}} .
+$$
+
+The $K$-vector $\beta_\chi$ holds its loadings, and $\varepsilon_{\chi,t}$ is measurement error, uncorrelated with
+$f_t$. These are equations 1 and 2 of Giglio & Xiu (2021, p. 1956). The paper writes $v_t$, $u_t$, $\gamma$ for our
+$f_t$, $\varepsilon_t$, $\lambda$, and $g_t = \xi + \eta v_t + z_t$ for our second equation. The style guide's
+Part VIII table says why we change each letter.
+
+The **risk premium of $\chi_t$**, $\lambda_\chi$, is the mean excess return of a portfolio with beta 1 on $\chi_t$
+and beta 0 on everything else (p. 1956). Here is why it equals $\beta_\chi'\lambda$.
+
+1. Take portfolio weights $w$ with $w'\beta = \beta_\chi'$. With many assets and $K$ factors, such weights exist.
+2. Its excess return is $w'R^e_t = \beta_\chi'\lambda + \beta_\chi'f_t + w'\varepsilon_t$.
+3. Its factor part, $\beta_\chi'f_t$, is the part of $\chi_t$ that the factors explain. So the portfolio moves one
+   for one with $\chi_t$ and has no other factor risk. In a well-diversified portfolio $w'\varepsilon_t$ is small.
+4. Its mean is $\beta_\chi'\lambda + w'\mathbb{E}[\varepsilon_t] = \beta_\chi'\lambda$. So
+
+$$
+\lambda_\chi = \beta_\chi'\lambda .
+$$
+
+For a traded factor such as HML, the factor is such a portfolio, so $\lambda_\chi$ should equal its mean excess
+return. That is our check in the Hook.
+
+### The omitted-variable bias of the two-pass estimate
+
+Take the economy of the widget: $K = 2$ independent factors, the observed factor is the first one with no error,
+$\chi_t = f_{1,t}$, and $\lambda_\chi = \lambda_1$. Asset $i$ has loadings $\beta_{i,1}$ and $\beta_{i,2}$.
+
+1. First pass: regress each $R^e_{i,t}$ on $\chi_t$ alone. Because $f_{2,t}$ is uncorrelated with $f_{1,t}$, the
+   slope estimates $\beta_{i,1}$ without bias. If the two factors were correlated in time, this step would be biased
+   too (p. 1954).
+2. Second pass: regress the means $\Data{\bar R^e_i}$ on $\beta_{i,1}$, with no intercept:
+   $\hat\lambda_\chi = \sum_i \beta_{i,1}\bar R^e_i \big/ \sum_i \beta_{i,1}^2$.
+3. For large $T$, $\bar R^e_i \approx \beta_{i,1}\lambda_1 + \beta_{i,2}\lambda_2$. Substitute:
+
+$$
+\begin{aligned}
+\hat\lambda_\chi &\approx \lambda_1 + \lambda_2\,\frac{\sum_i \beta_{i,1}\beta_{i,2}}{\sum_i \beta_{i,1}^2} .
+\end{aligned}
+$$
+
+4. The fraction is the cross-sectional slope of the omitted loadings on the included ones. In the widget,
+   $\beta_{i,1}$ is a standard normal draw, and $\beta_{i,2}$ is $s$ times another standard normal draw whose
+   correlation with $\beta_{i,1}$, across assets, is $c$. For large $N$ the slope tends to $s\,c$, so the bias is
+   $s\,c\,\lambda_2$.
+5. At $s = 1$, $c = 0.5$ and $\lambda_2 = 6\%$ a year, the bias is 3.00% a year.
+
+The bias needs both a priced omitted factor ($s\lambda_2 \neq 0$) and correlated loadings ($c \neq 0$). With
+$c = 0$ the omitted factor only adds noise, through pricing errors that the second pass does not see.
+
+<details>
+<summary>Measurement error adds a second bias</summary>
+
+Now let $\chi_t = f_{1,t} + \varepsilon_{\chi,t}$, and first take $c = 0$.
+
+1. The first-pass slope tends to $\operatorname{Cov}(R^e_{i,t}, \chi_t)/\operatorname{Var}(\chi_t)$. The covariance
+   is $\beta_{i,1}\operatorname{Var}(f_{1,t})$, and the variance is
+   $\operatorname{Var}(f_{1,t}) + \operatorname{Var}(\varepsilon_{\chi,t})$.
+2. So every beta shrinks by the same factor, $\operatorname{Var}(f_{1,t})/\operatorname{Var}(\chi_t)$. This is
+   attenuation bias (p. 1955).
+3. The second pass divides the means by betas that are too small, so the slope grows by the inverse factor:
+   $\hat\lambda_\chi \approx \lambda_1\operatorname{Var}(\chi_t)/\operatorname{Var}(f_{1,t})$.
+4. With correlated omitted loadings as well, the two effects multiply:
+   $\hat\lambda_\chi \approx (\lambda_1 + s\,c\,\lambda_2)\operatorname{Var}(\chi_t)/\operatorname{Var}(f_{1,t})$.
+
+[Chapter 18](/empirical-finance-lbs/chapters/18-errors-in-variables-and-shanken/) dealt with a different error: the
+first-pass betas are estimated, so the usual standard errors of the second pass are too small. Here the factor
+itself is measured with error, and the estimate is biased.
+
+</details>
+
+### Rotation invariance
+
+PCA recovers the latent factors only up to an invertible $K \times K$ matrix $H$, as Chapter 31 showed. Rewrite the
+model with $Hf_t$:
+
+1. Returns: $R^e_t = \beta H^{-1}(H\lambda) + \beta H^{-1}(Hf_t) + \varepsilon_t$. The new loadings are
+   $\beta H^{-1}$ and the new premia are $H\lambda$.
+2. The observed factor: $\chi_t = a + \beta_\chi'H^{-1}(Hf_t) + \varepsilon_{\chi,t}$. Its new loadings are
+   $\beta_\chi'H^{-1}$.
+3. The premium is the product, and the $H$ cancels:
+
+$$
+(\beta_\chi'H^{-1})(H\lambda) = \beta_\chi'\lambda = \lambda_\chi .
+$$
+
+The loadings $\beta_\chi$ and the premia $\lambda$ each change with $H$, so neither can be learnt without knowing the
+true factors. Their product cannot change, so it can be learnt from any rotation of them (p. 1957). This is the
+idea the whole estimator rests on.
+
+### The three passes
+
+With $K$ principal components of the excess returns (p. 1959):
+
+1. **PCA.** Take the first $K$ components $\Factor{\hat f_t}$ of the demeaned returns, scaled so that
+   $\tfrac1T\sum_t \hat f_t\hat f_t' = I_K$, and their loadings $\hat\beta$. By the argument above, they estimate
+   $Hf_t$ and $\beta H^{-1}$ for some $H$.
+2. **Cross-section.** Regress the means on the loadings, by OLS with no intercept:
+   $\hat\lambda = (\hat\beta'\hat\beta)^{-1}\hat\beta'\Data{\bar R^e}$, the premia of the components.
+3. **Time series.** Regress $\chi_t$ on the components, with an intercept, to get $\hat\beta_\chi$. The $R^2$ of this
+   regression says how much of $\chi_t$ the components span.
+
+Then $\hat\lambda_\chi = \hat\beta_\chi'\hat\lambda$. In one line, with the demeaned series
+$\tilde\chi_t = \chi_t - \bar\chi$,
+
+$$
+\begin{aligned}
+\hat\lambda_\chi = {} &\Big(\tfrac1T\textstyle\sum_t \tilde\chi_t\hat f_t'\Big) \\
+&\times (\hat\beta'\hat\beta)^{-1}\hat\beta'\bar R^e ,
+\end{aligned}
+$$
+
+because $\tfrac1T\sum_t \hat f_t\hat f_t' = I_K$ turns the time-series slope into a plain average. Our library also gives a standard
+error from the paper's large-$N$, large-$T$ theory (Theorem 1, p. 1964).
+
+### Why extra components do no harm
+
+PCA makes the $K$ components uncorrelated and their loading columns orthogonal, so $\hat\beta'\hat\beta$ is
+diagonal. Then the three passes split into one product per component.
+
+1. Step 2 becomes $K$ separate slopes: $\hat\lambda_k = \hat\beta_k'\bar R^e / \hat\beta_k'\hat\beta_k$, with
+   $\hat\beta_k$ the $k$-th column.
+2. Step 3 becomes $K$ separate averages: $\hat\beta_{\chi,k} = \tfrac1T\sum_t \tilde\chi_t\hat f_{k,t}$.
+3. So $\hat\lambda_\chi = \sum_{k=1}^{K}\hat\beta_{\chi,k}\hat\lambda_k$. The components are nested, so going from
+   $K$ to $K + 1$ components adds exactly one term, $\hat\beta_{\chi,K+1}\hat\lambda_{K+1}$.
+4. If component $K + 1$ is not a true factor, it is a mix of idiosyncratic noise, uncorrelated with $\chi_t$. Its
+   slope $\hat\beta_{\chi,K+1}$ tends to zero as $T$ grows, and so does the added term.
+5. If instead $K$ is below the true number, a missing component is a true factor that $\chi_t$ may load on. Its term
+   is then not zero, and leaving it out biases the estimate.
+
+So it is safer to take too many components than too few. Giglio & Xiu report that their estimator stays consistent
+as long as the number of components is at least the true number (p. 1972).
+
+## <span class="section-tag">Playground</span> Bend the economy
+
+Use the widget above. The slider $s$ sets the strength of the omitted factor, from 0 (no second factor) to 2. The
+slider $c$ sets how its loadings correlate with the loadings on the observed factor. "New seed" draws 100 fresh
+samples. The readout gives each estimator's mean bias and root mean squared error, in % a year.
+
+<p class="try-this"><strong>Try this:</strong> set $c = 0$. The two-pass bias falls to −0.21% a year, no more than
+sampling noise, but its root mean squared error is 2.23%, against 1.93% at $s = 0$. Now set $c = -0.5$. The bias
+turns to −3.18% a year: the omitted premium now pulls the estimate down.</p>
+
+<p class="try-this"><strong>Try this:</strong> set $s = 2$ and $c = 0.9$. The two-pass bias is +10.58% a year, more
+than the 6% premium itself. Watch the three-pass panel: its root mean squared error stays between 1.88% and 1.91% a
+year in every setting above.</p>
+
+### What our data show
+
+Apply both estimators to Mkt-RF, SMB and HML, one factor at a time, on the 25 portfolios from 1963-07 to 2026-08. We
+take $K = 5$ components, more than the three that Chapter 31 found to span the factors, because extra components do
+no harm. Step 3 gives an $R^2$ of 0.98, 0.99 and 0.95: the components span all three factors almost fully.
+
+| Factor | Mean | Two-pass, alone | Three-pass, $K = 5$ |
+|---|---|---|---|
+| Mkt-RF | 0.602 | 0.687 | 0.538 (0.160) |
+| SMB | 0.147 | 0.640 | 0.186 (0.109) |
+| HML | 0.294 | −0.140 | 0.320 (0.106) |
+
+All numbers are in % a month, with the three-pass standard error in parentheses. Each three-pass premium is within
+half a standard error of the factor's mean, as it should be for a traded factor. With $K = 3$ they are 0.549%,
+0.153% and 0.340%, about the same. With too few components, the bias of the last step above shows: HML's premium is −0.030% with one
+component, whose $R^2$ for HML is 0.01, and 0.174% with two.
+
+More components are not free in a sample of 25 portfolios, though. Going from six to seven moves Mkt-RF's premium
+from 0.536% to 0.611%, because the seventh term is 0.075%: still under half a standard error.
+
+Now add the 30 industry portfolios of `ff30-industry-monthly`, for 55 portfolios. HML alone in the two-pass gets
+−0.512% a month. The three-pass estimates with $K = 5$ are 0.582%, 0.138% and 0.106%. Mkt-RF and SMB stay close to
+their means, but HML's premium is 1.9 standard errors below its mean of 0.294%, although the components span 84% of
+its variance. The industries bring strong comovement that is not value, and their mean returns pull the second step
+away from HML's. So, plainly: on our data the three-pass estimator fixes the wild two-pass numbers, but with these
+few portfolios it does not always land on a traded factor's mean.
+
+These are whole-sample estimates: the components come from the same returns that they then price, the limit that
+Chapter 31 pointed out. Giglio & Xiu use a far
+larger set of 647 portfolios of stocks, bonds and currencies, with seven components (pp. 1972–1973). In their data,
+the two-pass premium of momentum with no other factors is −201 basis points a month, against a mean of 69, and 71
+with the three Fama–French factors as controls. Their three-pass estimate is 49 (p. 1973). Those are their numbers,
+not ours. For the traded factors they study, the three-pass estimates are mostly close to the means (p. 1975).
+
+A last link: a factor whose step-3 $R^2$ is near zero has $\hat\beta_\chi \approx 0$, so its three-pass premium is near
+zero too. The useless factors of
+[Chapter 27](/empirical-finance-lbs/chapters/27-weak-and-useless-factors/), which look priced in a two-pass test, would get
+a premium near zero here, in large samples. Giglio & Xiu make this point for weak and noisy factors (p. 1974).
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="In the widget's economy, the omitted factor is strong ($s = 1$), but its loadings are uncorrelated with the observed factor's ($c = 0$). What happens to the two-pass estimate?"
+  options={["It has no bias on average, but it is noisier than with no omitted factor", "It is biased upward by $s\\lambda_2$", "It is biased towards zero", "It cannot be computed"]}
+  answer={0}
+  explanation="The bias is $s\,c\,\lambda_2$, which is zero at $c = 0$. The omitted loadings then act like pricing errors that do not line up with the included betas: in the widget the bias is −0.21% a year and the root mean squared error rises from 1.93% to 2.23%."
+/>
+
+<Quiz
+  client:visible
+  question="You rotate the principal components by an invertible matrix $H$ before steps 2 and 3. What changes?"
+  options={["Nothing at all", "The premia of the components become $H\\hat\\lambda$ and the loadings $\\hat\\beta_\\chi'$ become $\\hat\\beta_\\chi'H^{-1}$, but $\\hat\\lambda_\\chi$ stays the same", "Only $\\hat\\lambda_\\chi$ changes", "The step-3 $R^2$ changes"]}
+  answer={1}
+  explanation="The $H$ cancels in the product, $(\hat\beta_\chi'H^{-1})(H\hat\lambda) = \hat\beta_\chi'\hat\lambda$. The rotated components span the same space, so the step-3 $R^2$ stays too."
+/>
+
+<Quiz
+  client:visible
+  question="You use six components where the true number of factors is five. Why does the extra one do little harm?"
+  options={["PCA drops it automatically", "It adds one term $\\hat\\beta_{\\chi,6}\\hat\\lambda_6$, and the observed factor's slope on a noise component tends to zero", "Its premium $\\hat\\lambda_6$ is always exactly zero", "The cross-sectional regression has an intercept that absorbs it"]}
+  answer={1}
+  explanation="The passes split into one product per component. A component that is idiosyncratic noise is uncorrelated with the observed factor, so its slope, and the term it adds, shrink towards zero as $T$ grows."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- Returns follow $R^e_t = \beta\lambda + \beta f_t + \varepsilon_t$, and the observed factor
+  $\chi_t = a + \beta_\chi'f_t + \varepsilon_{\chi,t}$. Its premium is $\lambda_\chi = \beta_\chi'\lambda$.
+- A two-pass estimate with $\chi_t$ alone absorbs the premia of omitted factors whose loadings correlate with its
+  own: $s\,c\,\lambda_2$ in the two-factor economy. Measurement error in $\chi_t$ inflates it further.
+- No rotation $H$ of the latent factors changes $\lambda_\chi$, so PCA's arbitrary rotation does not matter.
+- The three passes: PCA, a cross-sectional regression of the means on the loadings, and a time-series regression of
+  $\chi_t$ on the components. Extra components add terms that vanish; too few leave a bias.
+- On the 25 portfolios from 1963-07, the three-pass premia of Mkt-RF, SMB and HML are within half a standard error of
+  their means, while the two-pass with HML alone gives −0.140% a month.
+
+**Next up:** Part IX opens with *The equity premium and risk-free rate puzzles*, where the factor is consumption
+growth and its premium meets a model of preferences.
+
+### Further reading
+
+- Giglio & Xiu (2021)
