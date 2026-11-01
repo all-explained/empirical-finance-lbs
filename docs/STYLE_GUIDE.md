@@ -197,6 +197,20 @@ The parameter vector $\theta$ and the statistic $J$ are in the Probability and s
 | $\mu_{\text{gmv}}$; $\iota$ | — | Mean excess return of the global minimum-variance portfolio, $\mu_{\text{gmv}} = \iota'\Sigma^{-1}\bar R^e / \iota'\Sigma^{-1}\iota$, and the $N$-vector of ones. Not $\lambda_0$, the zero-beta rate a model estimates |
 | $SR^2(\lambda_0)$; $SR^2_{\text{tan}}(\lambda_0)$, $SR^2_f(\lambda_0)$ | — | Squared Sharpe ratio measured against the zero-beta rate, $(\mathbb{E}[R^e] - \lambda_0)^2/\sigma^2$, for a portfolio whose weights sum to one; the highest one among the test assets and among the factors' mimicking portfolios (Chapter 28). The GLS pricing errors leave $SR^2_{\text{tan}}(\hat\lambda_0) - SR^2_f(\hat\lambda_0)$ unexplained. Lewellen, Nagel & Shanken write $\theta^2$; not $\theta$, which is the GMM parameter vector |
 
+### Part VIII: latent factors and large cross-sections (Chapters 31–34)
+
+Kelly, Pruitt & Su (2018) write $r_{i,t+1}$ for an excess return; here it is $R^e_{i,t+1}$, because $r$ is a log return.
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $z_{it}$, $Z_t$ | — | Characteristics of firm $i$ known at $t$ (Chapter 32): a $\dim z$-vector with the constant 1 first, each other entry rank-transformed across firms every month to $[-0.5, 0.5]$. $Z_t$ is the $N \times \dim z$ matrix whose row $i$ is $z_{it}'$. No comma between $i$ and $t$, as in $\beta_{it}$. The firm index separates it from the state variable $z_t$ of Part V and the human-capital gap $z_t$ of Chapter 14, which never carry one |
+| $\dim z$ | — | Number of characteristics, the constant included (Chapter 32). The paper writes $L$; here $L$ counts Newey–West lags and is the eigenvalue matrix of $\Sigma = QLQ'$. Compare $\dim g$ in Part VI |
+| $\Gamma_\beta$, $\Gamma_\alpha$ | — | The $\dim z \times K$ matrix and the $\dim z$-vector that map characteristics to betas and alphas: $\beta_{it} = \Gamma_\beta'z_{it}$, $\alpha_{it} = z_{it}'\Gamma_\alpha$ (Chapter 32). Upper-case and always with its subscript, so it never reads as risk aversion $\gamma$. $\Gamma_\alpha$ is not itself a pricing error, so it takes no macro |
+| $R^Z_{t+1}$ | `\Ret` | Returns on the $\dim z$ characteristic-managed portfolios, $R^Z_{t+1} = Z_t'R^e_{t+1}$ (Chapter 32): entry $l$ weights each firm's excess return by its $l$-th characteristic, with no division by $N$. The paper writes $x_{t+1}$; here $x_t$ is a predictor. The superscript $Z$ names the weights, as $e$ and $f$ do in $R^e$ and $R^f$ |
+| $Z_t'Z_t$ | — | The $\dim z \times \dim z$ cross-product of the characteristics, always written out (Chapter 32). The paper writes $W_t$; here $W$ is a GMM weighting matrix and $W_t$ is total wealth (Chapter 14) |
+| $W_\alpha$ | — | Statistic of the test of $\Gamma_\alpha = 0$, $W_\alpha = \hat\Gamma_\alpha'\hat\Gamma_\alpha$, with a $p$-value from a wild bootstrap of the managed-portfolio residuals (Chapter 32). It always keeps its subscript, as $\delta_{\text{HJ}}$ does, so it never reads as the weighting matrix $W$ or wealth $W_t$ |
+| $R^2_{\text{total}}$, $R^2_{\text{pred}}$ | — | Total and predictive $R^2$ of an IPCA fit over all firms and months (Chapter 32): one minus the sum of squared residuals over $\sum_{i,t}(R^e_{i,t+1})^2$, a raw sum that is not demeaned. The total fit uses $z_{it}'(\hat\Gamma_\alpha + \hat\Gamma_\beta\hat f_{t+1})$, the predictive fit $z_{it}'(\hat\Gamma_\alpha + \hat\Gamma_\beta\hat\lambda)$ with $\hat\lambda$ the factor means. Not $R^2_{OS}$, $R^2_{CV}$, $R^2_{\text{OLS}}$ or $R^2_{\text{GLS}}$ |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |
