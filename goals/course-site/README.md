@@ -177,6 +177,7 @@ flowchart TD
     TASK_108["TASK-108 Chapter 30: Shrinking the cross-section"]
     TASK_109["TASK-109 Orchestrator reads Part VII and signs it off"]
     TASK_121["TASK-121 Part VII fixes: chapter 28 notation, style guide rows and prose"]
+    TASK_122["TASK-122 Part VII fixes: chapter 29 prose"]
   end
   subgraph M_10["M-10 · Part VIII: Latent factors and large cross-sections"]
     TASK_036["TASK-036 Plan: decompose M-10"]
