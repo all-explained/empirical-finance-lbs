@@ -1,0 +1,349 @@
+---
+title: "Shrinking the cross-section"
+part: 7
+chapter: 30
+difficulty: 3
+prerequisites: [6, 7, 26, 28]
+summary: "How a prior on expected returns turns the SDF estimate for many factors into a ridge regression, how the elastic net adds sparsity, and why a few principal components carry most of the SDF."
+---
+
+import FrontierBuilder from '../../components/plots/FrontierBuilder';
+import ShrinkagePath from '../../components/plots/ShrinkagePath';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from earlier chapters">
+- **The tangency portfolio** ([Chapter 7](../07-mean-variance-and-the-capm/)). With expected excess returns $\mu$
+  and covariance matrix $\Sigma$, the best risky portfolio holds $\Sigma^{-1}\mu$, and its squared Sharpe ratio is
+  $\mu'\Sigma^{-1}\mu$.
+- **The linear SDF** ([Chapter 26](../26-gmm-for-asset-pricing-models/)). $\SDF{M_{t+1}} = 1 - b'\Factor{\tilde f_{t+1}}$
+  with demeaned factors $\Factor{\tilde f_t} = \Factor{f_t} - \bar f$, and $\mathbb{E}[R^e] = \operatorname{Cov}(R^e, f')\,b$.
+- **Principal components** ([Chapter 6](../06-principal-components/)). $\Sigma = QLQ'$: the columns $q_j$ of $Q$ are
+  the directions, and the diagonal matrix $L$ holds the variance $\ell_j$ along $q_j$, from largest to smallest.
+- **Why a good fit can mislead.** Chapter 28, "A skeptical look at asset pricing tests", shows how a model can fit
+  average returns in sample and still say little.
+</Callout>
+
+## <span class="section-tag">Hook</span> The best portfolio you could not have held
+
+Take 30 well-known long–short portfolios: the 25 size and book-to-market portfolios of Fama and French, with the
+factors SMB, HML, RMW, CMA and momentum. Remove the market from each one, so that only the part the market does
+not explain is left. Now stand in December 2004 and use every month since July 1963 to build the tangency
+portfolio of Chapter 7. In those months it earned a Sharpe ratio of 1.84 a year.
+
+Then hold the same weights from January 2005 to August 2026. The Sharpe ratio falls to 0.82. Repeat the exercise
+with 108 published anomaly portfolios, and the drop is bigger still: 8.85 a year before 2005, and 2.18 after.
+
+One caveat. The betas that remove the market use all the months, the later ones too. For the 30 portfolios, so
+does the scale of each one. So the months after 2004 are not fully unseen. Kozak, Nagel & Santosh (2020, p. 290)
+estimate those betas on the earlier months only. We do not, so read the numbers after 2004 as a guide, not as a
+clean test.
+
+So here is the question. Asset pricing wants the stochastic discount factor, and with many factors the SDF
+coefficients are the tangency weights. If the estimate loses more than half its Sharpe ratio on new data, how
+should you estimate an SDF on 30, or 108, factors at once? This chapter follows Kozak, Nagel & Santosh (2020). Their
+answer is to *shrink* the estimate toward zero, and to shrink most where the data are least informative.
+
+## <span class="section-tag">Intuition</span> Where the noise hides
+
+Every asset in this chapter is a zero-cost portfolio: long one group of stocks, short another. So each one is a
+factor and a test asset at the same time. The SDF must price the very portfolios it is built from.
+
+The naive estimate of the SDF coefficients is the tangency direction, $\hat b = \hat\Sigma^{-1}\bar\mu$. It uses
+the sample means $\bar\mu$, and sample means are noisy. Chapter 6 showed a way to see where that noise does damage.
+Rotate the 30 portfolios onto their principal components. The first three components carry 70.5% of the total
+variance. The last ones carry almost none.
+
+Now think about a component with almost no variance. Its sample mean is still noisy. Divide a noisy mean by a tiny
+variance, and you get a huge Sharpe ratio and a huge weight. The naive estimate bets most heavily exactly where the
+signal is weakest. Those bets look great in the months that chose them and then fail.
+
+The widget below shows this. The solid line is the in-sample frontier: zero-cost portfolios can be scaled up or
+down, so the best ones lie on a line from the origin whose slope is the highest Sharpe ratio before 2005. The dot is
+the tangency portfolio in the months that chose it. The ring is the same portfolio after 2005. The slider adds a
+penalty $\nu_2$ that pulls the weights toward zero.
+
+<FrontierBuilder client:visible preset="shrinkage" />
+
+<p class="try-this"><strong>Try this:</strong> the slider starts at $\nu_2 = 0$, the naive estimate: 1.84 in sample
+and 0.82 out of sample. Move it to $10^{-3}$. The in-sample Sharpe ratio falls to 1.64, which is the price of
+shrinkage. But the out-of-sample ratio falls too, to 0.55.</p>
+
+So on these 30 portfolios, shrinkage does not rescue the out-of-sample Sharpe ratio. Their average returns after
+2005 did not look like those before, and shrinkage cannot correct a change of that kind.
+On the 108 anomalies the result is different. The same penalty of $10^{-3}$ raises the out-of-sample Sharpe
+ratio from 2.18 to 2.36. Shrinkage removes noise. It cannot create a premium that the later months do not have.
+
+<Callout type="key">The naive SDF estimate puts its largest weights on the directions with the least variance,
+where sample means are least reliable. Shrinkage pulls those weights back.</Callout>
+
+## <span class="section-tag">Formalisation</span> A prior, a ridge and a lasso
+
+### The SDF and its naive estimate
+
+Let the $N$ factors be the zero-cost portfolios themselves, with mean $\mu = \mathbb{E}[\Factor{f}]$ and
+covariance $\Sigma$. The SDF is
+
+$$
+\SDF{M_{t+1}} = 1 - b'\Factor{\tilde f_{t+1}}, \qquad \Factor{\tilde f_{t+1}} = \Factor{f_{t+1}} - \mathbb{E}[\Factor{f}].
+$$
+
+It must price each factor, an excess return with price zero: $\mathbb{E}[\SDF{M_{t+1}}\Factor{f_{t+1}}] = 0$.
+Put the SDF in:
+
+$$
+\begin{aligned}
+0 &= \mathbb{E}[\Factor{f}] - \mathbb{E}[\Factor{f}\Factor{\tilde f}']\,b \\
+&= \mu - \Sigma b,
+\end{aligned}
+$$
+
+because $\mathbb{E}[f\tilde f'] = \operatorname{Cov}(f, f') = \Sigma$ when $\tilde f$ has mean zero. So $b = \Sigma^{-1}\mu$:
+the SDF coefficients are the tangency weights of Chapter 7. The naive estimate replaces $\mu$ with the sample mean
+$\Data{\bar\mu}$ and $\Sigma$ with $\hat\Sigma$: $\hat b = \hat\Sigma^{-1}\Data{\bar\mu}$ (Kozak, Nagel & Santosh
+2020, p. 276). From here on we treat $\Sigma$ as known. The paper argues that the main source of error is the
+uncertainty about the means, so the noise that matters is in $\bar\mu$.
+
+In the principal-component directions, $\Sigma = QLQ'$ and $\Sigma^{-1} = QL^{-1}Q'$. So the naive estimate is
+
+$$
+\hat b = \sum_{j=1}^{N} q_j\,\frac{q_j'\Data{\bar\mu}}{\ell_j}.
+$$
+
+The term $q_j'\bar\mu$ is the sample mean of component $j$. Its sampling error has variance $\ell_j/T$, so the
+error in its coefficient has variance $1/(\ell_j T)$. A component with a small $\ell_j$ gets a coefficient that is
+almost all noise. This is the overfitting from the Hook, in one formula.
+
+### A prior on expected returns gives a ridge
+
+Before you see the data, what do you believe about $\mu$? A natural belief is that a direction with little
+variance should not have a large expected return. Otherwise it would offer a near-arbitrage, and investors would
+trade it away. Kozak, Nagel & Santosh (2020, p. 277) write this belief as a normal prior:
+
+$$
+\mu \sim N\!\left(0,\ \frac{SR^2_{\text{prior}}}{\operatorname{tr}\Sigma}\,\Sigma^2\right).
+$$
+
+The scale $SR_{\text{prior}}$ has a plain reading. The expected squared highest Sharpe ratio under this prior is
+
+$$
+\begin{aligned}
+\mathbb{E}[\mu'\Sigma^{-1}\mu] &= \operatorname{tr}\big(\Sigma^{-1}\,\mathbb{E}[\mu\mu']\big)
+= \frac{SR^2_{\text{prior}}}{\operatorname{tr}\Sigma}\,\operatorname{tr}\big(\Sigma^{-1}\Sigma^2\big) \\
+&= \frac{SR^2_{\text{prior}}}{\operatorname{tr}\Sigma}\,\operatorname{tr}\Sigma = SR^2_{\text{prior}}.
+\end{aligned}
+$$
+
+So $SR_{\text{prior}}$ is how high you expect the best Sharpe ratio to be. The power 2 on $\Sigma$ is a choice of
+the paper. In the direction $q_j$, the prior variance of the mean is proportional to $\ell_j^2$, so the prior
+Sharpe ratio of component $j$ is proportional to $\ell_j$. Low-variance directions are expected to earn little.
+
+Combine the prior with the data. Given $\mu$, the sample mean is $\Data{\bar\mu} \sim N(\mu, \Sigma/T)$. The
+posterior mean of $b = \Sigma^{-1}\mu$ is
+
+$$
+\hat b = (\Sigma + \nu_2 I)^{-1}\,\Data{\bar\mu}, \qquad
+\nu_2 = \frac{\operatorname{tr}\Sigma}{SR^2_{\text{prior}}\,T}.
+$$
+
+<details>
+<summary>The algebra: from the prior to the ridge</summary>
+
+Write $c = SR^2_{\text{prior}}/\operatorname{tr}\Sigma$, a constant here, not log consumption. The prior
+is $\mu \sim N(0, c\Sigma^2)$ and the data say $\bar\mu \mid \mu \sim N(\mu, \Sigma/T)$. For two normal vectors
+like these, the posterior mean is the prior variance times the inverse of the total variance, times the data:
+
+$$
+\mathbb{E}[\mu \mid \bar\mu] = c\Sigma^2\,\big(c\Sigma^2 + \Sigma/T\big)^{-1}\,\bar\mu.
+$$
+
+Factor $\Sigma$ out of the bracket: $c\Sigma^2 + \Sigma/T = \Sigma\,(c\Sigma + I/T)$, so its inverse is
+$(c\Sigma + I/T)^{-1}\Sigma^{-1}$. Then
+
+$$
+\begin{aligned}
+\mathbb{E}[b \mid \bar\mu] &= \Sigma^{-1}\,\mathbb{E}[\mu \mid \bar\mu]
+= c\,\Sigma\,(c\Sigma + I/T)^{-1}\,\Sigma^{-1}\bar\mu.
+\end{aligned}
+$$
+
+$\Sigma$, $\Sigma^{-1}$ and $(c\Sigma + I/T)^{-1}$ all have the eigenvectors $Q$, so they commute. Move
+$\Sigma^{-1}$ next to $\Sigma$, and they cancel:
+
+$$
+\mathbb{E}[b \mid \bar\mu] = c\,(c\Sigma + I/T)^{-1}\bar\mu = \Big(\Sigma + \frac{1}{cT}\,I\Big)^{-1}\bar\mu.
+$$
+
+Finally, $1/(cT) = \operatorname{tr}\Sigma/(SR^2_{\text{prior}}T) = \nu_2$.
+
+</details>
+
+This is a **ridge regression**: the same estimate solves a penalised problem (p. 278). Look for the $b$ that
+minimises
+
+$$
+(\Data{\bar\mu} - \Sigma b)'\,\Sigma^{-1}\,(\Data{\bar\mu} - \Sigma b) + \nu_2\, b'b.
+$$
+
+The first term is the squared pricing error $\bar\mu - \Sigma b$, weighted by $\Sigma^{-1}$ as in the
+Hansen–Jagannathan distance of Chapter 26. The second term is a penalty on large coefficients. Set the derivative
+to zero:
+
+$$
+\begin{aligned}
+-2\,\Sigma\Sigma^{-1}(\bar\mu - \Sigma b) + 2\nu_2 b &= 0 \\
+\Longrightarrow\quad (\Sigma + \nu_2 I)\,b &= \bar\mu.
+\end{aligned}
+$$
+
+A tighter prior (small $SR_{\text{prior}}$) means a larger $\nu_2$ and more shrinkage. More data (large $T$) means
+less. Kozak, Nagel & Santosh write $\gamma$ for the penalty, $\kappa$ for the prior scale and $\tau$ for
+$\operatorname{tr}\Sigma$. This course keeps $\gamma$ for risk aversion, $\kappa$ for a Campbell–Shiller constant and
+$\tau$ for an option's life, so it writes $\nu_2$, $SR_{\text{prior}}$ and $\operatorname{tr}\Sigma$.
+
+### What the ridge does to each component
+
+Put $\Sigma + \nu_2 I = Q(L + \nu_2 I)Q'$ into the ridge estimate:
+
+$$
+q_j'\hat b = \frac{q_j'\Data{\bar\mu}}{\ell_j + \nu_2}
+= \underbrace{\frac{\ell_j}{\ell_j + \nu_2}}_{\text{shrink factor}} \times \frac{q_j'\Data{\bar\mu}}{\ell_j}.
+$$
+
+Each component keeps its naive coefficient times a factor between 0 and 1 (p. 278). A component with
+$\ell_j \gg \nu_2$ keeps almost all of it. A component with $\ell_j \ll \nu_2$ loses almost all of it. On the 108
+anomalies, at the penalty that the next section picks, the factor is 0.835 for the first component, 0.383 for
+the fifth, 0.216 for the tenth and 0.002 for the last. The ridge does not drop components. It fades them by
+their variance.
+
+### Sparsity: the elastic net
+
+Ridge keeps every coefficient. If you want an SDF with only a few non-zero coefficients, add an $L^1$ penalty.
+The **elastic net** of Kozak, Nagel & Santosh (2020, p. 279) minimises
+
+$$
+\begin{aligned}
+&(\Data{\bar\mu} - \Sigma b)'\,\Sigma^{-1}\,(\Data{\bar\mu} - \Sigma b) \\
+&\quad + \nu_2\, b'b + \nu_1 \textstyle\sum_i \lvert b_i\rvert.
+\end{aligned}
+$$
+
+The absolute value has a kink at zero, so a coefficient whose evidence is weak stops at exactly zero. The
+larger $\nu_1$, the fewer coefficients survive. The widget fixes the total penalty
+$\nu_2 + \nu_1 = \operatorname{tr}\Sigma/(SR^2_{\text{prior}}T)$ and gives a share $s$ of it to the $L^1$ term,
+so $\nu_1 = s(\nu_2 + \nu_1)$. This split is our device, not the paper's.
+
+Sparsity depends on the space you work in. **Sparse in assets** means that a few of the original portfolios, and so
+a few characteristics, make up the SDF. That is the idea behind a model with three or five factors. **Sparse in
+PCs** means that a few principal components make up the SDF. Each component mixes all the portfolios, so a
+PC-sparse SDF still uses every characteristic. The ridge gives the same fit in both spaces, because it treats all
+directions alike up to rotation. The $L^1$ penalty does not, because "a coefficient is zero" depends on the axes.
+
+### Choosing the penalty by cross-validation
+
+How do you pick the penalty? Not by the in-sample fit, which always prefers no penalty. Split the months into
+$K_{CV} = 3$ blocks of consecutive months. Estimate $\hat b$ on two blocks and score it on the third with the
+**cross-validated $R^2$**:
+
+$$
+R^2_{CV} = 1 - \frac{\lVert \Data{\bar\mu_{\text{out}}} - \Sigma_{\text{out}}\hat b\rVert^2}{\lVert \Data{\bar\mu_{\text{out}}}\rVert^2},
+$$
+
+averaged over the three choices of the withheld block (p. 279). This is not the forecast $R^2_{OS}$ of
+[Chapter 13](../13-out-of-sample-predictability/). It scores how well the SDF prices the cross-section of mean
+returns in months it did not see. The benchmark is $\hat b = 0$, an SDF that prices nothing, which scores 0. Like
+$R^2_{OS}$, it can be negative.
+
+<Callout type="warning">The chosen penalty is itself an estimate. It comes from three blocks of one sample, and it
+would move with a different split. Treat the best $R^2_{CV}$ as optimistic, not as a promise. The withheld months
+are not fully unseen either: the betas that remove the market, and for the 30 FF portfolios the scale of each one,
+come from the whole sample. This leak affects every $R^2_{CV}$ and every Sharpe ratio after 2004 in this
+chapter.</Callout>
+
+## <span class="section-tag">Playground</span> Shrink the SDF yourself
+
+The widget shows two panels against the total penalty $\nu_2 + \nu_1$, on a log scale. The top panel shows the five largest
+coefficients $\hat b$ at the best penalty. The bottom panel shows $R^2_{CV}$, with its maximum ringed. It opens on
+the 108 anomaly portfolios with the ridge, where $s = 0$. With an $L^1$ share above zero, the path takes a few seconds to
+compute.
+
+<ShrinkagePath client:visible />
+
+<p class="try-this"><strong>Try this:</strong> read the ridge first. $R^2_{CV}$ peaks at 0.520, at a prior scale of
+0.158 a month, or 0.55 a year. The largest coefficient there is short-term reversal. Slide the penalty to the
+left end, the weakest shrinkage on the grid, at $SR_{\text{prior}} = 1.26$ a month: $R^2_{CV}$ falls to −1.38, far
+worse than pricing nothing.</p>
+
+<p class="try-this"><strong>Try this too:</strong> set the $L^1$ share to 0.9 and move the penalty one step right
+of the ridge's best, to $SR_{\text{prior}} = 0.112$. In the asset space, 20 coefficients are not zero and
+$R^2_{CV}$ is 0.29. Switch to PCs. Now only 14 components are not zero, and $R^2_{CV}$ is 0.44.</p>
+
+This is the main lesson of Kozak, Nagel & Santosh (2020, p. 271). An SDF built from a few characteristics
+prices the anomalies poorly out of sample. An SDF built from a few principal components does much better, even
+though each component holds every anomaly. On the 108 anomalies, the first five components carry 61.7% of the
+variance, and the largest coefficients at the best penalty sit among the first 15 components, not only the first
+few. In the asset space, with the $L^1$ share at 0.9, the best $R^2_{CV}$ is 0.485, but it needs 44 non-zero
+coefficients.
+
+Now switch to the 30 FF portfolios. $R^2_{CV}$ is negative at every penalty. It is −3.52 with the weakest
+shrinkage and climbs to −0.006 with the strongest, at the edge of the grid. Shrinking all the way to $\hat b = 0$
+wins. The problem is the one in the Hook: weights fitted on some decades price other decades badly, so the
+safest SDF prices nothing. The paper's own result on the 25 size and book-to-market portfolios uses daily data
+from July 1926 to December 2017 and finds the best $R^2_{CV}$ inside the grid, at a prior scale of about 0.23
+(p. 281). On monthly data since 1963, with the market removed, we do not find that.
+
+Last, test how stable the chosen penalty is. On the 108 anomalies with the ridge, three blocks pick
+$SR_{\text{prior}} = 0.158$ with a best $R^2_{CV}$ of 0.52. Five blocks pick 0.079, with 0.21. Ten blocks pick
+0.112, with 0.24. The shape is the same each time, a hump, but its peak moves, and so does its height.
+
+<Callout type="key">With many factors, the naive SDF overfits through its low-variance directions. A prior that
+expects little from those directions gives a ridge, which fades each component by its variance. On 108 anomalies a
+handful of principal components prices the cross-section out of sample better than a handful of anomalies.</Callout>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="A principal component has variance $\ell_j = 4\nu_2$. By what factor does the ridge shrink its naive SDF coefficient?"
+  options={["0.2", "0.8", "0.25", "1, it is not shrunk"]}
+  answer={1}
+  explanation="The shrink factor is $\ell_j/(\ell_j + \nu_2) = 4\nu_2/(5\nu_2) = 0.8$. High-variance components keep most of their coefficient."
+/>
+
+<Quiz
+  client:visible
+  question="On the 30 FF portfolios, $R^2_{CV}$ is negative at every penalty. What does that say?"
+  options={["The ridge formula is wrong for these assets", "Every SDF estimated on two blocks priced the withheld block worse than $\\hat b = 0$", "The portfolios have no risk", "The penalty should be negative"]}
+  answer={1}
+  explanation="$R^2_{CV}$ compares the pricing errors with those of $\hat b = 0$, which scores 0. A negative value means the estimated SDF did worse than pricing nothing in the months it did not see."
+/>
+
+<Quiz
+  client:visible
+  question="An elastic net in the space of principal components keeps 5 non-zero coefficients. How many of the original anomaly portfolios does the SDF use?"
+  options={["5", "None", "In general all of them", "Exactly half"]}
+  answer={2}
+  explanation="Each principal component is a mix of every portfolio. Sparse in PCs is not sparse in assets, so the SDF still loads on every characteristic."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- With the factors as test assets, the linear SDF $\SDF{M_{t+1}} = 1 - b'\Factor{\tilde f_{t+1}}$ has
+  $b = \Sigma^{-1}\mu$, the tangency weights. The naive $\hat\Sigma^{-1}\bar\mu$ bets most on the directions
+  with the least variance, and overfits.
+- The prior $\mu \sim N(0, (SR^2_{\text{prior}}/\operatorname{tr}\Sigma)\,\Sigma^2)$ turns the estimate into the ridge
+  $\hat b = (\Sigma + \nu_2 I)^{-1}\bar\mu$, which shrinks component $j$ by $\ell_j/(\ell_j + \nu_2)$.
+- The elastic net adds $\nu_1\sum_i\lvert b_i\rvert$ and sets weak coefficients to zero. Sparse in PCs is not
+  sparse in assets.
+- On 108 anomalies, $R^2_{CV}$ peaks at 0.52. On 30 FF portfolios since 1963 it never rises above zero. The
+  chosen penalty moves with the number of blocks.
+
+**Next up:** Part VIII opens with "Latent and observable factors", which asks how far a few statistical factors
+can stand in for the many observable ones.
+
+### Further reading
+
+- Kozak, Nagel & Santosh (2020)
+- Hansen and Jagannathan (1997)
+- Chen and Zimmermann (2022)
+- Fama and French (2015)

@@ -6,6 +6,7 @@ import { WidgetFrame } from '../ui/WidgetFrame';
 import { annualMoments, capmSample, frontierView, PERIODS, useCapmData, type Portfolio } from './capmSample';
 import { niceTicks } from './format';
 import { Label, PlotFrame } from './PlotFrame';
+import { shrunkTangency, useShrinkageData } from './shrinkageSample';
 
 const HEIGHT = 360;
 const X_MAX = 0.32;
@@ -27,10 +28,16 @@ const signedPct = (v: number, digits = 0) => `${v < 0 ? '−' : v > 0 ? '+' : ''
 const pp = (v: number) => `${v < 0 ? '−' : v > 0 ? '+' : ''}${Math.abs(v * 100).toFixed(1)} pp`;
 
 /**
- * Chapter 7: the mean–variance frontier of a few size–B/M portfolios, the tangency portfolio and
- * the capital market line. Shifting an asset's expected return shows how far the tangency weights swing.
+ * Chapter 7 (default): the mean–variance frontier of a few size–B/M portfolios, the tangency portfolio and the
+ * capital market line. Chapter 30 (preset 'shrinkage'): the shrunk tangency portfolio of 30 FF portfolios,
+ * estimated before 2005, in its own months and after them.
  */
-export default function FrontierBuilder() {
+export default function FrontierBuilder({ preset }: { preset?: 'shrinkage' }) {
+  return preset === 'shrinkage' ? <ShrunkFrontier /> : <AssetFrontier />;
+}
+
+/** Shifting an asset's expected return shows how far the tangency weights swing. */
+function AssetFrontier() {
   const { data, failed } = useCapmData();
   const [on, setOn] = useState<Portfolio[]>(DEFAULT_ON);
   const [target, setTarget] = useState<Portfolio>('ME1-BM5');
@@ -184,5 +191,95 @@ function FragmentRow({ label, weight }: { label: string; weight: number | null }
         </span>
       </dd>
     </>
+  );
+}
+
+const TARGET_VOL = 0.1;
+/** The penalty slider runs over log₁₀ ν₂; its left end is ν₂ = 0, the naive estimate. */
+const LOG_MIN = -5.5;
+const penaltyOf = (exponent: number) => (exponent <= LOG_MIN ? 0 : 10 ** exponent);
+const sharpe = (v: number) => `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(2)}`;
+
+/** Chapter 30: in-sample frontier and the shrunk tangency portfolio before and after 2005. */
+function ShrunkFrontier() {
+  const { data, failed } = useShrinkageData();
+  const [exponent, setExponent] = useState(LOG_MIN);
+  const view = useMemo(() => (data ? shrunkTangency(data.ff, penaltyOf(exponent), TARGET_VOL) : null), [data, exponent]);
+  const yLo = view ? Math.min(0, view.outOfSample.mean * 1.3) : 0;
+  // The line stops below the top, where it would cross the axis title on a phone.
+  const rayEnd = view ? Math.min(X_MAX, (0.8 * Y_MAX) / view.frontierSharpe) : 0;
+
+  const plot = view ? (
+    <PlotFrame
+      x={[0, X_MAX]}
+      y={[yLo, Y_MAX]}
+      height={HEIGHT}
+      xTicks={niceTicks(0, X_MAX, 6)}
+      yTicks={niceTicks(yLo, Y_MAX, 6).filter((v) => v < Y_MAX)}
+      formatX={(v) => pct(v, 0)}
+      formatY={(v) => pct(v, 0)}
+      xLabel="volatility σ, % a year"
+      yLabel="mean excess return, % a year"
+      marginLeft={44}
+      baseline={0}
+    >
+      <Line.Segment point1={[0, 0]} point2={[rayEnd, view.frontierSharpe * rayEnd]} color="var(--c-model)" weight={2.5} />
+      <Label x={rayEnd} y={view.frontierSharpe * rayEnd} attach="e" attachDistance={8} size={12} color="var(--c-model)">in-sample frontier</Label>
+      <Line.Segment point1={[view.inSample.volatility, view.inSample.mean]} point2={[view.outOfSample.volatility, view.outOfSample.mean]} color="var(--text-muted)" weight={1.5} style="dashed" />
+      <Point x={view.inSample.volatility} y={view.inSample.mean} color="var(--c-model)" svgCircleProps={{ r: 7 }} />
+      <Label x={view.inSample.volatility} y={view.inSample.mean} attach="e" attachDistance={10} size={12} color="var(--c-model)">{`${view.first.slice(0, 4)}–${Number(view.splitMonth.slice(0, 4)) - 1}`}</Label>
+      <Point x={view.outOfSample.volatility} y={view.outOfSample.mean} color="var(--c-data)" svgCircleProps={{ r: 7, style: { fill: 'none', stroke: 'var(--c-data)', strokeWidth: 2.5 } }} />
+      <Label x={view.outOfSample.volatility} y={view.outOfSample.mean} attach="e" attachDistance={10} size={12} color="var(--c-data)">{`${view.splitMonth.slice(0, 4)}–${view.last.slice(0, 4)}`}</Label>
+    </PlotFrame>
+  ) : (
+    <p style={{ padding: '1rem', margin: 0, color: 'var(--text-muted)' }}>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
+  );
+
+  return (
+    <WidgetFrame
+      title="The tangency portfolio, before and after it was chosen"
+      ariaLabel={
+        view
+          ? `Mean excess return against volatility, in percent a year. A line from the origin with slope ${sharpe(view.frontierSharpe)} is the in-sample frontier of 30 FF portfolios, ${view.first} to ${view.last} split at ${view.splitMonth}. With penalty ${penaltyOf(exponent).toPrecision(2)}, the shrunk tangency portfolio has Sharpe ratio ${sharpe(view.inSample.sharpe)} in the months that chose it (filled dot) and ${sharpe(view.outOfSample.sharpe)} after them (ring).`
+          : 'In-sample frontier and the shrunk tangency portfolio. The data is loading.'
+      }
+      plotHeight={HEIGHT}
+      plot={plot}
+      controls={
+        <Slider
+          label="Ridge penalty $\nu_2$ (log scale)"
+          value={exponent}
+          min={LOG_MIN}
+          max={0}
+          step={0.1}
+          color="var(--c-model)"
+          onChange={setExponent}
+          format={(v) => (v <= LOG_MIN ? '0 (naive)' : `10^${v.toFixed(1)}`)}
+        />
+      }
+      readout={
+        view ? (
+          <>
+            <p style={{ margin: '0 0 0.5rem' }}>
+              <span style={{ color: 'var(--c-model)' }}>solid line: in-sample frontier · ● dot: shrunk tangency portfolio in its own months</span> ·{' '}
+              <span style={{ color: 'var(--c-data)' }}>○ ring: the same weights after {view.splitMonth}</span>
+            </p>
+            <dl className="readout-grid">
+              <dt><RichText>{'Highest in-sample Sharpe ratio (frontier slope)'}</RichText></dt>
+              <dd style={{ color: 'var(--c-model)' }}>{sharpe(view.frontierSharpe)}</dd>
+              <dt>{`Sharpe ratio in sample, ${view.first} to 2004-12`}</dt>
+              <dd style={{ color: 'var(--c-model)' }}>{sharpe(view.inSample.sharpe)}</dd>
+              <dt>{`Sharpe ratio out of sample, ${view.splitMonth} to ${view.last}`}</dt>
+              <dd style={{ color: 'var(--c-data)' }}>{sharpe(view.outOfSample.sharpe)}</dd>
+              <dt>Out of sample: mean, volatility</dt>
+              <dd style={{ color: 'var(--c-data)' }}>{pct(view.outOfSample.mean)}, {pct(view.outOfSample.volatility)}</dd>
+            </dl>
+          </>
+        ) : (
+          <p>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
+        )
+      }
+      caption={`Data: ff25-size-bm-monthly, ff5-monthly and mom-monthly (Kenneth French Data Library), ${view ? `${view.first} to ${view.last}` : '1963–2026'}: the 25 size–B/M portfolios less RF, with SMB, HML, RMW, CMA and Mom, the market removed by a full-sample beta and each rescaled to the market's volatility. The weights $\\hat b = (\\hat\\Sigma + \\nu_2 I)^{-1}\\bar\\mu$ use only the months before ${view ? view.splitMonth : '2005-01'}; their scale is set to ${pct(TARGET_VOL, 0)} volatility a year in those months. Sharpe ratios are annual (×√12), means ×12 and volatilities ×√12. The betas use the whole sample, so the later months are not fully unseen.`}
+    />
   );
 }
