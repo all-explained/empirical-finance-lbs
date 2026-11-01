@@ -1,0 +1,363 @@
+---
+title: "Characteristics are covariances: IPCA"
+part: 8
+chapter: 32
+difficulty: 3
+prerequisites: [17, 31]
+summary: "Let each stock's betas move with its characteristics, fit the latent factors and the map from characteristics to betas by alternating least squares on managed portfolios, and test whether characteristics predict returns beyond their betas."
+---
+
+import IPCAFit from '../../components/plots/IPCAFit';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from earlier chapters">
+- **Fama–MacBeth** ([Chapter 17](../17-cross-sectional-regressions-and-fama-macbeth/)). Each month, regress the
+  cross-section of excess returns on the assets' betas or characteristics. The slopes are that month's returns on
+  portfolios, and their average is the estimated premium.
+- **Betas that move** ([Chapter 22](../22-conditional-factor-models/)). A beta known at $t$ can change over time.
+  A **managed portfolio** scales a return by a variable known at $t$, such as $z_t R^e_{i,t+1}$.
+- **Principal components** ([Chapter 6](../06-principal-components/)). The first eigenvectors of a covariance
+  matrix give the directions in which a set of returns moves most.
+- **Latent factors and rotation.** Chapter 31, "Latent and observable factors", shows that factors estimated from
+  returns alone are fixed only up to a rotation $H$: $(\beta, f_t) \to (\beta H^{-1}, Hf_t)$ gives the same fit.
+</Callout>
+
+## <span class="section-tag">Hook</span> Is a characteristic a risk or a free lunch?
+
+Small stocks and cheap stocks have earned more, on average, than large and expensive ones. Chapter 17 showed one
+way to measure this: regress each month's returns on the stocks' characteristics, and average the slopes. That
+measures *how much* a characteristic predicts. It does not say *why*.
+
+There are two stories. In the first, a characteristic is a sign of risk. A cheap stock moves strongly with some
+economy-wide factor, so it is risky, and it must pay more. In the second, the characteristic predicts returns for
+some other reason, such as a pricing mistake that investors are slow to correct. Then the extra return is an alpha, a
+reward without a risk behind it.
+
+The title of this chapter is the first story in four words. Kelly, Pruitt & Su (2019) built a method, instrumented
+principal components analysis (IPCA), that lets the data choose between the two stories. In their data, 36
+characteristics of 12,813 US firms from July 1962 to May 2014 (p. 23), four IPCA factors leave little for the
+alpha story. With the alphas held at zero, the four factors explain 19.4% of the variation in monthly stock
+returns, and 1.8% of it through expected returns. On the same stocks the five factors of Fama and French explain
+21.9% and only 0.3% (pp. 5–6). Those are the paper's numbers, from licensed firm data that this site does not
+have. This chapter builds the method on a simulated panel, where we know the truth.
+
+## <span class="section-tag">Intuition</span> Betas that follow the characteristics
+
+Think about one firm over ten years. It starts small and cheap. It grows, and its price rises faster than its book
+value. If a firm's risk comes from what kind of firm it is, then its beta should change as it changes. A beta
+estimated from its past returns would always lag behind.
+
+IPCA makes one assumption that removes this problem. A firm's betas are a fixed linear function of its
+characteristics. The same map turns any firm's characteristics into its betas, in every month. So the model does not
+estimate a beta for each firm. It estimates one small table: one row for each characteristic and one column for
+each factor. Each entry says how much one unit of that characteristic adds to the beta on that factor. When a firm's
+characteristics change, its betas change with them, at once.
+
+The factors themselves are latent. Nobody tells the model that one of them is "value". The model finds the factors
+and the table together, so that the betas fit the returns as well as possible. You can think of an ordinary
+principal components analysis (Chapter 6) with one extra rule: each stock's loadings must come from its
+characteristics.
+
+Next, the alpha. The model can also give each firm an alpha that is a linear function of its characteristics. If
+the characteristics predict returns only through the betas, that second map is zero. If they predict returns in
+some other way, the alpha map must pick up what the betas miss. The test of this chapter asks whether the alpha map
+is zero.
+
+There is one more idea. A characteristic gives a simple way to build a portfolio: each month, hold each stock in
+proportion to its characteristic. With size, you hold more of the large stocks and you go short the small ones. These
+**characteristic-managed portfolios** are the managed portfolios of Chapter 22, with a characteristic in the place of
+the state variable. The whole fit uses only their returns, with one small matrix for each month. It never needs the
+return of a single firm.
+
+<Callout type="key">IPCA lets betas move with characteristics through one fixed map, and asks whether
+characteristics predict returns beyond their effect on betas.</Callout>
+
+## <span class="section-tag">Formalisation</span> The model, its fit and its test
+
+### The model
+
+Let $z_{it}$ be the $\dim z$ characteristics of firm $i$ known at $t$, with a constant 1 first. The
+paper writes $L$ for $\dim z$; here $L$ counts Newey–West lags. The excess return of firm $i$ from $t$ to $t+1$ is
+
+$$
+\begin{aligned}
+\Ret{R^e_{i,t+1}} &= \alpha_{it} + \beta_{it}'\Factor{f_{t+1}} + \Err{\varepsilon_{i,t+1}}, \\
+\beta_{it} &= \Gamma_\beta' z_{it}, \qquad \alpha_{it} = z_{it}'\Gamma_\alpha.
+\end{aligned}
+$$
+
+$\Gamma_\beta$ is the $\dim z \times K$ table of the Intuition, and $\Gamma_\alpha$ is a $\dim z$-vector (p. 9).
+Stack the $N$ firms of month $t$ in the $N \times \dim z$ matrix $Z_t$, whose row $i$ is $z_{it}'$:
+
+$$
+\Ret{R^e_{t+1}} = Z_t\Gamma_\alpha + Z_t\Gamma_\beta\Factor{f_{t+1}} + \Err{\varepsilon_{t+1}}.
+$$
+
+The **restricted model** sets $\Gamma_\alpha = 0$. Then, if the factor means are $\lambda$, a firm's expected excess
+return is $z_{it}'\Gamma_\beta\lambda$. Characteristics move expected returns only through betas.
+
+### Why ranks
+
+Raw characteristics have awkward units and long tails. One firm with a huge book-to-market ratio could steer the
+whole fit. So each month, each characteristic except the constant is replaced by its rank across firms, divided by
+the number of firms with data, less 0.5 (p. 23). The values then lie in $[-0.5, 0.5]$ in every month. The paper does this to
+limit the effect of outliers (p. 46). It also keeps the scale of the characteristics the same over time, so one map
+$\Gamma_\beta$ can serve every month.
+
+### The fit needs only managed portfolios
+
+IPCA chooses $\Gamma_\beta$ and the factors to minimise the sum of squared errors over all firms and months
+(p. 12). For the restricted model,
+
+$$
+\begin{aligned}
+\min_{\Gamma_\beta,\,f}\ \sum_{t}\ &\big(\Ret{R^e_{t+1}} - Z_t\Gamma_\beta\Factor{f_{t+1}}\big)' \\
+&\times \big(\Ret{R^e_{t+1}} - Z_t\Gamma_\beta\Factor{f_{t+1}}\big).
+\end{aligned}
+$$
+
+Fix $\Gamma_\beta$. Then month $t$ is an OLS regression of the $N$ returns on the $N \times K$ betas
+$Z_t\Gamma_\beta$. The OLS formula, with $Z_t\Gamma_\beta$ as the regressors, gives
+
+$$
+\begin{aligned}
+\Factor{f_{t+1}} &= \big(\Gamma_\beta' Z_t'Z_t\Gamma_\beta\big)^{-1}\Gamma_\beta'\,\Ret{R^Z_{t+1}}, \\
+\Ret{R^Z_{t+1}} &= Z_t'\Ret{R^e_{t+1}}.
+\end{aligned}
+$$
+
+$R^Z_{t+1}$ holds the returns of the $\dim z$ **managed portfolios** (p. 14). Entry $l$ weights each firm's return
+by its $l$-th characteristic. The paper writes $x_{t+1}$ for it and $W_t$ for $Z_t'Z_t$. Here $x_t$ is a predictor
+and $W$ is a weighting matrix, so we keep the long names.
+
+Now fix the factors. The fitted values are linear in $\Gamma_\beta$, so this step is one pooled OLS regression too.
+Its solution again uses only $R^Z_{t+1}$ and $Z_t'Z_t$:
+
+$$
+\begin{aligned}
+\operatorname{vec}(\Gamma_\beta) = {}&\Big(\sum_t \Factor{f_{t+1}}\Factor{f_{t+1}}' \otimes Z_t'Z_t\Big)^{-1} \\
+&\times \sum_t \Factor{f_{t+1}} \otimes \Ret{R^Z_{t+1}}.
+\end{aligned}
+$$
+
+<details>
+<summary>The algebra: the pooled regression for $\Gamma_\beta$</summary>
+
+$\operatorname{vec}(\Gamma_\beta)$ stacks the $K$ columns of $\Gamma_\beta$ into one long vector. The $N$ fitted values
+$Z_t\Gamma_\beta f_{t+1}$ add up column $k$ of $\Gamma_\beta$, times $Z_t$, times factor $k$. So they are linear in
+$\operatorname{vec}(\Gamma_\beta)$:
+
+$$
+Z_t\Gamma_\beta f_{t+1} = (f_{t+1}' \otimes Z_t)\operatorname{vec}(\Gamma_\beta).
+$$
+
+So month $t$ adds the $N \times K\dim z$ block of regressors $f_{t+1}' \otimes Z_t$, and pooled OLS gives
+
+$$
+\begin{aligned}
+&\operatorname{vec}(\Gamma_\beta) \\
+&\ = \Big(\sum_t (f_{t+1}' \otimes Z_t)'(f_{t+1}' \otimes Z_t)\Big)^{-1} \\
+&\quad \times \sum_t (f_{t+1}' \otimes Z_t)'R^e_{t+1}.
+\end{aligned}
+$$
+
+The transpose of a Kronecker product is the product of the transposes, and Kronecker products multiply part by
+part: the left parts together and the right parts together. So the first sum is small:
+
+$$
+\begin{aligned}
+&(f_{t+1}' \otimes Z_t)'(f_{t+1}' \otimes Z_t) \\
+&\ = (f_{t+1} \otimes Z_t')(f_{t+1}' \otimes Z_t) \\
+&\ = f_{t+1}f_{t+1}' \otimes Z_t'Z_t.
+\end{aligned}
+$$
+
+For the second sum, write $R^e_{t+1} = 1 \otimes R^e_{t+1}$:
+
+$$
+\begin{aligned}
+&(f_{t+1} \otimes Z_t')(1 \otimes R^e_{t+1}) \\
+&\ = f_{t+1} \otimes Z_t'R^e_{t+1} = f_{t+1} \otimes R^Z_{t+1}.
+\end{aligned}
+$$
+
+</details>
+
+So the fit needs only the $\dim z$ managed-portfolio returns and the $\dim z \times \dim z$ matrix $Z_t'Z_t$ of
+each month. In the simulated panel of the Playground, that is 4 returns a month instead of 200, and the fit works
+with 120 small blocks instead of 24,000 firm-months. In the paper's data, 37 portfolios (36 characteristics and the constant) stand in for 12,813 firms.
+
+### Alternating least squares
+
+The two steps give **alternating least squares** (ALS): solve for the factors given $\Gamma_\beta$, then for
+$\Gamma_\beta$ given the factors, and repeat. Each step is an exact least-squares solution given the other, so the
+objective can never rise. The start value is the first $K$ eigenvectors of $\sum_t R^Z_{t+1}R^{Z\prime}_{t+1}$, the
+principal components of the managed portfolios. The paper stops when no element of $\Gamma_\beta$ or of the factors
+moves by $10^{-6}$ or more, and notes that this start is usually within 10 iterations of the end (p. 52).
+
+### The normalisation removes the rotation
+
+The fit depends on $\Gamma_\beta$ and $f$ only through the product $\Gamma_\beta f_{t+1}$. So for any invertible
+$K \times K$ matrix $H$,
+
+$$
+Z_t\Gamma_\beta\Factor{f_{t+1}} = Z_t\,(\Gamma_\beta H^{-1})(H\Factor{f_{t+1}}).
+$$
+
+This is the rotation of Chapter 31. IPCA picks one rotation (p. 13). The columns of $\Gamma_\beta$ are orthonormal,
+$\Gamma_\beta'\Gamma_\beta = I_K$. The factors are uncorrelated in the sample, with the largest variance first. Each
+factor has a non-negative mean. The first rule leaves only rotations and reflections. The second leaves only a
+change of order and sign, the third fixes the order, and the last fixes the signs, as long as no two factors have
+the same variance. So each cell of the heat map in the Playground has a definite sign.
+
+### With as many factors as characteristics: Fama–MacBeth
+
+Take $K = \dim z$. Then $\Gamma_\beta$ is square and invertible, and the factor step becomes
+
+$$
+\begin{aligned}
+\Gamma_\beta\Factor{f_{t+1}} &= \Gamma_\beta\Gamma_\beta^{-1}(Z_t'Z_t)^{-1}(\Gamma_\beta')^{-1} \\
+&\quad \times \Gamma_\beta'Z_t'\Ret{R^e_{t+1}} \\
+&= (Z_t'Z_t)^{-1}Z_t'\Ret{R^e_{t+1}}.
+\end{aligned}
+$$
+
+That is the month-$t$ Fama–MacBeth regression of returns on characteristics from Chapter 17 (p. 15). Every $\Gamma_\beta$ gives the same fit, so ALS stops after one iteration. On the seeded panel with $K = 4$, the fitted
+$\Gamma_\beta f_{t+1}$ matches the Fama–MacBeth slopes of every month to within $10^{-15}$. With $K < \dim z$, IPCA
+is a Fama–MacBeth regression forced through $K$ combinations of the characteristics.
+
+### Two $R^2$
+
+The paper scores a fit in two ways (p. 24), over all firms and months:
+
+$$
+\begin{aligned}
+R^2_{\text{total}} = 1 - {}&\textstyle\sum_{i,t}\big(R^e_{i,t+1} \\
+&\quad - z_{it}'(\hat\Gamma_\alpha + \hat\Gamma_\beta\hat f_{t+1})\big)^2 \\
+&\big/ \textstyle\sum_{i,t}(R^e_{i,t+1})^2, \\[0.5em]
+R^2_{\text{pred}} = 1 - {}&\textstyle\sum_{i,t}\big(R^e_{i,t+1} \\
+&\quad - z_{it}'(\hat\Gamma_\alpha + \hat\Gamma_\beta\hat\lambda)\big)^2 \\
+&\big/ \textstyle\sum_{i,t}(R^e_{i,t+1})^2.
+\end{aligned}
+$$
+
+$\hat\lambda$ is the mean of the estimated factors, and $\hat\Gamma_\alpha = 0$ in the restricted fit. The total $R^2$
+uses each month's factor values, so it measures how well the model explains risk, the co-movement of returns. The
+predictive $R^2$ uses only what is known at $t$, so it measures how well the model explains expected returns. Both
+divide by the raw sum of squares, not by the sum around a mean.
+
+### The test of $\Gamma_\alpha = 0$
+
+The unrestricted model adds $\Gamma_\alpha$, and the fit is the same with $Z_t(\Gamma_\alpha + \Gamma_\beta f_{t+1})$
+in place of $Z_t\Gamma_\beta f_{t+1}$. A part of $\Gamma_\alpha$ that lies along the columns of $\Gamma_\beta$ can
+move into the factor means. Add any combination of the columns of $\Gamma_\beta$ to $\Gamma_\alpha$, subtract the
+same constants from the factors, and the fit is the same. So the library
+keeps $\hat\Gamma_\alpha$ orthogonal to the columns of $\hat\Gamma_\beta$. The paper does not state this rule, but
+its simulations draw $\Gamma_\alpha$ that way (p. 53). The statistic is the squared length of the alpha map (p. 18):
+
+$$
+W_\alpha = \hat\Gamma_\alpha'\hat\Gamma_\alpha.
+$$
+
+Its distribution has no simple form, so the paper uses a bootstrap (p. 19). Let
+$\Err{\hat\varepsilon^Z_{t+1}} = R^Z_{t+1} - Z_t'Z_t(\hat\Gamma_\alpha + \hat\Gamma_\beta\hat f_{t+1})$ be the residuals of the
+managed portfolios. Build each new sample as
+
+$$
+\tilde R^Z_{t+1} = Z_t'Z_t\hat\Gamma_\beta\hat f_{t+1} + \Err{\tilde\varepsilon^Z_{t+1}}.
+$$
+
+Each $\tilde\varepsilon^Z_{t+1}$ is the residual vector of a month drawn at random, times a Student $t$ draw with 5
+degrees of freedom, scaled to variance 1. The paper writes $\hat d$ for the residuals; here $d_t$ is a log dividend.
+The
+$\hat\Gamma_\alpha$ term is left out, so $\Gamma_\alpha = 0$ is true in every sample. Refit each sample and record
+its $\tilde W_\alpha$. The $p$-value is the share of the $\tilde W_\alpha$ that are larger than $W_\alpha$. The paper
+uses 1,000 samples. The widget uses 200, so that it answers in seconds.
+
+<Callout type="warning" title="A test given K">A test of $\Gamma_\alpha = 0$ is a test given $K$. Too few factors can push a missing
+factor's premium into the alphas. Too many can let a spare factor absorb a true alpha. The Playground shows both.</Callout>
+
+## <span class="section-tag">Playground</span> Fit IPCA on a seeded panel
+
+The widget simulates 200 firms over 120 months. Each firm has a constant and three characteristics that drift
+slowly, ranked every month. Two true factors drive the returns through a true $\Gamma_\beta$. The top panel shows
+the ALS objective after each iteration, as its distance above the final value, on a log scale. Step through it with
+the button. The bottom panel shows the true $\Gamma_\beta$ next to the restricted estimate $\hat\Gamma_\beta$.
+Hover over or focus a cell to read its value. The slider adds an alpha map orthogonal to the true $\Gamma_\beta$,
+as a share of the panel's sum of squared returns. With $K = 3$, the bootstrap takes a few seconds.
+
+<IPCAFit client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start at $K = 2$ with no alpha. ALS stops after 12 iterations. The
+gap to the final objective is $3.3 \times 10^{-5}$ after the first iteration and $2.4 \times 10^{-14}$ after the
+eleventh. From the second iteration on, it shrinks by a factor of 6 to 8 at each step. Every cell of
+$\hat\Gamma_\beta$ differs from the truth by at most 0.13. The total $R^2$ is 8.25% and the predictive $R^2$ is 0.60%. The test does not reject:
+$p = 0.685$.</p>
+
+<p class="try-this"><strong>Try this too:</strong> set $K = 1$. There is still no alpha in the panel, but now
+$p = 0.020$, and the test rejects at 5%. Then go back to $K = 2$ and move the alpha share to 0.4%. The test rejects
+with $p = 0.005$. Now set $K = 3$ with an alpha share of 1.0%. The test no longer rejects: $p = 0.395$.</p>
+
+Each of these results has a reason. With $K = 1$, the second factor is missing. Its premium is still in the returns,
+and it lines up with the characteristics through the second column of $\Gamma_\beta$. The only place left for it is
+$\Gamma_\alpha$. The paper finds the same pattern in real stocks: one factor is rejected with a $p$-value below
+0.01%, and two factors are not, with $p = 15.4\%$ (pp. 25–26).
+
+With a true alpha and $K = 2$, the restricted fit cannot explain the expected returns, and it shows. At an alpha
+share of 1.0%, the restricted predictive $R^2$ falls to 0.01%, while the unrestricted fit reaches 0.29%. The
+alpha map holds almost all the predictive content of the characteristics.
+
+With $K = 3$, a third factor is free. Its loadings can line up with $\Gamma_\alpha$, and its mean then plays the
+part of the alpha. The fit cannot tell a constant reward without risk from a factor that has a mean. Here the extra
+factor absorbs the alpha. So choose $K$ before you trust the test. The paper reports the test for each $K$ from 1
+to 6, next to the two $R^2$ (p. 25).
+
+<Callout type="key">The simulated panel shows how IPCA works, not what it finds in real stocks: the true
+$\Gamma_\beta$ is known here, and the alpha share is set by a slider. The real-data numbers in this chapter are the
+paper's.</Callout>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="You fit IPCA with as many factors as characteristics, $K = \dim z$. What is $\hat\Gamma_\beta\hat f_{t+1}$?"
+  options={["The first principal component of the managed portfolios", "The Fama–MacBeth slopes of month $t$ on the characteristics", "Zero, because the model is not identified", "The average return of each firm"]}
+  answer={1}
+  explanation="With $\Gamma_\beta$ square and invertible, the factor step gives $\Gamma_\beta f_{t+1} = (Z_t'Z_t)^{-1}Z_t'R^e_{t+1}$, the cross-sectional regression of Chapter 17."
+/>
+
+<Quiz
+  client:visible
+  question="What does each ALS step need from the data, month by month?"
+  options={["Every firm's return and characteristics", "Only the managed-portfolio returns $R^Z_{t+1}$ and $Z_t'Z_t$", "Only the factor means", "The firms' past betas"]}
+  answer={1}
+  explanation="Both first-order conditions depend on the data only through $R^Z_{t+1} = Z_t'R^e_{t+1}$ and $Z_t'Z_t$, so the fit never needs a single firm's return."
+/>
+
+<Quiz
+  client:visible
+  question="In the widget, the panel has no alpha, but with $K = 1$ the test rejects $\Gamma_\alpha = 0$. Why?"
+  options={["The bootstrap is wrong", "The second factor's premium is missing from the betas, so the fit puts it in $\\hat\\Gamma_\\alpha$", "Ranked characteristics always create alphas", "The restricted fit did not converge"]}
+  answer={1}
+  explanation="The missing factor still earns a premium, and that premium lines up with the characteristics. With one factor, the only way to fit it is through the alpha map."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- IPCA lets each firm's betas move with its characteristics, $\beta_{it} = \Gamma_\beta'z_{it}$, and lets the data
+  find the latent factors. Characteristics are ranked each month, so one map serves every month.
+- The fit needs only the managed portfolios $R^Z_{t+1} = Z_t'R^e_{t+1}$ and $Z_t'Z_t$. Alternating least squares
+  starts from their principal components and never raises the objective.
+- The normalisation $\Gamma_\beta'\Gamma_\beta = I$, with uncorrelated factors that have non-negative means, removes
+  the rotation. With $K = \dim z$, IPCA gives the Fama–MacBeth slopes.
+- The total $R^2$ measures risk, the predictive $R^2$ measures expected returns. The bootstrap test of
+  $\Gamma_\alpha = 0$ asks whether characteristics predict returns beyond their betas, and its answer depends on $K$.
+
+**Next up:** "Characteristic-based mimicking portfolios" turns a characteristic into a portfolio you can trade, by
+sorting stocks or by a cross-sectional regression.
+
+### Further reading
+
+- Kelly, Pruitt & Su (2019). Page numbers in this chapter are those of the 2018 NBER working paper.
+- Fama and MacBeth (1973)
