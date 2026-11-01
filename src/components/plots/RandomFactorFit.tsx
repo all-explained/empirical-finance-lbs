@@ -21,7 +21,7 @@ const WEIGHTINGS: { value: Weighting; label: string }[] = [
 ];
 
 const num = (v: number, digits = 2) => `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(digits)}`;
-const share = (v: number) => `${(v * 100).toFixed(0)}%`;
+const share = (v: number) => `${(v * 100).toFixed(1)}%`;
 
 /** Bars of a density histogram: share of draws per unit of the horizontal axis. */
 function densityBars(values: number[]) {
@@ -146,7 +146,7 @@ export default function RandomFactorFit({ initialNoise = 0.75 }: { initialNoise?
           <p>{failed ? 'The data did not load.' : 'Simulating…'}</p>
         )
       }
-      caption={`Real returns, simulated (seeded) factors: ff25-size-bm-monthly and ff30-industry-monthly minus the risk-free rate of ff3-monthly${panel ? `, ${panel.first} to ${panel.last}` : ''}. Each draw builds ${RANDOM_FACTORS} factors $\\Factor{f_t} = \\sqrt{1 - s}\\,g_t + \\sqrt{s}\\,e_t$, where $g_t$ is a random mix of SMB and HML, standardised, and $e_t$ is fresh standard normal noise. It then runs the first pass and the second pass with an intercept. The CAPM and FF3 lines use Mkt-RF, SMB and HML from ff3-monthly in the same two-pass regression.`}
+      caption={`Real returns, simulated (seeded) factors: ff25-size-bm-monthly and ff30-industry-monthly minus the risk-free rate of ff3-monthly${panel ? `, ${panel.first} to ${panel.last}` : ''}. Each draw builds ${RANDOM_FACTORS} factors $\\Factor{f_{k,t}} = \\sqrt{1 - s}\\,\\text{mix}_{k,t} + \\sqrt{s}\\,\\text{noise}_{k,t}$, where the mix is a random mix of SMB and HML, standardised, and the noise is fresh standard normal noise. It then runs the first pass and the second pass with an intercept. The CAPM and FF3 lines use Mkt-RF, SMB and HML from ff3-monthly in the same two-pass regression.`}
     />
   );
 }

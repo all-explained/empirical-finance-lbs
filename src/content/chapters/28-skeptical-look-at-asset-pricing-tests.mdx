@@ -67,8 +67,10 @@ hurdle.</Callout>
 Let a true model with $K$ factors $\Factor{f_t}$ price the $N$ assets. Write the returns as
 
 $$
-\Ret{R^e_t} = \mathbb{E}[R^e] + B(\Factor{f_t} - \mathbb{E}f) + \Err{\varepsilon_t},
-\qquad \mathbb{E}[R^e] = B\lambda ,
+\begin{aligned}
+\Ret{R^e_t} &= \mathbb{E}[R^e] + B(\Factor{f_t} - \mathbb{E}f) + \Err{\varepsilon_t}, \\
+\mathbb{E}[R^e] &= B\lambda ,
+\end{aligned}
 $$
 
 where row $i$ of the $N \times K$ matrix $B$ is $\beta_i'$, and $\varepsilon_t$ is uncorrelated with $f_t$. A
@@ -107,8 +109,10 @@ GLS, as in Chapter 17, weights the pricing errors by $\Sigma^{-1}$, the inverse 
 $\alpha'\Sigma^{-1}\alpha$. Its $R^2$ compares that minimum with what a constant alone leaves:
 
 $$
-R^2_{\text{GLS}} = 1 - \frac{\Err{\hat\alpha}'\Sigma^{-1}\Err{\hat\alpha}}
-{(\bar R^e - \mu_{\text{gmv}}\iota)'\Sigma^{-1}(\bar R^e - \mu_{\text{gmv}}\iota)} ,
+\begin{aligned}
+R^2_{\text{GLS}} = 1 &- \Err{\hat\alpha}'\Sigma^{-1}\Err{\hat\alpha} \\
+&\big/ (\bar R^e - \mu_{\text{gmv}}\iota)'\Sigma^{-1}(\bar R^e - \mu_{\text{gmv}}\iota) ,
+\end{aligned}
 $$
 
 where $\iota$ is the $N$-vector of ones and $\mu_{\text{gmv}} = \iota'\Sigma^{-1}\bar R^e / \iota'\Sigma^{-1}\iota$
@@ -116,38 +120,38 @@ is the mean excess return of the global minimum-variance portfolio. This $R^2$ h
 terms (LNS, pp. 18–19, building on Kandel and Stambaugh). Measure Sharpe ratios against the zero-beta rate:
 $SR^2(\lambda_0) = (\mathbb{E}[R^e] - \lambda_0)^2/\sigma^2$, for a portfolio whose weights sum to one.
 
-1. For a portfolio $w$ with $\iota'w = 1$, write $x = \bar R^e - \lambda_0\iota$. Then
-   $SR^2(\lambda_0) = (w'x)^2 / w'\Sigma w$.
-2. The highest value over all portfolios is $SR^2_{\text{tan}}(\lambda_0) = x'\Sigma^{-1}x$, reached at
-   $w \propto \Sigma^{-1}x$, the tangency portfolio (proof in the box below).
-3. Fix $\lambda_0$ and choose $\lambda$. The GLS minimum of $(x - \hat\beta\lambda)'\Sigma^{-1}(x - \hat\beta\lambda)$ is
-   $x'\Sigma^{-1}x - x'\Sigma^{-1}\hat\beta(\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}x$.
+1. For a portfolio $w$ with $\iota'w = 1$, write $\tilde\mu = \bar R^e - \lambda_0\iota$. Then
+   $SR^2(\lambda_0) = (w'\tilde\mu)^2 / w'\Sigma w$.
+2. The highest value over all portfolios is $SR^2_{\text{tan}}(\lambda_0) = \tilde\mu'\Sigma^{-1}\tilde\mu$, reached at
+   $w \propto \Sigma^{-1}\tilde\mu$, the tangency portfolio (proof in the box below).
+3. Fix $\lambda_0$ and choose $\lambda$. The GLS minimum of $(\tilde\mu - \hat\beta\lambda)'\Sigma^{-1}(\tilde\mu - \hat\beta\lambda)$ is
+   $\tilde\mu'\Sigma^{-1}\tilde\mu - \tilde\mu'\Sigma^{-1}\hat\beta(\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}\tilde\mu$.
 4. The second term is $SR^2_f(\lambda_0)$, the highest squared Sharpe ratio among the factors' mimicking
-   portfolios: the portfolios $w = \Sigma^{-1}\hat\beta a$, whose covariances with the assets, $\Sigma w = \hat\beta a$,
+   portfolios: the portfolios $w = \Sigma^{-1}\hat\beta\vartheta$, whose covariances with the assets, $\Sigma w = \hat\beta\vartheta$,
    are combinations of the betas.
 5. So at the GLS zero-beta rate $\hat\lambda_0$, the numerator is
    $\hat\alpha'\Sigma^{-1}\hat\alpha = SR^2_{\text{tan}}(\hat\lambda_0) - SR^2_f(\hat\lambda_0)$: the squared Sharpe
    ratio the model leaves on the table.
-6. With no factors, step 3 has no second term, and the best $\lambda_0$ minimises $x'\Sigma^{-1}x$. Setting its
+6. With no factors, step 3 has no second term, and the best $\lambda_0$ minimises $\tilde\mu'\Sigma^{-1}\tilde\mu$. Setting its
    derivative $-2\iota'\Sigma^{-1}(\bar R^e - \lambda_0\iota)$ to zero gives $\lambda_0 = \mu_{\text{gmv}}$. That is
    the denominator.
 
 <details>
 <summary>The algebra of steps 2 to 4</summary>
 
-Step 2. Put $v = \Sigma^{1/2}w$. Then $(w'x)^2 = \big(v'\Sigma^{-1/2}x\big)^2 \le (v'v)(x'\Sigma^{-1}x)$ by the
-Cauchy–Schwarz inequality, and $v'v = w'\Sigma w$. So $(w'x)^2/w'\Sigma w \le x'\Sigma^{-1}x$, with equality when
-$v \propto \Sigma^{-1/2}x$, that is $w \propto \Sigma^{-1}x$. The ratio does not change when $w$ is rescaled, so
+Step 2. Put $\tilde w = \Sigma^{1/2}w$. Then $(w'\tilde\mu)^2 = \big(\tilde w'\Sigma^{-1/2}\tilde\mu \big)^2 \le (\tilde w'\tilde w)(\tilde\mu'\Sigma^{-1}\tilde\mu)$ by the
+Cauchy–Schwarz inequality, and $\tilde w'\tilde w = w'\Sigma w$. So $(w'\tilde\mu)^2/w'\Sigma w \le \tilde\mu'\Sigma^{-1}\tilde\mu$, with equality when
+$\tilde w \propto \Sigma^{-1/2}\tilde\mu$, that is $w \propto \Sigma^{-1}\tilde\mu$. The ratio does not change when $w$ is rescaled, so
 the bound holds for weights that sum to one.
 
-Step 3. The GLS slope is $\hat\lambda = (\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}x$. Expand the
-quadratic at $\hat\lambda$: the cross term is $-2\hat\lambda'\hat\beta'\Sigma^{-1}x$ and the square term is
-$\hat\lambda'\hat\beta'\Sigma^{-1}\hat\beta\hat\lambda = \hat\lambda'\hat\beta'\Sigma^{-1}x$. Together they give
-$-x'\Sigma^{-1}\hat\beta(\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}x$.
+Step 3. The GLS slope is $\hat\lambda = (\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}\tilde\mu$. Expand the
+quadratic at $\hat\lambda$: the cross term is $-2\hat\lambda'\hat\beta'\Sigma^{-1}\tilde\mu$ and the square term is
+$\hat\lambda'\hat\beta'\Sigma^{-1}\hat\beta\hat\lambda = \hat\lambda'\hat\beta'\Sigma^{-1}\tilde\mu$. Together they give
+$-\tilde\mu'\Sigma^{-1}\hat\beta(\hat\beta'\Sigma^{-1}\hat\beta)^{-1}\hat\beta'\Sigma^{-1}\tilde\mu$.
 
-Step 4. For $w = \Sigma^{-1}\hat\beta a$, $w'x = a'\hat\beta'\Sigma^{-1}x$ and
-$w'\Sigma w = a'\hat\beta'\Sigma^{-1}\hat\beta a$. Apply step 2 to the vector $a$, with
-$\hat\beta'\Sigma^{-1}\hat\beta$ in place of $\Sigma$ and $\hat\beta'\Sigma^{-1}x$ in place of $x$. The highest
+Step 4. For $w = \Sigma^{-1}\hat\beta\vartheta$, $w'\tilde\mu = \vartheta'\hat\beta'\Sigma^{-1}\tilde\mu$ and
+$w'\Sigma w = \vartheta'\hat\beta'\Sigma^{-1}\hat\beta\vartheta$. Apply step 2 to the vector $\vartheta$, with
+$\hat\beta'\Sigma^{-1}\hat\beta$ in place of $\Sigma$ and $\hat\beta'\Sigma^{-1}\tilde\mu$ in place of $\tilde\mu$. The highest
 value is the second term of step 3.
 
 </details>
@@ -201,8 +205,8 @@ $R^2$ and keep the true values that could have produced the one they see (pp. 21
 
 ## <span class="section-tag">Playground</span> Random factors against FF3
 
-Each draw of the widget builds two factors, $\Factor{f_{k,t}} = \sqrt{1 - s}\,g_{k,t} + \sqrt{s}\,e_{k,t}$. Here
-$g_{k,t}$ is a random mix of SMB and HML, standardised, and $e_{k,t}$ is fresh noise. The slider sets the noise
+Each draw of the widget builds two factors, $\Factor{f_{k,t}} = \sqrt{1 - s}\,\text{mix}_{k,t} + \sqrt{s}\,\text{noise}_{k,t}$. Here
+the mix is a random mix of SMB and HML, standardised, and the noise is fresh standard normal noise. The slider sets the noise
 share $s$. At $s = 0.75$, the default, each factor has a time-series $R^2$ of 0.25 on its SMB–HML mix, as in LNS's
 noisy factors (p. 13). The bars show the $R^2$ of 200 draws; the lines mark the CAPM and FF3 on the same assets.
 
@@ -221,10 +225,10 @@ them.
 ### What our data show
 
 The table applies the fixes to the CAPM and FF3, monthly, 1963-07 to 2026-08. Each $R^2$ has its 95% bootstrap
-interval. $\hat\lambda_0$ comes from the test with the factors among the assets; it is in percent a year
-(monthly times 12), with its Shanken $t$-statistic.
+interval. The zero-beta rate $\hat\lambda_0$ comes from the test with the factors among the assets. It is in
+percent a year (monthly times 12), with its Shanken $t$-statistic in brackets.
 
-| Model, assets | $R^2_{\text{OLS}}$ | $R^2_{\text{GLS}}$ | $\hat\lambda_0$ ($t$) |
+| Model, assets | $R^2_{\text{OLS}}$ | $R^2_{\text{GLS}}$ | Zero-beta rate (t-stat) |
 |---|---|---|---|
 | CAPM, 25 | 0.078 [0.000, 0.536] | 0.061 [0.001, 0.159] | 13.3% (3.00) |
 | FF3, 25 | 0.663 [0.367, 0.838] | 0.204 [0.057, 0.340] | 0.6% (2.76) |
@@ -246,7 +250,7 @@ Plainly, the four fixes say this.
    One sample $R^2$ says little.
 
 FF3 beats the CAPM on every line. But no line says that FF3 prices these assets: its premia and zero-beta rate fail
-on the 55 assets, and most of its high $R^2$ is the factor structure of the 25 portfolios.
+on the 55 assets, and on the 25 portfolios random factors come close to its high $R^2$.
 
 ## <span class="section-tag">Check yourself</span> Three questions
 
