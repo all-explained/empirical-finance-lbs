@@ -279,7 +279,7 @@ function ShrunkFrontier() {
           <p>{failed ? 'The data did not load.' : 'Loading the data…'}</p>
         )
       }
-      caption={`Data: ff25-size-bm-monthly, ff5-monthly and mom-monthly (Kenneth French Data Library), ${view ? `${view.first} to ${view.last}` : '1963–2026'}: the 25 size–B/M portfolios less RF, with SMB, HML, RMW, CMA and Mom, the market removed by a full-sample beta and each rescaled to the market's volatility. The weights $\\hat b = (\\hat\\Sigma + \\nu_2 I)^{-1}\\bar\\mu$ use only the months before ${view ? view.splitMonth : '2005-01'}; their scale is set to ${pct(TARGET_VOL, 0)} volatility a year in those months. Sharpe ratios are annual (×√12), means ×12 and volatilities ×√12. The betas use the whole sample, so the later months are not fully unseen.`}
+      caption={`Data: ff25-size-bm-monthly, ff5-monthly and mom-monthly (Kenneth French Data Library), ${view ? `${view.first} to ${view.last}` : '1963–2026'}: the 25 size–B/M portfolios less RF, with SMB, HML, RMW, CMA and Mom, the market removed and each rescaled to the market's volatility. The market betas, the scales and the weights $\\hat b = (\\hat\\Sigma + \\nu_2 I)^{-1}\\bar\\mu$ use only the months before ${view ? view.splitMonth : '2005-01'}; the weights' scale is set to ${pct(TARGET_VOL, 0)} volatility a year in those months. Sharpe ratios are annual (×√12), means ×12 and volatilities ×√12.`}
     />
   );
 }

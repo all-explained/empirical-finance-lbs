@@ -31,17 +31,23 @@ export interface ShrinkageSet extends AssetPanel {
   Sigma: number[][];
   /** The returns rotated once onto their principal components, as shrinkagePath's 'pcs' space does. */
   pcReturns: number[][];
+  /** The returns with the market betas and scales estimated before SPLIT_DATE only, for shrunkTangency. */
+  splitReturns: number[][];
 }
 export type ShrinkageData = Record<AssetSet, ShrinkageSet>;
 
-const withMoments = (panel: AssetPanel): ShrinkageSet => ({
-  ...panel, Sigma: sampleCovariance(panel.returns), pcReturns: principalComponentAssets(panel.returns).returns,
-});
+const shrinkageSet = (set: AssetSet, series: Required<AssetSeries>): ShrinkageSet => {
+  const panel = assetPanel(set, series);
+  return {
+    ...panel, Sigma: sampleCovariance(panel.returns), pcReturns: principalComponentAssets(panel.returns).returns,
+    splitReturns: assetPanel(set, series, { estimateBefore: SPLIT_DATE }).returns,
+  };
+};
 const FRENCH = ['ff3-monthly', 'ff25-size-bm-monthly'] as const;
 
-/** Both asset sets of assetPanel, with Σ̂ and the PC returns. */
+/** Both asset sets of assetPanel, with Σ̂, the PC returns and the split-sample returns. */
 export function shrinkageData(series: Required<AssetSeries>): ShrinkageData {
-  return { ff: withMoments(assetPanel('ff', series)), osap: withMoments(assetPanel('osap', series)) };
+  return { ff: shrinkageSet('ff', series), osap: shrinkageSet('osap', series) };
 }
 
 /** Both asset sets of assetPanel: ff3 and ff25 by loadSeries, ff5, mom and the OSAP returns by the zoo hook. */
@@ -102,13 +108,14 @@ export interface ShrunkTangency {
 }
 
 /**
- * The shrunk tangency portfolio b̂ = (Σ̂ + ν₂I)⁻¹μ̄ from the months before SPLIT_DATE, held after it. Its scale is
- * free, so it is set to the volatility `target` (annual, decimal) in the first months.
+ * The shrunk tangency portfolio b̂ = (Σ̂ + ν₂I)⁻¹μ̄ from the months before SPLIT_DATE, held after it, on splitReturns,
+ * so no estimate uses a month after the split. Its scale is free, so it is set to the volatility `target` (annual,
+ * decimal) in the first months.
  */
 export function shrunkTangency(set: ShrinkageSet, penalty: number, target: number): ShrunkTangency {
   const split = set.dates.indexOf(SPLIT_DATE);
-  const naive = splitSampleSharpe(set.returns, { split });
-  const shrunk = splitSampleSharpe(set.returns, { split, penalty });
+  const naive = splitSampleSharpe(set.splitReturns, { split });
+  const shrunk = splitSampleSharpe(set.splitReturns, { split, penalty });
   const scale = target / annualiseVolatility(shrunk.inSample.volatility);
   return {
     split,
