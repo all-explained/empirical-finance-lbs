@@ -1,0 +1,280 @@
+---
+title: "Latent and observable factors"
+part: 8
+chapter: 31
+difficulty: 3
+prerequisites: [6, 17]
+summary: "The APT says that any factors spanning the common variation price the assets, latent factors are fixed only up to a rotation, and canonical correlations show that the first three principal components of the 25 portfolios span almost the same space as Mkt-RF, SMB and HML."
+---
+
+import PCAExplorer from '../../components/plots/PCAExplorer';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+## <span class="section-tag">Hook</span> Two lists of three factors
+
+Fama and French built their three factors from an economic hunch. Mkt-RF is the market's excess return. SMB buys
+small stocks and sells big ones, and HML buys value stocks and sells growth ones, from the sorts of
+[Chapter 19](/empirical-finance-lbs/chapters/19-size-and-value/). Principal components analysis (PCA), from
+[Chapter 6](/empirical-finance-lbs/chapters/06-principal-components/), needs no hunch at all. It looks at the 25
+size–value portfolios and returns the three directions in which they move the most.
+
+Run it on the monthly excess returns of the 25 portfolios from 1963-07 to 2026-08, 758 months of Kenneth French's
+data. The first three components carry 93.1% of the variance. The first one is easy to name: its correlation with
+Mkt-RF is 0.93. The others are not. Component 2 has a correlation of 0.62 with SMB and −0.65 with HML. Component 3
+has −0.44 with SMB and −0.72 with HML. No component is the size factor, and none is the value factor.
+
+So, **are these the same three factors or not? And if PCA can find factors in any set of returns, why would you
+need an economic story to choose them?**
+
+## <span class="section-tag">Intuition</span> Compare the spaces, not the arrows
+
+The widget opens on a view made for this chapter. It takes the first $K = 3$ components and asks a different question.
+It does not compare component 2 with SMB. It asks how close the *space* spanned by the three components is to the
+space spanned by the three factors. The answer is three numbers, the **canonical correlations**: 0.995, 0.972 and
+0.931. Each one is a correlation, so 1 is a perfect match.
+
+<PCAExplorer client:visible initialPreset="ff25-1963" initialView="factors" />
+
+<p class="try-this"><strong>Try this:</strong> move the rotation slider to 45°. Components 1 and 2 now mix into two
+new series. In the table, the correlation of component 1 with Mkt-RF falls from 0.93 to 0.56, and its correlation
+with SMB rises from 0.58 to 0.85. The bars do not move.</p>
+
+Here is a picture to hold on to. Three factors span a flat, three-dimensional space inside the space of all return
+series, like a sheet of paper in a room. You can draw three arrows on the sheet to describe it, but many sets of
+arrows describe the same sheet. PCA draws one set: the arrows that carry the most variance, one after the other. Fama
+and French draw another set, from their sorts. Asking whether arrow 2 of one set is arrow 2 of the other is the wrong
+question. The right one is whether the two sheets are the same.
+
+Canonical correlations answer it. The first one finds the combination of the components and the combination of the
+factors that are the most correlated: two arrows, one on each sheet, at the smallest angle to each other. The second
+does the same with what is left, and so on. If all three are 1, the two sheets are one sheet. Here they are close to
+1, so the two lists describe almost the same three directions, even though no single pair of arrows matches.
+
+<Callout type="key">Latent factors are fixed only up to a rotation, so a factor-by-factor comparison with observed
+factors means little. Canonical correlations compare the spaces that the two sets span, and no rotation changes
+them.</Callout>
+
+## <span class="section-tag">Formalisation</span> The APT, the rotation and canonical correlations
+
+### The factor model and the APT
+
+Write the $N$ excess returns at month $t$ as a vector $\Ret{R^e_t}$, with $K$ factors $\Factor{f_t}$:
+
+$$
+\Ret{R^e_t} = \mathbb{E}[R^e] + \beta\Factor{f_t} + \Err{\varepsilon_t},
+$$
+
+where the factors have mean zero, the residuals $\varepsilon_t$ have mean zero and are uncorrelated with $f_t$, and
+$\Sigma_\varepsilon$ is the covariance matrix of the residuals. Here $\beta$ is the $N \times K$ matrix whose row $i$
+is $\beta_i'$; [Chapter 28](/empirical-finance-lbs/chapters/28-skeptical-look-at-asset-pricing-tests/) called it $B$.
+When the factor carries its premium as its mean, as a traded factor such as Mkt-RF does, the model shrinks to
+$\Ret{R^e_t} = \beta\Factor{f_t} + \Err{\varepsilon_t}$.
+
+The **arbitrage pricing theory** (APT) adds one claim about the means: $\mathbb{E}[R^e] \approx \beta\lambda$. To see
+where it comes from, and what "approximately" means, follow these steps.
+
+1. Split the means into the part that lines up with the betas and the rest. Take
+   $\lambda = (\beta'\beta)^{-1}\beta'\mathbb{E}[R^e]$, the OLS slope of the means on the betas, and
+   $\Err{\alpha} = \mathbb{E}[R^e] - \beta\lambda$. Then
+   $\beta'\alpha = \beta'\mathbb{E}[R^e] - \beta'\beta(\beta'\beta)^{-1}\beta'\mathbb{E}[R^e] = 0$.
+2. Hold the portfolio $w = \alpha$ of excess returns. Its exposure to the factors is $\beta'w = \beta'\alpha = 0$, so
+   it carries no factor risk.
+3. Its mean is $w'\mathbb{E}[R^e] = \alpha'\beta\lambda + \alpha'\alpha = \alpha'\alpha$, because $\alpha'\beta = 0$.
+4. Its variance is $\alpha'(\beta\operatorname{Var}(f)\beta' + \Sigma_\varepsilon)\alpha = \alpha'\Sigma_\varepsilon\alpha$.
+   Let $\sigma^2_\varepsilon$ be the largest eigenvalue of $\Sigma_\varepsilon$. By the argument of Chapter 6,
+   $\alpha'\Sigma_\varepsilon\alpha \le \sigma^2_\varepsilon\,\alpha'\alpha$.
+5. So its Sharpe ratio is
+   $SR = \alpha'\alpha / \sqrt{\alpha'\Sigma_\varepsilon\alpha} \ge \sqrt{\alpha'\alpha}/\sigma_\varepsilon$.
+6. **No near-arbitrage** means that no portfolio has a Sharpe ratio above some bound $SR_{\max}$: you cannot earn a
+   large mean for almost no risk. Then $\sqrt{\alpha'\alpha}/\sigma_\varepsilon \le SR_{\max}$, that is,
+
+$$
+\sum_{i=1}^{N} \Err{\alpha_i}^2 \le \sigma^2_\varepsilon\, SR^2_{\max} .
+$$
+
+The right side does not grow with $N$. Add assets, and the sum of the squared pricing errors stays below the same
+number, so the average $\alpha_i^2$ falls towards zero. That is what "approximately" means: most assets are priced
+almost exactly, but a few can have large alphas. The argument needs $\sigma^2_\varepsilon$ to stay bounded as $N$
+grows, so that the residuals diversify away. That is an **approximate factor structure**: a few factors are
+pervasive, which means they touch most assets, and what is left is idiosyncratic. Giglio & Xiu (2021) state that
+their pervasive-factor assumption is the one behind the APT and the approximate factor model of Chamberlain and
+Rothschild (p. 1950).
+
+The APT says nothing about *which* factors these are, only that they must span the common variation. Nagel (2013)
+makes the point for the 25 portfolios: the three Fama–French factors explain over 90% of their time-series
+variation, so the means must line up with the loadings, or a near-arbitrage would open (p. 14). And he adds that no
+near-arbitrage holds under very weak assumptions, in rational and in behavioural models alike (p. 15). His page
+numbers are those of the 2012 NBER working paper 18554.
+
+### Why the components price the test assets
+
+Chapter 6 showed that the first $K$ components leave the smallest residuals of any $K$ directions. So they are the
+factors that make $\Sigma_\varepsilon$ as small as possible on these very assets. By the APT, the means should line
+up with the loadings on them. The test assets are priced by their own components almost by construction.
+
+Our library takes the components with unit variance, $\tfrac1T\sum_t \Factor{f_t}\Factor{f_t}' = I_K$, and uses their
+loadings as the betas of the two-pass regression of
+[Chapter 17](/empirical-finance-lbs/chapters/17-cross-sectional-regressions-and-fama-macbeth/). With an intercept, the
+cross-sectional $R^2_{\text{OLS}}$ is 0.002 with one component, 0.282 with two and 0.640 with three. FF3 gets 0.663
+on the same data. Notice that component 3, which carries only 3.5% of the variance, lifts the $R^2$ from 0.282 to
+0.640. PCA ranks directions by variance, never by mean, so it is not literally "by construction".
+
+But here is the limit. The components are estimated from the same returns that they then price. Add more of them,
+and the fit climbs: 0.703 with four, 0.791 with five. With 24 components and an intercept there are as many
+unknowns as portfolios, and $R^2_{\text{OLS}}$ is exactly 1. That fit is arithmetic, not evidence. Kelly, Pruitt & Su
+(2019) add that PCA picks factors by a purely statistical criterion from returns alone, with fixed loadings, and so
+cannot use what we know about the firms (p. 3 of their 2018 NBER working paper).
+
+### Rotation: the factors are fixed only up to $H$
+
+Take any invertible $K \times K$ matrix $H$ and define new factors and betas:
+
+$$
+(\beta, \Factor{f_t}) \to (\beta H^{-1}, H\Factor{f_t}) .
+$$
+
+1. The fit does not change: $\beta H^{-1} H\Factor{f_t} = \beta\Factor{f_t}$, so the residuals $\varepsilon_t$ are the
+   same.
+2. The pricing does not change either: $\beta\lambda = \beta H^{-1}H\lambda$, so the new premia are $H\lambda$ and the
+   alphas stay the same.
+3. The returns alone cannot tell the two sets apart. Giglio & Xiu (2021) build on this. Some products, such as the
+   premium of an observed factor, do not depend on $H$ (p. 1957), and PCA recovers the factors only up to such an
+   $H$ (p. 1959).
+
+PCA pins down one $H$ by a convention. Our unit-variance scaling leaves free every $H$ with $HH' = I_K$, because the
+new factors have covariance $H I_K H'$. PCA then takes the one that puts the most variance first. The angle $\omega$
+of Chapter 6 is such an $H$ for components 1 and 2:
+
+$$
+H = \begin{pmatrix} \cos\omega & \sin\omega \\ -\sin\omega & \cos\omega \end{pmatrix}.
+$$
+
+You have met this algebra before. In Chapter 28, betas on proposed factors were $B_P = BG$, with premia
+$\lambda_P = G^{-1}\lambda$: the same move with $H = G^{-1}$. Kelly, Pruitt & Su face the same indeterminacy in
+their model. They fix it with normalisations that, as they say, carry no economic restrictions (p. 13).
+
+### Canonical correlations
+
+To compare two blocks of series that are each known only up to a rotation, take a $T \times K_X$ block $X$, here
+the first $K$ components, and a $T \times K_Y$ block $Y$, here Mkt-RF, SMB and HML. Write $\Sigma_{XX}$,
+$\Sigma_{YY}$ and $\Sigma_{XY} = \Sigma_{YX}'$ for their sample covariances. The first canonical correlation is the
+highest correlation of a combination $Xw^X$ with a combination $Yw^Y$:
+
+$$
+\mathit{cc}_1 = \max_{w^X,\, w^Y} \operatorname{corr}(Xw^X, Yw^Y) .
+$$
+
+Each later $\mathit{cc}_k$ is the highest one among combinations uncorrelated with the first $k - 1$ pairs. Two facts
+make it the right tool.
+
+**No rotation changes it.** Replace $X$ by $XG'$ for an invertible $G$. A combination of the new block is
+$XG'w = X(G'w)$, a combination of the old one. And any old combination $Xv$ is the new one with $w = (G')^{-1}v$.
+The two blocks have the same set of combinations, so they have the same maxima. Plain correlations change because
+each looks at one column, and a rotation changes the columns.
+
+**It is an eigenvalue problem.** Here are the steps.
+
+1. Fix $w^X$ and write $u = Xw^X$. The combination of $Y$ most correlated with $u$ is the fitted value of the
+   regression of $u$ on $Y$. Its squared correlation is that regression's $R^2$ (proof in the box):
+   $\dfrac{w^{X\prime}\Sigma_{XY}\Sigma_{YY}^{-1}\Sigma_{YX}w^X}{w^{X\prime}\Sigma_{XX}w^X}$.
+2. Put $v = \Sigma_{XX}^{1/2}w^X$. The ratio becomes $v'BB'v/v'v$, with
+   $B = \Sigma_{XX}^{-1/2}\Sigma_{XY}\Sigma_{YY}^{-1/2}$.
+3. By the argument of Chapter 6, the highest value of $v'Av/v'v$ for a symmetric $A$ is its largest eigenvalue.
+   So $\mathit{cc}_1^2$ is the largest eigenvalue of $BB'$. Combinations uncorrelated with the first pair give $v$ at
+   a right angle to the first eigenvector, so $\mathit{cc}_2^2$ is the second eigenvalue, and so on.
+4. $BB'$ has the same eigenvalues as $\Sigma_{XX}^{-1}\Sigma_{XY}\Sigma_{YY}^{-1}\Sigma_{YX}$, because
+   $\Sigma_{XX}^{-1/2}(BB')\Sigma_{XX}^{1/2}$ equals that product.
+
+<details>
+<summary>Why the best combination of $Y$ is the regression's fitted value</summary>
+
+1. Write $c = \Sigma_{YX}w^X$, the covariances of the columns of $Y$ with $u$. Then
+   $\operatorname{corr}(u, Yw)^2 = (c'w)^2 / \big(\operatorname{Var}(u)\, w'\Sigma_{YY}w\big)$.
+2. Put $z = \Sigma_{YY}^{1/2}w$, so $c'w = (\Sigma_{YY}^{-1/2}c)'z$ and $w'\Sigma_{YY}w = z'z$.
+3. By the Cauchy–Schwarz inequality, $\big((\Sigma_{YY}^{-1/2}c)'z\big)^2 \le (c'\Sigma_{YY}^{-1}c)(z'z)$, with
+   equality when $z \propto \Sigma_{YY}^{-1/2}c$, that is, $w \propto \Sigma_{YY}^{-1}c$: the OLS slope of $u$ on $Y$.
+4. So the highest squared correlation is $c'\Sigma_{YY}^{-1}c / \operatorname{Var}(u)$, the explained variance over the
+   total variance: the $R^2$. Put back $c = \Sigma_{YX}w^X$ and $\operatorname{Var}(u) = w^{X\prime}\Sigma_{XX}w^X$.
+
+</details>
+
+With one series in each block, $\mathit{cc}_1$ is the absolute value of their correlation. All $\mathit{cc}_k$
+equal 1 only if every series of the smaller block is an exact combination of the other block.
+
+## <span class="section-tag">Playground</span> Change $K$, the angle and the sample
+
+Use the widget above. The slider "Components $K$" sets how many components enter, from 1 to 5. The bars show
+$\min(K, 3)$ canonical correlations, and the table shows the plain correlation of each component with each factor.
+
+<p class="try-this"><strong>Try this:</strong> set $K = 1$. The one bar is 0.994: component 1 is almost exactly a mix
+of the three factors, mostly the market. Then set $K = 5$. The bars rise to 0.996, 0.985 and 0.976, while the share of
+variance only grows from 93.1% to 95.2%. Press "Flip the signs": every plain correlation changes sign, and no bar
+moves.</p>
+
+<p class="try-this"><strong>Try this:</strong> with $K = 3$, switch the data to the sample from 1926. The third bar
+falls to 0.467. Now set $K = 4$, and it rises to 0.894. In that sample, Chapter 6 found that components 3 and 4 carry
+almost the same variance, so PCA can rank them in either order.</p>
+
+### What our data show
+
+On the 25 portfolios from 1963-07 to 2026-08, the first three components and Mkt-RF, SMB and HML span almost the same
+space: the canonical correlations are 0.995, 0.972 and 0.931. The first two directions match almost perfectly. The
+third match is weaker. So one combination of the factors, or of the components, is only partly in the other set.
+These are sample numbers with no standard errors, and the 1926 sample shows how much the third one moves.
+
+Giglio & Xiu (2021) report a related check on a much larger set of 647 portfolios. They regress each observed factor
+on their latent factors and find that the market and SMB are almost fully explained, and HML less so (p. 1975 and
+Table B1, p. 1987).
+
+Plainly: the statistical and the economic factors of the 25 portfolios are nearly the same three directions, drawn
+with different arrows. That is why both price these assets well, and also why neither fit, on these assets alone, is
+evidence for an economic story. Nagel (2013) concludes that such a fit tells you little about the economics (p. 19),
+the point Chapter 28 made with random factors.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="You turn components 1 and 2 by 45° inside their plane, with $K = 3$. What happens?"
+  options={["The plain correlations of components 1 and 2 with the factors change; the canonical correlations stay the same", "Every number changes, because the components are new series", "Nothing changes, because the rotation keeps the fit", "Only the canonical correlations change"]}
+  answer={0}
+  explanation="The turned components span the same space, so every combination of them is the same as before and the canonical correlations stay. Each plain correlation looks at one column, and the rotation changes the columns."
+/>
+
+<Quiz
+  client:visible
+  question="The canonical correlations of the first three components with Mkt-RF, SMB and HML are 0.995, 0.972 and 0.931. What does the 0.931 say?"
+  options={["Component 3 has a correlation of 0.931 with HML", "The best-matched combinations, after the first two pairs, have a correlation of 0.931: the two spaces are close but not the same", "The PCs price the 25 portfolios 93.1% as well as FF3", "Only 93.1% of the variance is common"]}
+  answer={1}
+  explanation="A canonical correlation belongs to a pair of combinations, not to any one factor. In our data the plain correlation of component 3 with HML is only $-0.72$."
+/>
+
+<Quiz
+  client:visible
+  question="Five components of the 25 portfolios give a cross-sectional $R^2$ of 0.791, and FF3 gives 0.663. What does that show?"
+  options={["The five components are a better model of risk", "FF3 is rejected", "Little: the components come from the same returns they price, and with 24 of them the $R^2$ is exactly 1", "The APT fails for FF3"]}
+  answer={2}
+  explanation="PCA chooses the components from these returns, and every added component adds a free slope. The APT says any factors that span the common variation must price these assets, so a good in-sample fit is expected."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- The factor model is $R^e_t = \mathbb{E}[R^e] + \beta f_t + \varepsilon_t$. The APT says that, with no near-arbitrage,
+  $\sum_i \alpha_i^2 \le \sigma^2_\varepsilon SR^2_{\max}$, so $\mathbb{E}[R^e] \approx \beta\lambda$ for most assets.
+- Any factors that span the common variation price the assets. The first components of the test assets do so almost
+  by construction, and their fit rises to 1 as you add more of them.
+- Latent factors are fixed only up to a rotation: $(\beta, f_t) \to (\beta H^{-1}, Hf_t)$ keeps the fit, and the
+  premia become $H\lambda$.
+- Canonical correlations compare two sets of factors whatever their rotation. On the 25 portfolios from 1963-07 they
+  are 0.995, 0.972 and 0.931: the first three components and Mkt-RF, SMB, HML span nearly the same space.
+
+**Next up:** Chapter 32, *Characteristics are covariances: IPCA*, lets the betas move with firm characteristics.
+Chapter 33, *Characteristic-based mimicking portfolios*, turns characteristics into traded portfolios, and Chapter 34,
+*Risk premia with omitted factors*, uses the rotation result to price an observed factor.
+
+### Further reading
+
+- Nagel (2013)
+- Giglio & Xiu (2021)
+- Kelly, Pruitt & Su (2019)
