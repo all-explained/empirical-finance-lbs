@@ -37,6 +37,7 @@ describe('chapter 30 prose numbers', () => {
     expect([ff.first, ff.splitMonth, ff.last]).toEqual(['1963-07', '2005-01', '2026-08']);
     expect([fixed(ff.frontierSharpe, 2), fixed(ff.inSample.sharpe, 2), fixed(ff.outOfSample.sharpe, 2)]).toEqual(['1.84', '1.84', '0.82']);
     const anomalies = shrunkTangency(data.osap, 0, TARGET);
+    expect(anomalies.last).toBe('2024-12');
     expect([fixed(anomalies.inSample.sharpe, 2), fixed(anomalies.outOfSample.sharpe, 2)]).toEqual(['8.85', '2.18']);
   });
 

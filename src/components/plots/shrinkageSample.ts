@@ -96,7 +96,7 @@ export interface ShrunkTangency {
   last: string;
   /** Annual Sharpe ratio of the naive tangency portfolio in its own months: the slope of the in-sample frontier. */
   frontierSharpe: number;
-  /** The shrunk tangency portfolio, scaled to the in-sample volatility of the market, before and after the split. */
+  /** The shrunk tangency portfolio, scaled to the volatility `target` before the split, in the months before and after it. */
   inSample: AnnualMoments;
   outOfSample: AnnualMoments;
 }
