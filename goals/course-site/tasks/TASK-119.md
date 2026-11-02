@@ -6,6 +6,7 @@ state: approved
 depends_on: [TASK-115, DEC-003, TASK-125]
 delivery: pr
 route: {platform: claude, model: opus, effort: high}
+blocked: null
 ---
 
 ## Why
