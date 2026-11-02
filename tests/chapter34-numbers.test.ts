@@ -25,8 +25,8 @@ const monthly = (values: number[], digits = 3) => values.map((v) => (v * 100).to
 /** Monthly decimals → % a year, as the widget's readout writes them. */
 const yearly = (v: number) => (v * 1200).toFixed(2);
 const means = sampleMeans(factors);
-const economy = (strength: number, correlation: number) => {
-  const sim = omittedEconomy(strength, correlation, OMITTED_SEED);
+const economy = (strength: number, correlation: number, factors = 2) => {
+  const sim = omittedEconomy(strength, correlation, factors, OMITTED_SEED);
   return { bias: [yearly(sim.bias.twoPass), yearly(sim.bias.threePass)], rmse: [yearly(sim.rmse.twoPass), yearly(sim.rmse.threePass)] };
 };
 
@@ -40,7 +40,7 @@ describe('chapter 34 prose numbers', () => {
   });
 
   test('intuition and formalisation: the default economy and its predicted bias', () => {
-    const sim = omittedEconomy(1, 0.5, OMITTED_SEED);
+    const sim = omittedEconomy(1, 0.5, 2, OMITTED_SEED);
     expect([ECONOMY.N, ECONOMY.T, ECONOMY.samples, yearly(sim.truth)]).toEqual([25, 600, 100, '6.00']);
     expect(economy(1, 0.5)).toEqual({ bias: ['2.77', '-0.27'], rmse: ['3.65', '1.88'] });
     // The two-pass bias s·c·λ_2 at s = 1, c = 0.5, with λ_2 = λ_1 = the true premium.
@@ -52,6 +52,14 @@ describe('chapter 34 prose numbers', () => {
     expect(economy(0, 0.5).rmse).toEqual(['1.93', '1.90']);
     expect(economy(1, -0.5)).toEqual({ bias: ['-3.18', '-0.47'], rmse: ['3.90', '1.91'] });
     expect(economy(2, 0.9)).toEqual({ bias: ['10.58', '-0.51'], rmse: ['11.33', '1.89'] });
+  }, 120000);
+
+  test('playground: the number of components at c = 0', () => {
+    const one = economy(1, 0, 1);
+    expect(one).toEqual({ bias: ['-0.21', '-2.96'], rmse: ['2.23', '4.42'] });
+    // "About half the premium" of 6.00% a year.
+    expect((Number(one.bias[1]) / 6).toFixed(1)).toBe('-0.5');
+    for (const K of [3, 4, 5, 6]) expect(economy(1, 0, K)).toEqual(economy(1, 0, 2));
   }, 120000);
 
   test('our data: three-pass premia on the 25 portfolios, their standard errors and the step-3 R²', () => {

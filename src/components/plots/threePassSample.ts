@@ -8,7 +8,7 @@ export const OMITTED_SEED = 2021;
  */
 export const ECONOMY = { N: 25, T: 600, noise: 0, samples: 100 } as const;
 
-/** Two-pass and three-pass estimates of λ_χ in the seeded economy, for one strength and correlation. */
-export function omittedEconomy(strength: number, correlation: number, seed: number): OmittedFactorSimulation {
-  return simulateOmittedFactor(seed, { ...ECONOMY, strength, correlation });
+/** Two-pass and three-pass (with K principal components) estimates of λ_χ in the seeded economy. */
+export function omittedEconomy(strength: number, correlation: number, factors: number, seed: number): OmittedFactorSimulation {
+  return simulateOmittedFactor(seed, { ...ECONOMY, strength, correlation, factors });
 }

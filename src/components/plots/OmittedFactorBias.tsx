@@ -19,12 +19,12 @@ const num = (v: number, digits = 2) => `${v < 0 ? '−' : ''}${Math.abs(v).toFix
 const pct = (v: number) => `${v > 0 ? '+' : ''}${num(v, 2)}%`;
 
 type Estimator = 'twoPass' | 'threePass';
-const ESTIMATORS: { key: Estimator; name: string; axis: string }[] = [
-  { key: 'twoPass', name: 'Two-pass', axis: 'two-pass estimate, χ alone (% a year)' },
-  { key: 'threePass', name: 'Three-pass', axis: 'three-pass estimate, 2 PCs (% a year)' },
+const ESTIMATORS: { key: Estimator; name: string; axis: (K: number) => string }[] = [
+  { key: 'twoPass', name: 'Two-pass', axis: () => 'two-pass estimate, χ alone (% a year)' },
+  { key: 'threePass', name: 'Three-pass', axis: (K) => `three-pass estimate, ${K} PC${K > 1 ? 's' : ''} (% a year)` },
 ];
 
-interface Params { strength: number; correlation: number; seed: number }
+interface Params { strength: number; correlation: number; factors: number; seed: number }
 
 /**
  * Chapter 34: the seeded two-factor economy of simulateOmittedFactor. One panel per estimator: the histogram
@@ -34,13 +34,13 @@ interface Params { strength: number; correlation: number; seed: number }
 export default function OmittedFactorBias({ initialStrength = 1, initialCorrelation = 0.5 }: {
   initialStrength?: number; initialCorrelation?: number;
 }) {
-  const [params, setParams] = useState<Params>({ strength: initialStrength, correlation: initialCorrelation, seed: OMITTED_SEED });
+  const [params, setParams] = useState<Params>({ strength: initialStrength, correlation: initialCorrelation, factors: 2, seed: OMITTED_SEED });
   const [sim, setSim] = useState<{ params: Params; result: OmittedFactorSimulation } | null>(null);
 
   // 100 samples of both estimators take about a second: run them once the slider rests.
   useEffect(() => {
     const id = setTimeout(
-      () => setSim({ params, result: omittedEconomy(params.strength, params.correlation, params.seed) }),
+      () => setSim({ params, result: omittedEconomy(params.strength, params.correlation, params.factors, params.seed) }),
       sim ? 250 : 0,
     );
     return () => clearTimeout(id);
@@ -53,7 +53,7 @@ export default function OmittedFactorBias({ initialStrength = 1, initialCorrelat
       const values = result[key].map(yearly);
       const { edges, counts } = histogram(values, BINS);
       return {
-        key, name, axis,
+        key, name, axis: axis(sim.params.factors),
         bars: counts.map((c, i) => ({ left: edges[i], right: edges[i + 1], height: c / (values.length * (edges[i + 1] - edges[i])) })),
         mean: yearly(result.truth) + yearly(result.bias[key]),
         bias: yearly(result.bias[key]),
@@ -112,7 +112,7 @@ export default function OmittedFactorBias({ initialStrength = 1, initialCorrelat
       title="What the omitted factor does to each estimator"
       ariaLabel={
         view
-          ? `Two histograms of ${ECONOMY.samples} seeded samples with an omitted factor of strength ${num(view.strength)} and loading correlation ${num(view.correlation)}. The true premium is ${num(view.truth, 1)}% a year. Two-pass estimates have a mean bias of ${pct(two.bias)} and a root mean squared error of ${num(two.rmse)}%. Three-pass estimates have a mean bias of ${pct(three.bias)} and a root mean squared error of ${num(three.rmse)}%.`
+          ? `Two histograms of ${ECONOMY.samples} seeded samples with an omitted factor of strength ${num(view.strength)} and loading correlation ${num(view.correlation)}, with ${view.factors} principal component${view.factors > 1 ? 's' : ''} in the three-pass estimate. The true premium is ${num(view.truth, 1)}% a year. Two-pass estimates have a mean bias of ${pct(two.bias)} and a root mean squared error of ${num(two.rmse)}%. Three-pass estimates have a mean bias of ${pct(three.bias)} and a root mean squared error of ${num(three.rmse)}%.`
           : 'Histograms of two-pass and three-pass risk premium estimates. The simulation is loading.'
       }
       plotHeight={2 * PANEL_HEIGHT}
@@ -123,6 +123,8 @@ export default function OmittedFactorBias({ initialStrength = 1, initialCorrelat
             onChange={(strength) => setParams((p) => ({ ...p, strength }))} format={(v) => num(v, 1)} />
           <Slider label="Correlation of its loadings with $\beta_\chi$'s, $c$" value={params.correlation} min={-0.99} max={0.99} step={0.01}
             onChange={(correlation) => setParams((p) => ({ ...p, correlation }))} format={(v) => num(v)} />
+          <Slider label="Number of principal components $K$" value={params.factors} min={1} max={6} step={1}
+            onChange={(factors) => setParams((p) => ({ ...p, factors }))} format={(v) => v.toFixed(0)} />
           <Button onClick={() => setParams((p) => ({ ...p, seed: p.seed + 1 }))}>New seed</Button>
         </>
       }
@@ -154,7 +156,7 @@ export default function OmittedFactorBias({ initialStrength = 1, initialCorrelat
           <p>Simulating…</p>
         )
       }
-      caption={`Simulated (seeded) data, annualised (×12). Each sample draws $N = ${ECONOMY.N}$ assets and $T = ${ECONOMY.T}$ months from two independent factors, each with a premium of 0.5% a month and a volatility of 4% a month, plus idiosyncratic noise of 3% a month. Each asset's loading on the first factor is a standard normal draw; its loading on the second is $s$ times another standard normal draw whose correlation with the first, across assets, is $c$. The observed factor $\\Factor{\\chi_t}$ is the first factor itself, with no measurement error. Two-pass: the betas on $\\chi_t$ alone, then an OLS cross-sectional regression with no intercept. Three-pass: two principal components.`}
+      caption={`Simulated (seeded) data, annualised (×12). Each sample draws $N = ${ECONOMY.N}$ assets and $T = ${ECONOMY.T}$ months from two independent factors, each with a premium of 0.5% a month and a volatility of 4% a month, plus idiosyncratic noise of 3% a month. Each asset's loading on the first factor is a standard normal draw; its loading on the second is $s$ times another standard normal draw whose correlation with the first, across assets, is $c$. The observed factor $\\Factor{\\chi_t}$ is the first factor itself, with no measurement error. Two-pass: the betas on $\\chi_t$ alone, then an OLS cross-sectional regression with no intercept. Three-pass: the first $K$ principal components; the economy has two true factors.`}
     />
   );
 }

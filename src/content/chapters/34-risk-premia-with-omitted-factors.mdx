@@ -219,8 +219,8 @@ as long as the number of components is at least the true number (p. 1972).
 ## <span class="section-tag">Playground</span> Bend the economy
 
 Use the widget above. The slider $s$ sets the strength of the omitted factor, from 0 (no second factor) to 2. The
-slider $c$ sets how its loadings correlate with the loadings on the observed factor. "New seed" draws 100 fresh
-samples. The readout gives each estimator's mean bias and root mean squared error, in % a year.
+slider $c$ sets how its loadings correlate with the loadings on the observed factor. The slider $K$ sets the
+number of components of the three-pass estimate, from 1 to 6. "New seed" draws 100 fresh samples.
 
 <p class="try-this"><strong>Try this:</strong> set $c = 0$. The two-pass bias falls to −0.21% a year, no more than
 sampling noise, but its root mean squared error is 2.23%, against 1.93% at $s = 0$. Now set $c = -0.5$. The bias
@@ -229,6 +229,14 @@ turns to −3.18% a year: the omitted premium now pulls the estimate down.</p>
 <p class="try-this"><strong>Try this:</strong> set $s = 2$ and $c = 0.9$. The two-pass bias is +10.58% a year, more
 than the 6% premium itself. Watch the three-pass panel: its root mean squared error stays between 1.88% and 1.91% a
 year in every setting above.</p>
+
+<p class="try-this"><strong>Try this:</strong> set $s = 1$, $c = 0$ and $K = 1$. The three-pass bias falls to
+−2.96% a year, about half the premium, and its root mean squared error rises to 4.42%, worse than the two-pass.
+One component cannot hold both factors, so a true term is missing (the too-few case above).</p>
+
+<p class="try-this"><strong>Try this:</strong> keep $c = 0$ and move $K$ from 2 to 6. The three-pass bias stays at
+−0.32% a year and its root mean squared error at 1.89%: each extra component is noise, and its term is close to
+zero. Only a simulated economy, whose true number of factors you know, can show this.</p>
 
 ### What our data show
 
@@ -262,7 +270,7 @@ Chapter 31 pointed out. Giglio & Xiu use a far
 larger set of 647 portfolios of stocks, bonds and currencies, with seven components (pp. 1972–1973). In their data,
 the two-pass premium of momentum with no other factors is −201 basis points a month, against a mean of 69, and 71
 with the three Fama–French factors as controls. Their three-pass estimate is 49 (p. 1973). Those are their numbers,
-not ours. For the traded factors they study, the three-pass estimates are mostly close to the means (p. 1975).
+not ours.
 
 A last link: a factor whose step-3 $R^2$ is near zero has $\hat\beta_\chi \approx 0$, so its three-pass premium is near
 zero too. The useless factors of
