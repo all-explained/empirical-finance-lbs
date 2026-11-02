@@ -68,7 +68,9 @@ export default function OmittedFactorBias({ initialStrength = 1, initialCorrelat
   const pad = view ? (view.hi - view.lo) * 0.06 : 0;
   const xLo = useTweened(view ? view.lo - pad : 0);
   const xHi = useTweened(view ? view.hi + pad : 12);
-  const yTop = useTweened(view ? view.top * 1.45 : 1);
+  const yTop = useTweened(view ? view.top * 1.7 : 1);
+  // The bias bar and its labels sit between the tallest bar and the panel name.
+  const barY = yTop * 0.72;
 
   const plot = view ? (
     <div>
@@ -88,14 +90,14 @@ export default function OmittedFactorBias({ initialStrength = 1, initialCorrelat
             <Polygon key={i} points={[[b.left, 0], [b.right, 0], [b.right, b.height], [b.left, b.height]]}
               color="var(--c-prob)" fillOpacity={0.25} weight={1} />
           ))}
-          <Line.Segment point1={[view.truth, 0]} point2={[view.truth, yTop * 0.82]} color="var(--text)" weight={1.5} style="dashed" />
-          <Line.Segment point1={[panel.mean, 0]} point2={[panel.mean, yTop * 0.82]} color="var(--c-model)" weight={2.5} />
-          <Line.Segment point1={[view.truth, yTop * 0.82]} point2={[panel.mean, yTop * 0.82]} color="var(--c-error)" weight={4} />
+          <Line.Segment point1={[view.truth, 0]} point2={[view.truth, barY]} color="var(--text)" weight={1.5} style="dashed" />
+          <Line.Segment point1={[panel.mean, 0]} point2={[panel.mean, barY]} color="var(--c-model)" weight={2.5} />
+          <Line.Segment point1={[view.truth, barY]} point2={[panel.mean, barY]} color="var(--c-error)" weight={4} />
           <Label x={xHi} y={yTop} attach="sw" attachDistance={6} size={13} color="var(--text)">{panel.name}</Label>
-          <Label x={Math.min(view.truth, panel.mean)} y={yTop * 0.82} attach="w" attachDistance={6} size={12} color="var(--text)">
+          <Label x={Math.min(view.truth, panel.mean)} y={barY} attach="w" attachDistance={6} size={12} color="var(--text)">
             {panel.mean < view.truth ? 'mean' : 'true'}
           </Label>
-          <Label x={Math.max(view.truth, panel.mean)} y={yTop * 0.82} attach="e" attachDistance={6} size={12} color="var(--text)">
+          <Label x={Math.max(view.truth, panel.mean)} y={barY} attach="e" attachDistance={6} size={12} color="var(--text)">
             {panel.mean < view.truth ? 'true' : 'mean'}
           </Label>
         </PlotFrame>
