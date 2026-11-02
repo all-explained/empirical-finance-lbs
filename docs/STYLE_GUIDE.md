@@ -234,6 +234,13 @@ equation's shocks and $\gamma$ is risk aversion.
 | $\varepsilon_{\chi,t}$ | `\Err` | Measurement error of $\chi_t$, uncorrelated with $f_t$ (Chapter 34): the part of the observed factor that no latent factor explains. The paper and the curriculum write $z_t$, the state variable of Chapters 22–23. Not $u_t$, a second equation's shock, which the paper uses for the returns' residuals |
 | $\lambda_\chi$ | — | Risk premium of $\chi_t$, $\lambda_\chi = \beta_\chi'\lambda$ (Chapter 34): the mean excess return of a portfolio with beta 1 on $\chi_t$ and 0 on every other factor, priced as an asset's $\mathbb{E}[R^e_i] = \beta_i'\lambda$. No rotation $H$ changes it. The paper writes $\gamma_g$; $\gamma$ is risk aversion. The subscript is the letter $\chi$, never the zero-beta rate's $0$ in $\lambda_0$ |
 
+### Part IX: consumption data and the equity premium puzzle (Chapters 35–36)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $\varphi$ | — | Weight of the NIPA filter (Chapter 36), from 0 (no filter) up to but not including 1: reported growth is $\Delta c^{\text{NIPA}}_t = (1 - \varphi)\Delta c_t + \varphi\,\Delta c^{\text{NIPA}}_{t-1}$, and unfiltering inverts it, $\Delta c_t = (\Delta c^{\text{NIPA}}_t - \varphi\,\Delta c^{\text{NIPA}}_{t-1})/(1 - \varphi)$. Kroencke (2017) writes the inverse with his parameter $\phi = 1 - \varphi$, the product of a time-averaging part and a filtering part; his recommended 0.80 (time averaging only) and 0.40 (time averaging and filtering) are $\varphi = 0.20$ and $0.60$. The curriculum writes $\phi$, which is AR(1) persistence here; the open $\varphi$ renders apart from $\phi$. It never takes an argument, so it never reads as the normal PDF $\varphi(\cdot)$ |
+| $n_{\text{avg}}$ | — | Number of fine steps (such as days) averaged into one period (Chapter 36). For a random walk, growth of the period averages has first-order autocorrelation $(n_{\text{avg}}^2 - 1)/(2(2n_{\text{avg}}^2 + 1))$, which tends to $1/4$, and $(2n_{\text{avg}}^2 + 1)/(3n_{\text{avg}}^2)$ of the variance of point-to-point growth, which tends to $2/3$. Always with its label: bare $n$ is the number of tests (Chapter 29), a maturity $n$ is a superscript in parentheses, and log asset wealth $n_t$ carries its date |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |
