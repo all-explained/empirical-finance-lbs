@@ -197,6 +197,12 @@ flowchart TD
   end
   subgraph M_11["M-11 · Part IX: Consumption: data and the equity premium puzzle"]
     TASK_037["TASK-037 Plan: decompose M-11"]
+    TASK_126["TASK-126 Data: annual real consumption and population from NIPA, 1929 on"]
+    TASK_127["TASK-127 Library: consumption samples, lognormal consumption-CAPM pricing and the puzzle numbers"]
+    TASK_128["TASK-128 Library: time averaging, the NIPA filter and its inverse"]
+    TASK_129["TASK-129 Chapter 35: The equity premium and risk-free rate puzzles"]
+    TASK_130["TASK-130 Chapter 36: Measuring consumption"]
+    TASK_131["TASK-131 Orchestrator reads Part IX and signs it off"]
   end
   subgraph M_12["M-12 · Part X: Habits, long-run risk and disasters"]
     TASK_038["TASK-038 Plan: decompose M-12"]
@@ -271,6 +277,7 @@ flowchart TD
   TASK_036 --> TASK_037
   TASK_116 --> TASK_037
   TASK_037 --> TASK_038
+  TASK_129 --> TASK_038
   TASK_038 --> TASK_039
   TASK_039 --> TASK_040
   TASK_040 --> TASK_041
@@ -361,6 +368,12 @@ flowchart TD
   TASK_118 --> TASK_120
   TASK_119 --> TASK_120
   TASK_123 --> TASK_124
+  TASK_126 --> TASK_127
+  TASK_127 --> TASK_129
+  TASK_127 --> TASK_130
+  TASK_128 --> TASK_130
+  TASK_129 --> TASK_131
+  TASK_130 --> TASK_131
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
