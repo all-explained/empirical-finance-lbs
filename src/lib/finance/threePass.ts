@@ -38,7 +38,7 @@ export interface OmittedFactorSimulation {
   truth: number;
   /** One estimate of λ_χ per sample, from twoPass with only χ_t. */
   twoPass: number[];
-  /** One estimate of λ_χ per sample, from threePass with two principal components. */
+  /** One estimate of λ_χ per sample, from threePass with the chosen number of principal components. */
   threePass: number[];
   /** Mean of estimate - truth over the samples. */
   bias: { twoPass: number; threePass: number };
@@ -125,13 +125,14 @@ const RESIDUAL_SD = 0.03;
  * standard normal, so the cross-sectional correlation of the two loadings is `correlation`. The observed
  * factor is a noisy proxy of the first, χ_t = f_{1,t} + noise · e_t with e_t standard normal, so λ_χ = λ_1.
  * twoPass on χ_t alone tends to (λ_1 + strength · correlation · λ_2)(1 + noise²/0.04²): the omitted factor
- * biases the cross-sectional step, and the noise attenuates the first-pass betas. threePass with two
- * principal components removes both biases as N and T grow.
+ * biases the cross-sectional step, and the noise attenuates the first-pass betas. `factors` chooses the
+ * number of principal components (default 2, needs 1 ≤ factors ≤ N). With at least two components,
+ * threePass removes both biases as N and T grow.
  */
 export function simulateOmittedFactor(
   seed: number,
-  { N, T, strength, correlation, noise, samples = 20 }: {
-    N: number; T: number; strength: number; correlation: number; noise: number; samples?: number;
+  { N, T, strength, correlation, noise, samples = 20, factors: K = 2 }: {
+    N: number; T: number; strength: number; correlation: number; noise: number; samples?: number; factors?: number;
   },
 ): OmittedFactorSimulation {
   if (!(N >= 3 && T > N && strength >= 0 && Math.abs(correlation) <= 1 && noise >= 0 && samples >= 1)) {
@@ -151,7 +152,7 @@ export function simulateOmittedFactor(
     const excess = factors.map((f) => beta.map(([b1, b2]) => b1 * (PREMIUM + f[0]) + b2 * (PREMIUM + f[1]) + RESIDUAL_SD * z()));
     const observed = factors.map(([f1]) => [f1 + noise * z()]);
     out.twoPass.push(twoPass(excess, observed).lambda[0]);
-    out.threePass.push(threePass(excess, observed, { factors: 2 }).lambda[0]);
+    out.threePass.push(threePass(excess, observed, { factors: K }).lambda[0]);
   }
   const summary = (estimates: number[]) => ({
     bias: estimates.reduce((sum, v) => sum + v - PREMIUM, 0) / samples,

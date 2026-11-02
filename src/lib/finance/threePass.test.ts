@@ -177,6 +177,37 @@ describe('twoPass', () => {
 describe('simulateOmittedFactor', () => {
   const base = { N: 50, T: 300, samples: 100 };
 
+  it('defaults to two PCs and preserves the pre-option output for seed 5', () => {
+    const options = { N: 20, T: 60, strength: 1, correlation: 0.5, noise: 0.02, samples: 3 };
+    // Full output recorded before adding the option: monthly decimal returns, seed 5.
+    const reference = {
+      truth: 0.005,
+      twoPass: [0.019331180857929606, 0.01380329779372667, 0.007921793461405105],
+      threePass: [0.007047728323552398, 0.009981038544913464, 0.003999737846731521],
+      bias: { twoPass: 0.008685424037687127, threePass: 0.0020095015717324608 },
+      rmse: { twoPass: 0.009855923326589454, threePass: 0.0031625127482353675 },
+    };
+    expect(simulateOmittedFactor(5, options)).toEqual(reference);
+    expect(simulateOmittedFactor(5, { ...options, factors: 2 })).toEqual(reference);
+  });
+
+  it('with one PC leaves bias near strength · correlation · λ_2', () => {
+    // With strength 0.4 and correlation 0.5, the first PC mostly tracks factor 1. The approximate bias
+    // is 0.4 · 0.5 · 0.005 = 0.001 (0.10% monthly); band ±0.0005 (0.05%), excluding zero.
+    const sim = simulateOmittedFactor(2, {
+      N: 30, T: 600, samples: 100, strength: 0.4, correlation: 0.5, noise: 0, factors: 1,
+    });
+    expect(Math.abs(sim.bias.threePass - 0.001)).toBeLessThan(0.0005);
+  }, 60_000);
+
+  it.each([3, 4, 5, 6])('with %i PCs keeps the premium unbiased', (factors) => {
+    // Two true factors, strength 2 and correlation 0.5, with measurement noise 0.02. Target λ_χ = 0.005;
+    // mean bias band ±0.0007 (0.07% monthly), as in the existing two-PC omitted-factor test.
+    const sim = simulateOmittedFactor(2, { ...base, strength: 2, correlation: 0.5, noise: 0.02, factors });
+    expect(sim.truth).toBe(0.005);
+    expect(Math.abs(sim.bias.threePass)).toBeLessThan(0.0007);
+  }, 60_000);
+
   it('gives the same output for the same seed', () => {
     const options = { N: 20, T: 60, strength: 1, correlation: 0.5, noise: 0.02, samples: 3 };
     expect(simulateOmittedFactor(5, options)).toEqual(simulateOmittedFactor(5, options));
