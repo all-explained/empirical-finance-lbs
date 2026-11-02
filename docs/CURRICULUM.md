@@ -482,7 +482,7 @@ Each chapter entry lists:
   \delta + \gamma g - \tfrac12\gamma^2\sigma_c^2$; the HJ bound $\sigma(M)/\mathbb{E}[M] \approx \gamma\sigma_c$.
 - **Widgets:** `HJBound` preset with power utility: the curve traced as $\gamma$ rises. `PuzzleCalculator`: inputs
   from the data and the $\gamma$ and $r_f$ they imply.
-- **Data:** `fred-consumption-quarterly`, `ff3-monthly`, `shiller-monthly`.
+- **Data:** `fred-consumption-quarterly`, `fred-consumption-annual`, `ff3-monthly`, `shiller-monthly`.
 - **Readings:** Campbell (2018), Ch. 6; Cochrane (2005), Ch. 21.
 - **Prereqs:** 8.
 
@@ -495,7 +495,7 @@ Each chapter entry lists:
 - **Widgets:** `TimeAveraging`: a seeded daily path, its quarterly average, and the autocorrelation that appears.
   `UnfilterConsumption`: measured and unfiltered consumption growth with a slider for $\phi$, and the implied
   $\gamma$.
-- **Data:** `fred-consumption-quarterly`, simulated (seeded).
+- **Data:** `fred-consumption-quarterly`, `fred-consumption-annual`, simulated (seeded).
 - **Readings:** Kroencke (2017); Campbell (2018), Ch. 6.
 - **Prereqs:** 5, 35.
 

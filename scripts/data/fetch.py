@@ -712,6 +712,36 @@ def build_all(refresh: bool) -> list[dict]:
             refresh,
         )
     )
+    datasets.append(
+        fred(
+            "fred-consumption-annual",
+            "Annual nominal consumption, price indexes and population",
+            ["PCNDA", "PCESVA", "DNDGRG3A086NBEA", "DSERRG3A086NBEA", "B230RC0A052NBEA"],
+            [
+                column("PCNDA", "billions of USD", "Annual nominal nondurable goods consumption"),
+                column("PCESVA", "billions of USD", "Annual nominal services consumption"),
+                column(
+                    "DNDGRG3A086NBEA",
+                    "index 2017=100",
+                    "Annual nondurable goods PCE chain-type price index",
+                ),
+                column(
+                    "DSERRG3A086NBEA",
+                    "index 2017=100",
+                    "Annual services PCE chain-type price index",
+                ),
+                column(
+                    "B230RC0A052NBEA",
+                    "thousands of persons",
+                    "Annual average total population including Armed Forces overseas",
+                ),
+            ],
+            "annual",
+            refresh,
+            "U.S. Bureau of Economic Analysis (NIPA), retrieved from FRED, Federal "
+            "Reserve Bank of St. Louis.",
+        )
+    )
     # Lettau–Ludvigson cay inputs; see docs/DATA.md for the two quarterly ID swaps.
     nipa = "billions of USD/year"
     cay = fred(
