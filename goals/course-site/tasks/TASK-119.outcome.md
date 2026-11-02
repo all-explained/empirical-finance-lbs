@@ -1,25 +1,25 @@
 # TASK-119 outcome: Chapter 34, Risk premia with omitted factors
 
-Status: **blocked on one decision.** The widget cannot have the spec's "Slider for the number of PCs": the library
-function `simulateOmittedFactor` (TASK-115) always runs the three-pass estimate with two principal components and
-takes no option for it. The spec says to stop with `Goal-Blocked` rather than patch the library. Everything else is
-done and verified; see `## Decision request`.
+Status: **delivered.** DEC-003 accepted option 1, TASK-125 added a `factors` option to `simulateOmittedFactor`,
+and the widget now has the spec's slider for the number of principal components.
 
 ## Acceptance
 
 - [x] `npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.
-  Evidence: `npm ci` exit 0. `npm test`: `Test Files 74 passed (74)`, `Tests 771 passed (771)`. `npm run build`
-  exit 0: `Result (219 files): - 0 errors - 0 warnings`, `35 page(s) built`.
+  Evidence: `npm ci` exit 0. `npm test`: `Test Files 75 passed (75)`, `Tests 804 passed (804)`. `npm run build`
+  exit 0: `Result (221 files): - 0 errors - 0 warnings`, `35 page(s) built`.
 - [x] `npm run screenshots -- 34-risk-premia-with-omitted-factors` passes in both themes at desktop and phone size,
-  and I inspected the images. Evidence: four `✓` lines (dark/light × desktop/phone), exit 0. I read crops of the
-  widget and the Formalisation in dark desktop, light desktop, light phone and dark phone. The first run showed the
-  panel names overlapping the y-axis label; I moved them to the top right and re-ran the screenshots.
+  and I inspected the images. Evidence: four `✓` lines (dark/light × desktop/phone), exit 0. I read the widget in
+  all four, at $K = 1$ (dark desktop) and at $s = 2$, $c = 0.99$ (light phone), plus the Playground in light
+  desktop. On the phone the "mean" label of the bias bar ran into the "Two-pass" panel name; the bar now sits lower
+  and the labels are clear. No page is wider than its viewport (`scrollWidth` 1280 and 375).
 - [x] `npm run clickthrough -- 34-risk-premia-with-omitted-factors` passes and reports every widget of the chapter.
-  Evidence: exit 0, `✓ … WHAT THE OMITTED FACTOR DOES TO EACH ESTIMATOR · 7 actions at 1280px, 7 actions at 360px ·
-  slider "Strength of the omitted factor s"; slider "Correlation of its loadings with βχ's, c"; button "New seed"`.
-  The chapter has one widget.
+  Evidence: exit 0, `✓ … WHAT THE OMITTED FACTOR DOES TO EACH ESTIMATOR · 10 actions at 1280px, 10 actions at
+  360px · slider "Strength of the omitted factor s"; slider "Correlation of its loadings with βχ's, c"; slider
+  "Number of principal components K"; button "New seed"`. The chapter has one widget. With Playwright, ArrowLeft
+  on the K slider changes the axis label to "three-pass estimate, 1 PC" and the three-pass readout.
 - [x] The six `section-tag` headings are in template order. Evidence: `grep -n 'section-tag'` prints Hook (14),
-  Intuition (34), Formalisation (69), Playground (219), Check yourself (272), Recap & next up (298).
+  Intuition (34), Formalisation (69), Playground (219), Check yourself (280), Recap & next up (306).
 - [x] No hex colour in the chapter or its widgets. Evidence: the spec's `git diff … | xargs grep -nE …` prints
   `no hex colours`.
 - [x] The widget uses seeded simulations from `src/lib/math/rng.ts`, and the prose numbers use the committed
@@ -28,34 +28,10 @@ done and verified; see `## Decision request`.
   "New seed" adds 1. `tests/chapter34-numbers.test.ts` reads the three JSON files through `skepticalPanel`.
 - [x] The outcome holds a voice review and a table of every number in the prose with its test. Evidence: the two
   sections below.
-- [x] The prose is 1,500–3,000 words. Evidence: 2,903 words. Command (the one of earlier chapter outcomes):
+- [x] The prose is 1,500–3,000 words. Evidence: 2,997 words. Command (the one of earlier chapter outcomes):
   `awk 'NR>8' src/content/chapters/34-risk-premia-with-omitted-factors.mdx | grep -v '^import ' | awk '/^\$\$/{m=!m; next} !m' | wc -w`
 - [x] `git ls-files | grep -ciE '\.pdf$|^source/'` prints 0 (exit 1 is accepted under DEC-002).
   Evidence: it prints `0` and exits 1.
-- [ ] The widget has a `Slider` for the number of PCs (spec, Widgets). Not done: see `## Decision request`.
-
-## Decision request
-
-**Question.** The spec asks `OmittedFactorBias` for a slider for the number of PCs in the seeded economy, but
-`simulateOmittedFactor(seed, { N, T, strength, correlation, noise, samples })` hard-codes
-`threePass(excess, observed, { factors: 2 })`. How should the widget get that slider?
-
-Options:
-
-1. **Add a `factors` option (default 2) to `simulateOmittedFactor` in a small library task**, with a test that
-   `factors: 1` leaves the three-pass estimate biased by about $s\,c\,\lambda_2$ when $c \ne 0$ and that
-   `factors: 3` to `6` keep it unbiased. Then resume this task: add the slider (1 to 6) and two try-this lines.
-   Trade-off: one more short library task and a resume; the widget then shows the chapter's claim that extra PCs do
-   no harm and too few do, in an economy whose true number is known.
-2. **Ship without the slider.** The prose already shows the effect of the number of PCs on our data (HML's premium
-   −0.030% with one PC, 0.174% with two, 0.340% with three; the seventh PC's term for Mkt-RF). Trade-off: no work
-   left, but the widget departs from the spec, and the "more PCs do no harm" claim has no simulated check.
-3. **Patch the library inside this PR.** The spec forbids it ("rather than patch the library").
-
-### Recommendation
-
-Option 1. The change is about three lines in `threePass.ts` plus a test, and it lets the widget show the one claim
-that real data cannot show, because only in the seeded economy is the true number of factors known.
 
 ## Voice review (`docs/STYLE_GUIDE.md` §1)
 
@@ -87,6 +63,8 @@ sample, % a month. Simulation: `omittedEconomy(s, c, 2021)`, 100 samples, $N = 2
 | $s = 1$, $c = 0.5$: two-pass bias +2.77, RMSE 3.65; three-pass −0.27, 1.88; predicted bias 3.00 | `intuition and formalisation` |
 | $c = 0$: two-pass bias −0.21, RMSE 2.23; $s = 0$: RMSE 1.93 | `playground: the try-this settings` |
 | $c = -0.5$: two-pass bias −3.18; $s = 2$, $c = 0.9$: +10.58 | `playground` |
+| $s = 1$, $c = 0$, $K = 1$: three-pass bias −2.96, "about half the premium", RMSE 4.42 against the two-pass 2.23 | `playground: the number of components at c = 0` |
+| $c = 0$, $K$ from 2 to 6: three-pass bias stays −0.32, RMSE 1.89 | `playground: the number of components at c = 0` (each $K$ of 3 to 6 gives the $K = 2$ numbers) |
 | Three-pass RMSE between 1.88 and 1.91 in those settings (1.88, 1.89, 1.90, 1.91, 1.89) | `intuition…`, `playground` |
 | $K = 5$ on 25: 0.538, 0.186, 0.320; s.e. 0.160, 0.109, 0.106; step-3 $R^2$ 0.98, 0.99, 0.95; each within half a s.e. of its mean | `our data: three-pass premia on the 25 portfolios…` |
 | $K = 3$: 0.549, 0.153, 0.340; HML with $K = 1$: −0.030, $R^2$ 0.01; $K = 2$: 0.174 | `our data: three-pass premia…` |
@@ -97,14 +75,15 @@ sample, % a month. Simulation: `omittedEconomy(s, c, 2021)`, 100 samples, $N = 2
 
 ## Summary
 
-**What.** `src/content/chapters/34-risk-premia-with-omitted-factors.mdx` (2,903 words, three `Quiz` questions), the
+**What.** `src/content/chapters/34-risk-premia-with-omitted-factors.mdx` (2,997 words, three `Quiz` questions), the
 widget `src/components/plots/OmittedFactorBias.tsx`, its helper `src/components/plots/threePassSample.ts`,
 `tests/chapter34-numbers.test.ts`, and two rows in the Part VIII block of `docs/STYLE_GUIDE.md` §3.
 
 **How.** The widget runs `simulateOmittedFactor` through `omittedEconomy` 250 ms after the last slider move, as
 `UselessFactor` does, and draws one histogram panel per estimator on a shared axis, with the true premium dashed,
-the mean estimate solid and the bias as a bar between them. The panels and readout name each estimator in text, so
-colour is never the only cue. The real-data numbers come from `threePass` and `twoPass` on `skepticalPanel`.
+the mean estimate solid and the bias as a bar between them. The slider $K$ (1 to 6) sets the `factors` option of
+`simulateOmittedFactor` (DEC-003, TASK-125); the axis label and the `aria-label` name the number of components.
+The panels and readout name each estimator in text, so colour is never the only cue. The real-data numbers come from `threePass` and `twoPass` on `skepticalPanel`.
 
 **Notation.** Following §3 and TASK-115: the curriculum's $v_t$, $u_t$, $\gamma$ become $f_t$, $\varepsilon_t$,
 $\lambda$; $g_t$ becomes $\chi_t$; $\xi$ becomes $a$; $\eta$ becomes $\beta_\chi$; $z_t$ becomes
@@ -115,15 +94,16 @@ the draws in words.
 
 **Deviations and mismatches.**
 - No data-loading hook in `threePassSample.ts`. The widget shows only the seeded economy, so it loads no data, and
-  the test reads the data through the existing `skepticalPanel`. A hook would be dead code. If option 1 is chosen,
-  the PC slider could also drive a real-data readout, and the hook would then belong in this file.
+  the test reads the data through the existing `skepticalPanel`. A hook would be dead code.
 - The curriculum's data line names `ff25-size-bm-monthly` and `ff3-monthly` only; the chapter also uses
   `ff30-industry-monthly`, as the spec asks. Its widget line names only the strength slider; the spec adds the
   correlation and PC sliders.
+- The sentence "For the traded factors they study, the three-pass estimates are mostly close to the means" (pp.
+  1974–1975) is cut to keep the prose under 3,000 words after the two new try-this lines. The chapter makes no
+  claim from those pages now.
 - Chapter 31 is merged and linked. Chapters 17, 18 and 27 are linked. Part IX's first chapter is named by title
   only in "Recap & next up".
 
-**Verified revision.** The commit that adds this file, on `origin/main` `1e544d7`.
+**Verified revision.** The commit that adds this file, on `origin/main` `92233ed`.
 
-**Follow-up.** If the decision is option 1: a library task "Add a `factors` option to `simulateOmittedFactor`", then
-resume TASK-119 to add the slider.
+**Follow-up.** None.
