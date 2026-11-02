@@ -41,6 +41,8 @@ const references: Record<SeriesId, readonly (readonly [string, string, number])[
   'gsw-zero-coupon': [['1985-11-29', 'SVENY01', 7.7914], ['2000-01-31', 'SVENY10', 6.6866], ['2020-01-31', 'SVENY30', 2.165]],
   // fred-consumption-quarterly.csv lines 294/B, 314/C, 294/D.
   'fred-consumption-quarterly': [['2020-01-01', 'PCNDGC96', 3020.002], ['2025-01-01', 'PCESVC96', 10755.176], ['2020-01-01', 'B230RC0Q173SBEA', 331545]],
+  // Transcribed 2026-11-02: fred-consumption-annual.csv lines 2/B, 73/E and 98/F.
+  'fred-consumption-annual': [['1929-01-01', 'PCNDA', 33.941], ['2000-01-01', 'DSERRG3A086NBEA', 65.210], ['2025-01-01', 'B230RC0A052NBEA', 341944]],
   // fred-cay-quarterly.csv is a FRED ZIP (transcribed 2026-10-23): quarterly.csv lines 21/B and 319/F,
   // quarterly,_end_of_period.csv line 179/B.
   'fred-cay-quarterly': [['1951-10-01', 'PCND', 95.454], ['2026-04-01', 'COE', 16349.724], ['1990-01-01', 'TNWBSHNO', 22015993]],
@@ -84,6 +86,23 @@ for (const id of Object.keys(seriesColumns) as SeriesId[]) {
 }
 
 describe('typed loader helpers', () => {
+  it('keeps complete annual NIPA observations from 1929 in source units', async () => {
+    const series = await loadSeries('fred-consumption-annual');
+    expect(series.frequency).toBe('annual');
+    expect(series.columns.map(({ name }) => name)).toEqual([
+      'date', 'PCNDA', 'PCESVA', 'DNDGRG3A086NBEA', 'DSERRG3A086NBEA', 'B230RC0A052NBEA',
+    ]);
+    expect(series.columns.slice(1).map(({ unit }) => unit)).toEqual([
+      'billions of USD', 'billions of USD', 'index 2017=100', 'index 2017=100', 'thousands of persons',
+    ]);
+    expect(series.columns.every(({ required }) => required)).toBe(true);
+    expect(series.rows[0]?.[0]).toBe('1929-01-01');
+    series.rows.forEach((row, index) => {
+      expect(row[0]).toBe(`${1929 + index}-01-01`);
+      expect(row.slice(1).every(Number.isFinite)).toBe(true);
+    });
+  });
+
   it('keeps all 30 value-weighted industries from July 1926 in percent units without missing-value markers', async () => {
     const series = await loadSeries('ff30-industry-monthly');
     expect(series.rows[0]?.[0]).toBe('1926-07-01');

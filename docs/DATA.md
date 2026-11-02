@@ -1,6 +1,6 @@
 # Public data
 
-These eighteen datasets are small teaching extracts of public source files. They keep source units.
+These nineteen datasets are small teaching extracts of public source files. They keep source units.
 Public access does not imply an open licence. The site's code and content licences do not cover third-party data.
 
 1. Install Node dependencies: `npm ci`.
@@ -10,7 +10,7 @@ Public access does not imply an open licence. The site's code and content licenc
 5. Check the results: `npm test && npm run build`.
 
 The script also needs `curl`, included with macOS. It runs from the repository root.
-Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all eighteen outputs.
+Raw files stay in the ignored `data-raw/` directory. A normal run reuses this cache and rewrites all nineteen outputs.
 A fresh checkout downloads all sources without API keys. A failed download exits with an error.
 Remove its raw cache file, or use `--refresh`, to try a source again.
 The script validates all datasets and their sizes before replacing any JSON file.
@@ -21,6 +21,7 @@ Python dependencies, including indirect dependencies, are pinned in `scripts/dat
 Coverage below describes the checked-in extract retrieved on 2026-10-22 (`fred-cay-quarterly`: 2026-10-23).
 The four French 2×3 and daily extracts were retrieved on 2026-10-24.
 The French 30-industry extract was retrieved on 2026-11-01.
+The annual consumption extract was retrieved on 2026-11-02.
 Dates identify observation periods, not publication dates. Historical values can change after a source revision.
 The source links provide the files or their download pages. Terms links give the available source notices.
 
@@ -41,6 +42,7 @@ The source links provide the files or their download pages. Terms links give the
 | `fred-treasury-monthly` | [FRED public CSV](https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS1,GS2,GS3,GS5,GS7,GS10,GS20,GS30,TB3MS) | Board data are public domain unless indicated; cite the source. [Board terms](https://www.federalreserve.gov/disclaimer.htm), [FRED terms](https://fred.stlouisfed.org/legal/). | Board of Governors, H.15 Selected Interest Rates; retrieved from FRED, Federal Reserve Bank of St. Louis. | 1977-02–2026-09, complete months only |
 | `gsw-zero-coupon` | [Federal Reserve GSW CSV](https://www.federalreserve.gov/data/yield-curve-tables/feds200628.csv) | [Board terms](https://www.federalreserve.gov/disclaimer.htm): public domain unless indicated; cite the Board. Staff research product, subject to revision. | Gürkaynak, Sack and Wright (2007), FEDS 2006-28. | 1985-11-29–2026-09-30, end of completed month |
 | `fred-consumption-quarterly` | [FRED public CSV](https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCNDGC96,PCESVC96,B230RC0Q173SBEA) | U.S. government BEA data; cite BEA and FRED. [BEA policy](https://www.bea.gov/about/policies-and-information), [FRED terms](https://fred.stlouisfed.org/legal/). | U.S. Bureau of Economic Analysis, NIPA; retrieved from FRED, Federal Reserve Bank of St. Louis. | 2007-Q1–2026-Q2 |
+| `fred-consumption-annual` | [FRED public CSV](https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCNDA,PCESVA,DNDGRG3A086NBEA,DSERRG3A086NBEA,B230RC0A052NBEA) | U.S. government BEA data; cite BEA and FRED. [BEA policy](https://www.bea.gov/about/policies-and-information), [FRED terms](https://fred.stlouisfed.org/legal/). | U.S. Bureau of Economic Analysis, NIPA; retrieved from FRED, Federal Reserve Bank of St. Louis. | 1929–2025, complete years only |
 | `fred-cay-quarterly` | [FRED public CSV](https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCND,PCESV,DNDGRG3Q086SBEA,DSERRG3Q086SBEA,TNWBSHNO,COE,A577RC1Q027SBEA,A061RC1Q027SBEA,PCECTPI,B230RC0Q173SBEA) | BEA data and Board Financial Accounts data; public domain unless indicated; cite BEA, the Board and FRED. [BEA policy](https://www.bea.gov/about/policies-and-information), [Board terms](https://www.federalreserve.gov/disclaimer.htm), [FRED terms](https://fred.stlouisfed.org/legal/). | U.S. Bureau of Economic Analysis, NIPA; Board of Governors, Financial Accounts of the United States (Z.1); retrieved from FRED, Federal Reserve Bank of St. Louis. Lettau and Ludvigson (2001). | 1951-Q4–2026-Q2 |
 | `osap-ls-monthly` | [OSAP October 2025 data](https://www.openassetpricing.com/data/), [PredictorLSretWide.csv](https://drive.google.com/file/d/10sOryk_ddjkXagaajTKUk1nwJs2ZLRiI/view) | Public academic download; no explicit data redistribution licence located on the data page or signal browser. Small derived teaching extract under the goal assumption below; cite OSAP. | Chen and Zimmermann (2022), *Open Source Cross-Sectional Asset Pricing*. | 1963-01–2024-12; 165 clear predictors; percent/month |
 | `osap-signals` | [October 2025 SignalDoc.csv](https://drive.google.com/file/d/1rdi0jTPSA6xtn6TpQAMT5WyEczQ1gK59/view), [signal browser](https://openassetpricing.com/SignalDoc-Browser.html) | Same OSAP terms and limited-extract assumption. Journal names retain OSAP abbreviations. | Chen and Zimmermann (2022). | 165 signal records; publication and original sample years |
@@ -116,6 +118,14 @@ No gaps are filled, no returns are calculated, and no source units are converted
   Real consumption is billions of chained 2017 dollars at a seasonally adjusted annual rate (SAAR).
   Population is thousands of persons, including Armed Forces overseas. These are levels, not per-person values.
   Chained-dollar components are not generally additive. Do not add them as an exact total real consumption series.
+- Annual consumption: keep years with all five NIPA fields, from 1929.
+  Nominal nondurable goods (`PCNDA`) and services (`PCESVA`) are billions of USD.
+  Their chain-type price indexes (`DNDGRG3A086NBEA`, `DSERRG3A086NBEA`) use 2017=100.
+  Total population (`B230RC0A052NBEA`) is thousands of persons, including Armed Forces overseas.
+  Annual NIPA observations represent averages over the year, not end-of-year levels.
+  Keep source units; no deflating, per-person scaling or logs occur here.
+  Deflate each consumption component by its own index; chained-dollar components are not additive.
+  All five IDs and units were checked against the CSV header and FRED series pages on 2026-11-02; no swaps.
 - cay inputs: ten quarterly FRED series for the Lettau–Ludvigson (2001) consumption–wealth–income residual.
   Keep quarters with all ten fields, from 1951-Q4. Before then Z.1 net worth has year-end values only,
   so those isolated fourth quarters are dropped and the script fails on any gap in the quarterly run.
