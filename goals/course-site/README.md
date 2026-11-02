@@ -193,6 +193,7 @@ flowchart TD
     TASK_118["TASK-118 Chapter 33: Characteristic-based mimicking portfolios"]
     TASK_119["TASK-119 Chapter 34: Risk premia with omitted factors"]
     TASK_120["TASK-120 Orchestrator reads Part VIII and signs it off"]
+    TASK_125["TASK-125 Library: factors option for simulateOmittedFactor"]
   end
   subgraph M_11["M-11 · Part IX: Consumption: data and the equity premium puzzle"]
     TASK_037["TASK-037 Plan: decompose M-11"]
