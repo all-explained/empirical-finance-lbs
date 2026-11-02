@@ -3,7 +3,7 @@
 ## Acceptance
 
 - [x] Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.
-  Evidence: `npm test` gives 74 test files and 786 tests passed. `tests/notation.test.ts` passes all 4 checks. The 19 tests in `src/lib/finance/consumptionMeasurement.test.ts` cover every export:
+  Evidence: `npm test` gives 74 test files and 792 tests passed. `tests/notation.test.ts` passes all 4 checks. The 19 tests in `src/lib/finance/consumptionMeasurement.test.ts` cover every export:
   - `timeAveragedAutocorrelation`: 0 for 1 step, 1/6 for 2 steps, within 1e-3 of 0.25 for 250 steps, and equal to the triangular-weight moments for 5 steps.
   - `timeAveragedVarianceRatio`: 1 for 1 step, 3/4 for 2 steps, within 1e-6 of 2/3 for 1,000 steps, and equal to the triangular-weight moments for 5 steps.
   - `simulateTimeAveraging`: structure checked by hand. On 20,000 periods of 30 steps, the sample autocorrelation (`sampleAutocorrelation`) is 0.2546 against an exact 0.2496 (band 0.03). The variance ratio is 0.6660 against an exact 0.6670 (band 0.03). The end-to-end mean and standard deviation match the drift and volatility options to 5e-4.
