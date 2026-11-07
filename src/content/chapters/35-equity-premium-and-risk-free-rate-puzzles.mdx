@@ -1,0 +1,295 @@
+---
+title: "The equity premium and risk-free rate puzzles"
+part: 9
+chapter: 35
+difficulty: 2
+prerequisites: [8]
+summary: "Consumption is so smooth that power utility needs an absurd risk aversion to price the equity premium, and that risk aversion then predicts a risk-free rate far above the data."
+---
+
+import HJBound from '../../components/plots/HJBound';
+import PuzzleCalculator from '../../components/plots/PuzzleCalculator';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapter 8">
+[Chapter 8](/empirical-finance-lbs/chapters/08-euler-equation-and-sdf/) derives the pricing rule
+$1 = \mathbb{E}_t[\SDF{M_{t+1}}(1 + \Ret{R_{t+1}})]$ and, for power utility, the stochastic discount factor
+$\SDF{M_{t+1}} = \delta(C_{t+1}/C_t)^{-\gamma}$, with time-discount factor $\delta$ and relative risk aversion
+$\gamma$. It also proves the Hansen–Jagannathan bound: $\sigma(\SDF{M})/\mathbb{E}[\SDF{M}]$ is at least the
+Sharpe ratio of any asset. There, consumption growth was simulated. Here we measure it.
+</Callout>
+
+## <span class="section-tag">Hook</span> Smooth consumption, rich stocks
+
+From 1930 to 2025, the US stock market earned a log real return of 6.52% a year, on average. Treasury bills
+earned 0.24%. So stocks beat bills by 6.28% a year, with a volatility of 19.2%. The data are the CRSP
+value-weighted return, the T-bill rate and inflation in goyal-welch-annual, 96 years.
+
+Over the same 96 years, real consumption per person (nondurables and services, from fred-consumption-annual)
+grew by 1.83% a year. Its growth had a standard deviation of only 2.17%. In most years, the typical household
+consumed about 2% more than the year before, give or take 2%.
+
+So here is the question. Chapter 8 says that investors demand a premium for assets that pay badly when
+consumption falls. If consumption hardly ever falls by much, why did investors need 6.3% a year to hold stocks?
+And if they really were that afraid of risk, why did they accept a real return of almost zero on bills?
+
+## <span class="section-tag">Intuition</span> One curve, two failures
+
+Take the power-utility SDF of Chapter 8 and feed it the measured consumption moments. For each $\gamma$ you get
+one SDF, with a mean $\mathbb{E}[\SDF{M}]$ and a volatility $\sigma(\SDF{M})$. As $\gamma$ rises from 0, these
+points trace a curve. The widget draws that curve against the region that the market's Sharpe ratio allows.
+
+<HJBound client:visible preset="power-utility" />
+
+<p class="try-this"><strong>Try this:</strong> at $\gamma = 5$, the ratio $\sigma(\SDF{M})/\mathbb{E}[\SDF{M}]$
+of the annual sample is only 0.11, far below the market's Sharpe ratio of 0.45. Move the slider up and find where
+the dot enters the shaded region. Then switch to "Postwar" and "Quarterly".</p>
+
+The curve fails in two ways at once.
+
+The first failure is **height**. The SDF's volatility is about $\gamma$ times the volatility of consumption
+growth. With $\sigma_c = 2.17\%$, the curve reaches the bound only at $\gamma = 20.0$. That is a lot of fear.
+With $\gamma = 20$, a year in which consumption falls by 2% makes a dollar worth half as much again
+($0.98^{-20} = 1.50$). With the $\gamma = 5$ of Chapter 8's example, it is worth a tenth more ($0.98^{-5} = 1.11$).
+This is the **equity premium puzzle**. Campbell (2014, working paper, pdf p. 10) explains it with exactly this
+bound and traces it to Mehra and Prescott (1985). His round numbers, a Sharpe ratio of 0.4 and $\sigma_c$ near 1%,
+need $\gamma$ near 40.
+
+The second failure is **position**. As $\gamma$ rises, the curve also moves to the left. A lower
+$\mathbb{E}[\SDF{M}]$ means a higher risk-free rate, because $\mathbb{E}[\SDF{M}] = e^{-r^f}$ here. At
+$\gamma = 20.0$, the implied log real rate is 28.2% a year. The data say 0.24%. This is the
+**risk-free rate puzzle**, the name Ludvigson (2013, working paper, pdf p. 4) gives to a low real rate next
+to a high equity premium.
+
+<Callout type="key">With measured consumption, power utility reaches the Hansen–Jagannathan bound only at a large
+$\gamma$. At that $\gamma$, the same model predicts a risk-free rate about 28 percentage points above the
+data.</Callout>
+
+## <span class="section-tag">Formalisation</span> Lognormal pricing
+
+### One fact about the normal distribution
+
+If $x$ is normal with mean $\mu_x$ and variance $\sigma_x^2$, then
+
+$$
+\mathbb{E}[e^x] = e^{\mu_x + \frac12\sigma_x^2}.
+$$
+
+The extra half variance appears because $e^x$ is convex: a high draw of $x$ raises $e^x$ more than a low draw
+lowers it. This fact turns the pricing rule into a linear equation.
+
+### The pricing rule in logs
+
+Assume that log consumption growth $\Delta c_{t+1}$ and the log return $\Ret{r_{i,t+1}}$ of asset $i$ are jointly
+normal, with constant moments. Write $\mu_c$ and $\sigma_c$ for the mean and standard deviation of
+$\Delta c_{t+1}$, $\sigma_i$ for the standard deviation of $\Ret{r_{i,t+1}}$, and $\sigma_{ic}$ for their
+covariance. With power utility,
+
+$$
+\log\SDF{M_{t+1}} = \log\delta - \gamma\,\Delta c_{t+1}.
+$$
+
+The pricing rule is $\mathbb{E}[\SDF{M_{t+1}}(1 + \Ret{R_{i,t+1}})] = 1$. Since $1 + \Ret{R_{i,t+1}} =
+e^{\Ret{r_{i,t+1}}}$, the product inside the expectation is $e^x$ with
+
+$$
+x = \log\delta - \gamma\,\Delta c_{t+1} + \Ret{r_{i,t+1}}.
+$$
+
+A sum of jointly normal variables is normal. Its mean is $\log\delta - \gamma\mu_c + \mathbb{E}[\Ret{r_i}]$. Its
+variance follows from $\operatorname{Var}(a + b) = \operatorname{Var}(a) + \operatorname{Var}(b) +
+2\operatorname{Cov}(a, b)$, with $a = -\gamma\Delta c_{t+1}$ and $b = \Ret{r_{i,t+1}}$:
+
+$$
+\sigma_x^2 = \gamma^2\sigma_c^2 + \sigma_i^2 - 2\gamma\sigma_{ic}.
+$$
+
+Now use the fact above. $\mathbb{E}[e^x] = 1$ means $\mu_x + \tfrac12\sigma_x^2 = 0$, because $\log 1 = 0$:
+
+$$
+\begin{aligned}
+0 = {} & \log\delta - \gamma\mu_c + \mathbb{E}[\Ret{r_i}] \\
+& + \tfrac12\left(\gamma^2\sigma_c^2 + \sigma_i^2 - 2\gamma\sigma_{ic}\right).
+\end{aligned}
+$$
+
+### The risk-free rate
+
+A riskless asset has $\sigma_i = 0$ and $\sigma_{ic} = 0$, and its log return is $\Rf{r^f}$. Put these into the
+equation and solve for the rate:
+
+$$
+\Rf{r^f} = -\log\delta + \gamma\mu_c - \tfrac12\gamma^2\sigma_c^2.
+$$
+
+Each term has a story. $-\log\delta$ is impatience: a saver who discounts the future needs a reward to wait.
+$\gamma\mu_c$ is growth: when consumption grows, a saver with a high $\gamma$ wants to borrow against the richer
+future, and only a high rate stops them. $-\tfrac12\gamma^2\sigma_c^2$ is precautionary saving: risk about the
+future makes people save more, which pushes the rate down.
+
+### The equity premium
+
+Subtract the riskless equation from the one for asset $i$. The terms in $\delta$, $\mu_c$ and $\sigma_c$ cancel:
+
+$$
+\mathbb{E}[\Ret{r_i} - \Rf{r^f}] + \tfrac12\sigma_i^2 = \gamma\,\sigma_{ic}.
+$$
+
+The half variance on the left turns a log premium into an arithmetic one. The right side says that only the
+covariance with consumption growth is priced. Since $\sigma_{ic} = \operatorname{corr}(\Delta c, \Ret{r_i})\,
+\sigma_c\,\sigma_i$, solve for risk aversion:
+
+$$
+\gamma = \frac{\mathbb{E}[\Ret{r_i} - \Rf{r^f}] + \tfrac12\sigma_i^2}{\operatorname{corr}(\Delta c, \Ret{r_i})
+\,\sigma_c\,\sigma_i}.
+$$
+
+### The Hansen–Jagannathan ratio
+
+$\SDF{M}$ is itself lognormal, with $\log\SDF{M}$ of mean $\log\delta - \gamma\mu_c$ and variance
+$\gamma^2\sigma_c^2$. Apply the fact to $\SDF{M}$ and to $\SDF{M}^2 = e^{2\log\SDF{M}}$:
+
+$$
+\begin{aligned}
+\mathbb{E}[\SDF{M}] &= \delta e^{-\gamma\mu_c + \frac12\gamma^2\sigma_c^2} = e^{-\Rf{r^f}}, \\
+\mathbb{E}[\SDF{M}^2] &= \mathbb{E}[\SDF{M}]^2\,e^{\gamma^2\sigma_c^2}.
+\end{aligned}
+$$
+
+So $\operatorname{Var}(\SDF{M}) = \mathbb{E}[\SDF{M}^2] - \mathbb{E}[\SDF{M}]^2 = \mathbb{E}[\SDF{M}]^2
+(e^{\gamma^2\sigma_c^2} - 1)$. Take the square root and divide by the mean. For a small $z$, $e^z - 1 \approx
+z$, so
+
+$$
+\frac{\sigma(\SDF{M})}{\mathbb{E}[\SDF{M}]} = \sqrt{e^{\gamma^2\sigma_c^2} - 1} \approx \gamma\,\sigma_c.
+$$
+
+The bound of Chapter 8 says this ratio must be at least the Sharpe ratio $SR$. So $\gamma \ge SR/\sigma_c$,
+roughly. This lower limit is what $\gamma$ would be if consumption and returns were perfectly correlated.
+
+<Callout type="note" title="An approximation, and its limits">
+These formulas assume joint lognormality and constant moments. We then plug in sample moments. Ludvigson (2013,
+working paper, pdf p. 22) reports that the data reject joint lognormality, so read the numbers below as a
+careful approximation, not as exact model values. Every rate here is a log real rate, a year.
+</Callout>
+
+### The numbers
+
+The table puts three samples into these formulas. Quarterly consumption is the series behind $cay$ in
+[Chapter 14](/empirical-finance-lbs/chapters/14-consumption-wealth-ratio/), with returns from goyal-welch-monthly.
+Its means are times 4 and its standard deviations times 2, to give values a year.
+
+| | Annual 1930–2025 | Postwar 1947–2025 | Quarterly 1952–2025 |
+|---|---|---|---|
+| Periods | 96 | 79 | 295 |
+| $\mu_c$ | 1.83% | 1.85% | 1.94% |
+| $\sigma_c$ | 2.17% | 1.53% | 1.77% |
+| $\operatorname{corr}(\Delta c, \Ret{r})$ | 0.072 | 0.037 | 0.046 |
+| $\mathbb{E}[\Ret{r} - \Rf{r^f}]$ | 6.28% | 7.13% | 6.72% |
+| $\sigma_i$ | 19.2% | 16.7% | 16.1% |
+| $\gamma$ from $\sigma_{ic}$ | 271 | 898 | 618 |
+| $\gamma$ from $SR/\sigma_c$ | 15.0 | 28.6 | 23.9 |
+| Mean $\Rf{r^f}$ | 0.24% | 0.47% | 0.61% |
+
+Here $SR$ is the Sharpe ratio of each sample's own log excess return: 0.33 a year for the annual sample. It is
+lower than the 0.45 of the widget, which comes from monthly simple returns in ff3-monthly. That is why the widget
+needs $\gamma = 20.0$ where the table says 15.0.
+
+The two rows of $\gamma$ split the puzzle in half. The $SR/\sigma_c$ row is the smooth-consumption half: even
+with a perfect correlation, $\gamma$ must be 15 to 29. The $\sigma_{ic}$ row adds the low-correlation half.
+Consumption growth and stock returns barely move together, with correlations from 0.04 to 0.07. So the
+covariance is tiny, and $\gamma$ must be in the hundreds. [Chapter 26](/empirical-finance-lbs/chapters/26-gmm-for-asset-pricing-models/)
+met the same problem from another side: its GMM estimate of the consumption CAPM put a huge weight on
+consumption growth, because a series that barely moves can only price returns if it is scaled up a lot.
+
+The samples differ for clear reasons. The annual sample includes the Depression and the Second World War, when
+consumption swung hard. Drop those years and $\sigma_c$ falls from 2.17% to 1.53%, so every $\gamma$ rises. The
+quarterly sample covers almost the same postwar years, so it tells the same story. Its $\sigma_c$, scaled to a
+year, is higher than the postwar annual one (1.77% against 1.53%). Part of the reason is that an annual figure is
+an average of four quarters, and averaging smooths out some of the quarter-to-quarter changes.
+
+<Callout type="warning" title="What the evidence can and cannot show">
+The 6.28% premium has a standard error of 1.97%, since it is a mean of 96 volatile years. With 96 years, a
+correlation of 0.07 is well inside two standard errors of zero (about $\pm 2/\sqrt{96} = \pm 0.20$). And the
+timing of annual consumption matters: the national accounts (NIPA) report the average over the year, not its level at the end. Pair the
+return of each year with the *next* year's consumption growth, and the correlation rises to 0.53 and the
+covariance $\gamma$ falls to 36. That is still large, and the $SR/\sigma_c$ value of 14.3 hardly moves.
+</Callout>
+
+### The risk-free rate puzzle in numbers
+
+Now take the most generous risk aversion, $\gamma = 15.0$ for the annual sample, and $\delta = 0.99$. The formula
+gives $\Rf{r^f} = 23.2\%$ a year, against 0.24% in the data. Even log utility, $\gamma = 1$, gives 2.81%.
+
+Turn the question around. Which $\delta$ would match the data at $\gamma = 15.0$? Solve the formula for it:
+$\delta = e^{-\Rf{r^f} + \gamma\mu_c - \frac12\gamma^2\sigma_c^2}$. The answer is 1.245. A $\delta$ above 1
+means that people value the future *more* than the present. In the postwar sample, at its own $\gamma$ of
+28.6, it is 1.536.
+
+At the covariance $\gamma$ of 271, the precautionary term takes over. Then $\tfrac12\gamma^2\sigma_c^2$ is so
+large that the matching $\delta$ falls to $4.5 \times 10^{-6}$, and nobody that impatient would save at all.
+No $\gamma$ fits both the premium and the rate.
+
+## <span class="section-tag">Playground</span> The puzzle calculator
+
+The calculator feeds the moments of each sample into the formulas above. Choose $\gamma$ and $\delta$. It shows
+the risk-free rate they imply next to the data, the $\delta$ that would match the data, and the $\gamma$ that the
+premium needs.
+
+<PuzzleCalculator client:visible />
+
+<p class="try-this"><strong>Try this:</strong> set $\gamma$ to 15 for the annual sample. Then move $\delta$ all
+the way to 1. The model rate falls by only one percentage point, and it stays far above the data line. The rate
+is driven by $\gamma\mu_c$, not by impatience.</p>
+
+<p class="try-this"><strong>Try this too:</strong> keep $\gamma = 5$ and switch between the three samples. The
+matching $\delta$ is about 1.09 in each. Even a modest risk aversion cannot match the rate with a $\delta$
+below 1.</p>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="The market's Sharpe ratio is 0.45 a year and consumption growth has a standard deviation of 1.5% a year. Roughly what is the lowest $\gamma$ that power utility needs?"
+  options={["3", "30", "300", "0.45"]}
+  answer={1}
+  explanation="The bound says $\gamma\sigma_c \gtrsim SR$, so $\gamma \gtrsim 0.45/0.015 = 30$. This holds only if consumption and returns are perfectly correlated; a lower correlation needs more."
+/>
+
+<Quiz
+  client:visible
+  question="Why does a high $\gamma$ raise the risk-free rate in this model?"
+  options={["Investors want more stocks, so bond prices fall", "Consumption grows, and a saver with a high $\\gamma$ wants to borrow against the future, which only a high rate stops", "A high $\\gamma$ lowers $\\delta$", "Precautionary saving rises with $\\gamma$"]}
+  answer={1}
+  explanation="The term $\gamma\mu_c$ rises with $\gamma$. Precautionary saving, $-\tfrac12\gamma^2\sigma_c^2$, pushes the other way, but with $\sigma_c$ near 2% it is small until $\gamma$ is very large."
+/>
+
+<Quiz
+  client:visible
+  question="For the annual sample, $\gamma$ is 271 from $\sigma_{ic}$ but 15.0 from $SR/\sigma_c$. What explains the gap?"
+  options={["The half variance $\\tfrac12\\sigma_i^2$", "The low correlation of consumption growth with returns, 0.072", "The difference between monthly and annual data", "The high risk-free rate"]}
+  answer={1}
+  explanation="The $SR/\sigma_c$ value assumes a correlation of one. The covariance $\sigma_{ic}$ uses the measured correlation of 0.072, so the same premium needs a $\gamma$ about 18 times larger."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- With lognormal power utility, $\mathbb{E}[\Ret{r_i} - \Rf{r^f}] + \tfrac12\sigma_i^2 = \gamma\sigma_{ic}$ and
+  $\Rf{r^f} = -\log\delta + \gamma\mu_c - \tfrac12\gamma^2\sigma_c^2$.
+- The SDF's ratio $\sigma(\SDF{M})/\mathbb{E}[\SDF{M}] \approx \gamma\sigma_c$. With $\sigma_c$ near 2% a
+  year, the Hansen–Jagannathan bound needs $\gamma$ of 15 to 29.
+- The low correlation of consumption with returns is the other half of the puzzle: the covariance needs $\gamma$
+  in the hundreds.
+- A $\gamma$ high enough for the bound gives a risk-free rate of 23% to 44% a year, against under 1% in the
+  data. Only a $\delta$ above 1 would fix it.
+
+**Next up:** "Measuring consumption" asks how much of this puzzle comes from the way the national accounts
+measure consumption.
+
+### Further reading
+
+- Campbell (2018), Ch. 6
+- Cochrane (2005), Ch. 21
+- Campbell (2014)
+- Ludvigson (2013)
