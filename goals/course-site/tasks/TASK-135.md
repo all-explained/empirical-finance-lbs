@@ -3,7 +3,7 @@ id: TASK-135
 title: 'Library: ipcaFit reuses rotateFactors and one symmetricPower'
 milestone: M-10
 state: approved
-depends_on: []
+depends_on: [TASK-132]
 delivery: pr
 route: {platform: claude, model: opus, effort: high}
 ---
