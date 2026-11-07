@@ -196,6 +196,7 @@ flowchart TD
     TASK_125["TASK-125 Library: factors option for simulateOmittedFactor"]
     TASK_132["TASK-132 Part VIII notation: rename Chapter 31 matrix B to Psi"]
     TASK_133["TASK-133 Part VIII links: link chapters 30-33 and add the Part VII bridge"]
+    TASK_134["TASK-134 Part VIII wording fixes in chapters 32 and 34"]
   end
   subgraph M_11["M-11 · Part IX: Consumption: data and the equity premium puzzle"]
     TASK_037["TASK-037 Plan: decompose M-11"]
