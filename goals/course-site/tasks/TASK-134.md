@@ -3,7 +3,7 @@ id: TASK-134
 title: 'Part VIII wording fixes in chapters 32 and 34'
 milestone: M-10
 state: approved
-depends_on: []
+depends_on: [TASK-133]
 delivery: pr
 route: {platform: claude, model: opus, effort: high}
 ---
