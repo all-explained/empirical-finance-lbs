@@ -168,8 +168,8 @@ $$
 Each later $\mathit{cc}_k$ is the highest one among combinations uncorrelated with the first $k - 1$ pairs. Two facts
 make it the right tool.
 
-**No rotation changes it.** Replace $X$ by $XG'$ for an invertible $G$. A combination of the new block is
-$XG'w = X(G'w)$, a combination of the old one. And any old combination $Xv$ is the new one with $w = (G')^{-1}v$.
+**No rotation changes it.** Replace $X$ by $XH'$ for an invertible $H$. A combination of the new block is
+$XH'w = X(H'w)$, a combination of the old one. And any old combination $Xv$ is the new one with $w = (H')^{-1}v$.
 The two blocks have the same set of combinations, so they have the same maxima. Plain correlations change because
 each looks at one column, and a rotation changes the columns.
 
@@ -178,13 +178,13 @@ each looks at one column, and a rotation changes the columns.
 1. Fix $w^X$ and write $u = Xw^X$. The combination of $Y$ most correlated with $u$ is the fitted value of the
    regression of $u$ on $Y$. Its squared correlation is that regression's $R^2$ (proof in the box):
    $\dfrac{w^{X\prime}\Sigma_{XY}\Sigma_{YY}^{-1}\Sigma_{YX}w^X}{w^{X\prime}\Sigma_{XX}w^X}$.
-2. Put $v = \Sigma_{XX}^{1/2}w^X$. The ratio becomes $v'BB'v/v'v$, with
-   $B = \Sigma_{XX}^{-1/2}\Sigma_{XY}\Sigma_{YY}^{-1/2}$.
+2. Put $v = \Sigma_{XX}^{1/2}w^X$. The ratio becomes $v'\Psi\Psi'v/v'v$, with
+   $\Psi = \Sigma_{XX}^{-1/2}\Sigma_{XY}\Sigma_{YY}^{-1/2}$.
 3. By the argument of Chapter 6, the highest value of $v'Av/v'v$ for a symmetric $A$ is its largest eigenvalue.
-   So $\mathit{cc}_1^2$ is the largest eigenvalue of $BB'$. Combinations uncorrelated with the first pair give $v$ at
-   a right angle to the first eigenvector, so $\mathit{cc}_2^2$ is the second eigenvalue, and so on.
-4. $BB'$ has the same eigenvalues as $\Sigma_{XX}^{-1}\Sigma_{XY}\Sigma_{YY}^{-1}\Sigma_{YX}$, because
-   $\Sigma_{XX}^{-1/2}(BB')\Sigma_{XX}^{1/2}$ equals that product.
+   So $\mathit{cc}_1^2$ is the largest eigenvalue of $\Psi\Psi'$. Combinations uncorrelated with the first pair give
+   $v$ at a right angle to the first eigenvector, so $\mathit{cc}_2^2$ is the second eigenvalue, and so on.
+4. $\Psi\Psi'$ has the same eigenvalues as $\Sigma_{XX}^{-1}\Sigma_{XY}\Sigma_{YY}^{-1}\Sigma_{YX}$, because
+   $\Sigma_{XX}^{-1/2}(\Psi\Psi')\Sigma_{XX}^{1/2}$ equals that product.
 
 <details>
 <summary>Why the best combination of $Y$ is the regression's fitted value</summary>
