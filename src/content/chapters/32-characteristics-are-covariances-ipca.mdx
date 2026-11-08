@@ -19,15 +19,17 @@ import { Quiz } from '../../components/ui/Quiz';
   A **managed portfolio** scales a return by a variable known at $t$, such as $z_t R^e_{i,t+1}$.
 - **Principal components** ([Chapter 6](../06-principal-components/)). The first eigenvectors of a covariance
   matrix give the directions in which a set of returns moves most.
-- **Latent factors and rotation.** Chapter 31, "Latent and observable factors", shows that factors estimated from
-  returns alone are fixed only up to a rotation $H$: $(\beta, f_t) \to (\beta H^{-1}, Hf_t)$ gives the same fit.
+- **Latent factors and rotation** ([Chapter 31](../31-latent-and-observable-factors/), *Latent and observable
+  factors*). Factors estimated from returns alone are fixed only up to a rotation $H$:
+  $(\beta, f_t) \to (\beta H^{-1}, Hf_t)$ gives the same fit.
 </Callout>
 
 ## <span class="section-tag">Hook</span> Is a characteristic a risk or a free lunch?
 
 Small stocks and cheap stocks have earned more, on average, than large and expensive ones. Chapter 17 showed one
 way to measure this: regress each month's returns on the stocks' characteristics, and average the slopes. That
-measures *how much* a characteristic predicts. It does not say *why*.
+measures *how much* a characteristic predicts. It does not say *why*. And with hundreds of characteristics in the
+zoo of [Chapter 29](../29-multiple-testing/), *Multiple testing*, IPCA also asks how few factors they need.
 
 There are two stories. In the first, a characteristic is a sign of risk. A cheap stock moves strongly with some
 economy-wide factor, so it is risky, and it must pay more. In the second, the characteristic predicts returns for
@@ -354,7 +356,8 @@ paper's.</Callout>
 - The total $R^2$ measures risk, the predictive $R^2$ measures expected returns. The bootstrap test of
   $\Gamma_\alpha = 0$ asks whether characteristics predict returns beyond their betas, and its answer depends on $K$.
 
-**Next up:** "Characteristic-based mimicking portfolios" turns a characteristic into a portfolio you can trade, by
+**Next up:** [Chapter 33](../33-characteristic-based-mimicking-portfolios/), *Characteristic-based mimicking
+portfolios*, turns a characteristic into a portfolio you can trade, by
 sorting stocks or by a cross-sectional regression.
 
 ### Further reading
