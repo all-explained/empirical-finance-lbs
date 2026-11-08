@@ -210,6 +210,13 @@ flowchart TD
   end
   subgraph M_12["M-12 · Part X: Habits, long-run risk and disasters"]
     TASK_038["TASK-038 Plan: decompose M-12"]
+    TASK_136["TASK-136 Library: the Campbell–Cochrane habit model, its price–consumption ratio and Gauss–Hermite quadrature"]
+    TASK_137["TASK-137 Library: Epstein–Zin pricing, the long-run risks solution, simulation and variance ratios"]
+    TASK_138["TASK-138 Library: rare-disaster pricing, seeded disaster centuries and the relative entropy estimator"]
+    TASK_139["TASK-139 Chapter 37: Internal and external habits"]
+    TASK_140["TASK-140 Chapter 38: Long-run risk"]
+    TASK_141["TASK-141 Chapter 39: Rare disasters and jump risk"]
+    TASK_142["TASK-142 Orchestrator reads Part X and signs it off"]
   end
   subgraph M_13["M-13 · Part XI: The term structure: facts"]
     TASK_039["TASK-039 Plan: decompose M-13"]
@@ -283,6 +290,7 @@ flowchart TD
   TASK_037 --> TASK_038
   TASK_129 --> TASK_038
   TASK_038 --> TASK_039
+  TASK_139 --> TASK_039
   TASK_039 --> TASK_040
   TASK_040 --> TASK_041
   TASK_041 --> TASK_042
@@ -381,6 +389,12 @@ flowchart TD
   TASK_132 --> TASK_133
   TASK_133 --> TASK_134
   TASK_132 --> TASK_135
+  TASK_136 --> TASK_139
+  TASK_137 --> TASK_140
+  TASK_138 --> TASK_141
+  TASK_139 --> TASK_142
+  TASK_140 --> TASK_142
+  TASK_141 --> TASK_142
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
