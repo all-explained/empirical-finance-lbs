@@ -1,0 +1,349 @@
+---
+title: "Internal and external habits"
+part: 10
+chapter: 37
+difficulty: 3
+prerequisites: [9, 35]
+summary: "When utility is measured against a slow-moving habit, risk aversion rises in bad times, which prices a high equity premium with a low, constant risk-free rate and makes returns predictable."
+---
+
+import HabitSimulator from '../../components/plots/HabitSimulator';
+import PredictiveRegression from '../../components/plots/PredictiveRegression';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapters 9 and 35">
+[Chapter 35](/empirical-finance-lbs/chapters/35-equity-premium-and-risk-free-rate-puzzles/) feeds measured
+consumption into power utility, $\SDF{M_{t+1}} = \delta(C_{t+1}/C_t)^{-\gamma}$. To reach the
+Hansen–Jagannathan bound of [Chapter 8](/empirical-finance-lbs/chapters/08-euler-equation-and-sdf/), it needs a
+large $\gamma$, and that $\gamma$ predicts a risk-free rate far above the data.
+[Chapter 9](/empirical-finance-lbs/chapters/09-time-varying-expected-returns/) shows that a high price
+compared with dividends comes before low returns, more and more clearly as the horizon grows.
+</Callout>
+
+## <span class="section-tag">Hook</span> Fear that comes and goes
+
+Chapter 35 left two puzzles. With annual consumption since 1930, power utility reaches the market's Sharpe ratio
+of 0.45 only at $\gamma = 20.0$. At that $\gamma$ the model's real risk-free rate is 28.2% a year, while Treasury
+bills paid 0.24%. Chapter 9 added a third fact that power utility with i.i.d. consumption growth cannot produce at all: expected
+returns move.
+Over ten years, a low price compared with dividends came before high returns, with an $R^2$ of 11.8%.
+
+Each puzzle asks for something the same model cannot give. The premium asks for a lot of fear. The low rate asks
+for little fear, or at least for a saver who is not desperate to borrow. Predictable returns ask for a fear that
+changes over time.
+
+So here is the question. What if people do not fear a fall in consumption as such, but a fall compared with what
+they are used to? Then a small fall after a boom hurts little, and the same fall in a slump, when consumption is
+already close to its usual level, hurts a lot. Can one modest curvature then look like a huge and changing fear of
+risk?
+
+## <span class="section-tag">Intuition</span> Consumption measured against a habit
+
+Call the level of consumption people are used to the **habit**, $X_t$. Utility depends on $C_t - X_t$, the part
+of consumption above the habit. Now suppose the habit is 94.3% of consumption, so the surplus $C_t - X_t$ is only
+5.7% of $C_t$. A 1% fall in consumption then takes away 1% of $C_t$, which is a 17.5% fall in the surplus.
+Measured against the habit, smooth consumption is not smooth at all.
+
+How does the habit form? There are two answers.
+
+- **Internal habit.** Your habit comes from *your own* past consumption. Then a meal out tonight raises the
+  standard you will judge tomorrow by, and you know it. That extra cost lowers the value of consuming today.
+- **External habit.** Your habit comes from *everyone else's* consumption. You take it as given, because your own
+  dinner does not move the average. Campbell & Cochrane (1999, pdf p. 4) use this kind and link it to
+  Abel's (1990) "catching up with the Joneses".
+
+Does the choice matter for prices? Campbell & Cochrane (pdf p. 37) answer with a simple point. Prices depend only
+on *ratios* of marginal utilities, such as $\SDF{M_{t+1}}$. If an internal habit lowers marginal utility by the
+same proportion at every date, prices do not change at all.
+
+Test this on a seeded century of monthly consumption with the simple habit $X_t = hC_{t-1}$. With $h = 0.5$, the
+internal-habit marginal utility is between 0.49 and 0.52 times the external one, so prices would hardly move.
+With $h = 0.8$, the ratio swings from 0.11 to 0.29, and prices would differ. In their own model, the authors find
+the two marginal utilities nearly proportional near the steady state, and further apart far from it (pdf p. 38).
+Their internal-habit version gives a risk-free rate that is higher and moves with the state, so returns are less
+predictable (pdf p. 39). They name Constantinides (1990) among models where people adjust consumption slowly
+after a wealth shock (pdf p. 37). External habits are the simpler choice, and the rest of this chapter uses them.
+
+The widget below runs the external-habit model of Campbell & Cochrane at the parameters of their Table 1
+(pdf p. 13): consumption growth with mean 1.89% and volatility 1.50% a year, $\gamma = 2$, and a habit that
+reverts slowly. Watch the middle panel. The **surplus ratio** $S_t = (C_t - X_t)/C_t$ wanders around 0.057, the
+steady state, and falls in slumps. The price of a claim to all future consumption follows it.
+
+<HabitSimulator client:visible />
+
+<p class="try-this"><strong>Try this:</strong> move the date to year 56.5. That is the deepest slump of this
+century: $S_t = 0.019$, the local curvature $\gamma/S_t$ is 106.8, and the price–consumption ratio is 26.3 years
+against a mean of 35.8. Then raise $\gamma$ to 4. The steady state $\bar S$ rises to 0.081, so the local
+curvature there is 49.6, and the mean price falls to 27.8 years.</p>
+
+Three facts stand out. Consumption itself looks smooth: the top panel shows no crash. The surplus ratio moves a
+lot, because it is a small gap between two big numbers. And prices fall when the surplus falls. In a slump,
+people are close to their habit, so they fear any further fall, and they pay less for risky claims.
+
+<Callout type="key">Utility measured against a slow habit makes risk aversion high in slumps and low in booms,
+even though consumption growth is the same random walk at every date.</Callout>
+
+## <span class="section-tag">Formalisation</span> The Campbell–Cochrane model
+
+### Preferences and local curvature
+
+People maximise
+
+$$
+\mathbb{E}\sum_{t=0}^{\infty}\delta^t\,\frac{(C_t - X_t)^{1-\gamma}}{1-\gamma}.
+$$
+
+The paper subtracts 1 in the numerator (pdf p. 4), which changes nothing that matters for prices. Define the
+surplus ratio $S_t = (C_t - X_t)/C_t$ and its log $s_t = \log S_t$. $S_t$ lies between 0 and 1: near 0, consumption
+barely covers the habit.
+
+How averse to risk is a person at date $t$? Take $u(C) = (C - X)^{1-\gamma}/(1-\gamma)$ with $X$ fixed. Then
+$u'(C) = (C - X)^{-\gamma}$ and $u''(C) = -\gamma(C - X)^{-\gamma-1}$, so the local curvature is
+
+$$
+-\frac{C\,u''(C)}{u'(C)} = \frac{\gamma\,C}{C - X} = \frac{\gamma}{S_t}.
+$$
+
+With power utility, $S_t = 1$ and the curvature is $\gamma$. At Table 1's steady state, $\bar S = 0.057$ and
+$\gamma = 2$, so $\gamma/\bar S = 35.1$. The paper writes this curvature $\eta_t$; we write $\gamma/S_t$, because
+$\eta_t$ is the conditional SDF intercept of Chapter 22.
+
+### How the habit moves
+
+Consumption growth is i.i.d. normal, $\Delta c_{t+1} = \mu_c + \sigma_c\varepsilon_{t+1}$ with $\varepsilon_{t+1}
+\sim N(0, 1)$, and the log surplus ratio follows (pdf p. 5)
+
+$$
+\begin{aligned}
+s_{t+1} = {} & (1 - \phi)\bar s + \phi s_t \\
+& + \Lambda(s_t)(\Delta c_{t+1} - \mu_c).
+\end{aligned}
+$$
+
+Without the last term, $s_t$ is the AR(1) of [Chapter 5](/empirical-finance-lbs/chapters/05-persistence-ar1-and-var/)
+with persistence $\phi$ and mean $\bar s$. Table 1 sets $\phi^{12} = 0.87$ a year, a half-life of 5.0 years, so
+the habit catches up with consumption only slowly. The **sensitivity function** $\Lambda(s_t)$ says how much a
+consumption shock moves the surplus. The curriculum and the paper write $\lambda(s_t)$, $g$ and $\phi$; here they
+are $\Lambda(s_t)$, because $\lambda$ is a risk premium, and $\mu_c$, because $g$ is the GMM moment function. The
+persistence keeps its letter $\phi$.
+
+### The stochastic discount factor
+
+The habit is external, so marginal utility is $(C_t - X_t)^{-\gamma} = S_t^{-\gamma}C_t^{-\gamma}$, and the SDF of
+Chapter 8 becomes
+
+$$
+\SDF{M_{t+1}} = \delta\left(\frac{S_{t+1}C_{t+1}}{S_tC_t}\right)^{-\gamma}.
+$$
+
+In logs, $\log\SDF{M_{t+1}} = \log\delta - \gamma(\Delta c_{t+1} + s_{t+1} - s_t)$. Use the law of motion for
+$s_{t+1} - s_t = -(1 - \phi)(s_t - \bar s) + \Lambda(s_t)\sigma_c\varepsilon_{t+1}$ and for $\Delta c_{t+1}$:
+
+$$
+\begin{aligned}
+\log\SDF{M_{t+1}} = {} & \log\delta - \gamma\mu_c \\
+& + \gamma(1 - \phi)(s_t - \bar s) \\
+& - \gamma\sigma_c\big(1 + \Lambda(s_t)\big)\varepsilon_{t+1}.
+\end{aligned}
+$$
+
+Given $s_t$, this is normal, with standard deviation $\gamma\sigma_c(1 + \Lambda(s_t))$.
+
+### The price of risk
+
+The lognormal fact of Chapter 35 gives $\sigma_t(\SDF{M})/\mathbb{E}_t[\SDF{M}] = \sqrt{e^{v} - 1}$ with $v$ the
+variance of $\log\SDF{M}$. So the highest conditional Sharpe ratio, by the bound of Chapter 8, is (pdf p. 7)
+
+$$
+\frac{\sigma_t(\SDF{M_{t+1}})}{\mathbb{E}_t[\SDF{M_{t+1}}]} \approx \gamma\sigma_c\big(1 + \Lambda(s_t)\big).
+$$
+
+If $\Lambda$ falls as $s_t$ rises, the price of risk is high in slumps. At the steady state it is about 0.53 a year
+(the monthly value times $\sqrt{12}$). Power utility with the same $\gamma = 2$ gives $\gamma\sigma_c = 0.03$.
+
+### Choosing $\Lambda$: a constant risk-free rate
+
+The risk-free rate is $\Rf{r^f_t} = -\log\mathbb{E}_t[\SDF{M_{t+1}}]$. Apply the lognormal fact to the SDF above
+(pdf p. 7):
+
+$$
+\begin{aligned}
+\Rf{r^f_t} = {} & -\log\delta + \gamma\mu_c - \gamma(1 - \phi)(s_t - \bar s) \\
+& - \tfrac12\gamma^2\sigma_c^2\big(1 + \Lambda(s_t)\big)^2.
+\end{aligned}
+$$
+
+The term in $s_t - \bar s$ is intertemporal substitution. In a slump, marginal utility is high and expected to
+fall as $s_t$ reverts, so people want to borrow, which pushes the rate up. The last term is precautionary saving:
+more risk makes people save, which pushes the rate down. If $\Lambda(s_t)$ is large in slumps, the two can cancel.
+
+Campbell & Cochrane ask for three things (pdf p. 8): a constant risk-free rate, a habit that does not move with
+consumption at the steady state, and one that does not move near it. Here is how they pin down $\Lambda$.
+
+1. A constant rate needs the last two terms to sum to a constant, so
+   $(1 + \Lambda(s_t))^2 = A - 2(1 - \phi)(s_t - \bar s)/(\gamma\sigma_c^2)$ for some number $A$.
+2. The habit does not move at $\bar s$ when $\Lambda(\bar s) = 1/\bar S - 1$ (shown below), so $A = 1/\bar S^2$.
+3. It does not move near $\bar s$ when $\Lambda'(\bar s) = -1/\bar S$. Differentiate step 1 at $\bar s$:
+   $2(1/\bar S)\Lambda'(\bar s) = -2(1 - \phi)/(\gamma\sigma_c^2)$, so $1/\bar S^2 = (1 - \phi)/(\gamma\sigma_c^2)$.
+
+That gives the steady state and the sensitivity function (pdf p. 8):
+
+$$
+\begin{aligned}
+\bar S &= \sigma_c\sqrt{\frac{\gamma}{1 - \phi}}, \\
+\Lambda(s_t) &= \frac{\sqrt{1 - 2(s_t - \bar s)}}{\bar S} - 1.
+\end{aligned}
+$$
+
+<details>
+<summary>The algebra: why the habit does not move at and near the steady state</summary>
+
+Log habit is $x_t = c_t + \log(1 - e^{s_t})$, since $X_t = C_t(1 - S_t)$. Given $s_t$, the law of motion gives
+$\partial s_{t+1}/\partial c_{t+1} = \Lambda(s_t)$, so
+
+$$
+\frac{\partial x_{t+1}}{\partial c_{t+1}} = 1 - \frac{e^{s_{t+1}}}{1 - e^{s_{t+1}}}\Lambda(s_t).
+$$
+
+At $s_t = s_{t+1} = \bar s$ this is $1 - \Lambda(\bar s)\bar S/(1 - \bar S)$. It is zero when
+$\Lambda(\bar s) = (1 - \bar S)/\bar S = 1/\bar S - 1$, which is step 2.
+
+For step 3, write $f(s) = 1 - \Lambda(s)e^s/(1 - e^s)$, the same derivative with $s_t = s_{t+1} = s$. Its slope is
+$f'(s) = -\Lambda'(s)e^s/(1 - e^s) - \Lambda(s)e^s/(1 - e^s)^2$. At $\bar s$, put in $\Lambda(\bar s) = (1 -
+\bar S)/\bar S$: $f'(\bar s) = -\Lambda'(\bar s)\bar S/(1 - \bar S) - 1/(1 - \bar S)$. It is zero when
+$\Lambda'(\bar s) = -1/\bar S$ (pdf p. 9).
+</details>
+
+Now put $\Lambda$ back into the rate. Since $(1 + \Lambda(s_t))^2 = (1 - 2(s_t - \bar s))/\bar S^2$ and
+$\gamma^2\sigma_c^2/\bar S^2 = \gamma(1 - \phi)$,
+
+$$
+\begin{aligned}
+& \tfrac12\gamma^2\sigma_c^2\big(1 + \Lambda(s_t)\big)^2 \\
+& \quad = \tfrac12\gamma(1 - \phi) - \gamma(1 - \phi)(s_t - \bar s).
+\end{aligned}
+$$
+
+The terms in $s_t - \bar s$ cancel, and the rate is the same at every date (pdf p. 8):
+
+$$
+\Rf{r^f} = -\log\delta + \gamma\mu_c - \tfrac12\gamma(1 - \phi).
+$$
+
+The square root in $\Lambda$ reaches zero at $s_{\max} = \bar s + (1 - \bar S^2)/2$. Above it, $\Lambda$ is set to
+0. At Table 1's values, $\bar S = 0.057$ and $s_{\max} = -2.37$, so $S_{\max} = 0.094$. Because $\Lambda(s_t)$
+grows without limit as $s_t$ falls, the price of risk is highest in the deepest slumps.
+
+### Prices and expected returns
+
+A claim to consumption pays $C_{t+1}$ next month and is then worth $P_{t+1}$. Its price–consumption ratio solves
+(pdf p. 11)
+
+$$
+\frac{P_t}{C_t} = \mathbb{E}_t\left[\SDF{M_{t+1}}\,\frac{C_{t+1}}{C_t}\left(1 + \frac{P_{t+1}}{C_{t+1}}\right)\right].
+$$
+
+$s_t$ is the only state, so $P_t/C_t$ is a function of $s_t$, found numerically on a grid. Our library solves it as
+the sum of the prices of all future months of consumption. At Table 1's values the ratio is 41.6 years at
+$S_{\max}$, 34.1 at $\bar S$ and 24.0 at $S_t = 0.01$. A low surplus means a high price of risk, a low price and
+therefore a high expected return. Because both the price and the expected return depend only on $s_t$, the price
+forecasts returns.
+
+<Callout type="warning" title="What the evidence can and cannot show">
+On 5,000 simulated years, our solution gives a typical price–consumption ratio, $e^{\mathbb{E}[\Signal{pc_t}]}$, of
+35.1 years. Campbell & Cochrane
+report 18.3 (Table 2, pdf p. 20). The price of a long claim depends on rare paths on which $s_t$ falls far below
+anything a century visits, where $S_t^{-\gamma}$ is huge. So the price level depends on how deep slumps are priced,
+and grids that stop at different depths give different levels. The shape, the Sharpe ratio and the predictability
+do not depend much on this.
+</Callout>
+
+### The answer to Chapter 35
+
+The table puts the model at Table 1's parameters next to Chapter 35. The model's moments come from 5,000 seeded
+years, simulated monthly and summed to years, as the paper computes its statistics from time-averaged annual data
+(pdf p. 20). [Chapter 36](/empirical-finance-lbs/chapters/36-measuring-consumption/) shows why that matters:
+annual consumption in the national accounts is an average over the year, which smooths it.
+
+| | Power utility (Chapter 35) | Habit model | Data (Chapter 35) |
+|---|---|---|---|
+| $\gamma$ | 20.0 | 2 | |
+| Local curvature | 20.0 | 35.1 at $\bar S$ | |
+| $\delta$, a year | 0.99 | 0.896 | |
+| $\Rf{r^f}$ | 28.2% | 0.94% | 0.24% |
+| Sharpe ratio | 0.45 | 0.47 | 0.45 |
+
+Read the table with care. Campbell & Cochrane *choose* $\delta$ to match the T-bill rate and $\gamma$ to match the
+Sharpe ratio of postwar stocks (pdf p. 12). So the model does not predict these two numbers. What it shows is
+that it can match both with $\gamma = 2$ and $\delta$ below 1, where power utility needed $\delta = 1.245$ in
+Chapter 35. In the rate, impatience $-\log\delta$ adds 11.0% a year and growth $\gamma\mu_c$ adds 3.78%. The
+term $\tfrac12\gamma(1 - \phi)$, the part of precautionary saving left after the cancellation, takes away 13.85%.
+The model's Sharpe ratio is that of an unlevered claim to consumption: its excess return has a mean of 3.85% and
+a volatility of 8.2% a year, about half of the paper's 6.64% and 15.2%.
+
+## <span class="section-tag">Playground</span> Model returns against real returns
+
+Now run the regression of Chapter 9 on both. With the data, the predictor is the log price–dividend ratio
+$\Signal{pd_t} = -\Signal{dp_t}$, so a negative slope means "high prices, low returns". With the model, it is the
+log price–consumption ratio $\Signal{pc_t}$ of a seeded century at Table 1's values.
+
+<PredictiveRegression client:visible predictor="habit" />
+
+<p class="try-this"><strong>Try this:</strong> start with the data at one year: the slope is −0.042, with a
+Newey–West $t$-statistic of −0.94. Switch to the habit model. The slope is −0.233, the $t$-statistic −3.35 and
+the $R^2$ 10.2%. Move the horizon to 10 years. The model's $R^2$ rises to 41.4%, the data's is 11.8%.</p>
+
+<p class="try-this"><strong>Try this too:</strong> re-roll the model a few times at 10 years. A century of the
+model is one draw, just as our century of data is.</p>
+
+In the model, the slope grows with the horizon, as in the data. On 5,000 simulated years, the slope times 10 is
+−1.6, −3.0, −4.1, −5.9 and −7.3 at 1, 2, 3, 5 and 7 years, against −2.0 to −9.4 in the paper's Table 5
+(pdf p. 23). The model's slope is steeper than the data's because its ratio moves less: $\Signal{pc_t}$ has a
+standard deviation of 0.13 in the long simulation, against 0.50 for $\Signal{pd_t}$ in the data. The lesson is
+the sign and the growth with horizon. In this model, expected returns move because risk aversion moves, and
+nothing about cash flows does.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="With $\gamma = 2$, the surplus ratio falls from 0.057 to 0.02. What happens to the local curvature $\gamma/S_t$?"
+  options={["It stays at 2", "It rises from about 35 to 100", "It falls from about 35 to 0.04", "It rises from 2 to 35"]}
+  answer={1}
+  explanation="The curvature is $\gamma/S_t$: $2/0.057 \approx 35$ and $2/0.02 = 100$. The utility curvature $\gamma$ itself never changes; what changes is how close consumption is to the habit."
+/>
+
+<Quiz
+  client:visible
+  question="Why is the risk-free rate the same at every date in the Campbell–Cochrane model?"
+  options={["Because consumption growth is i.i.d.", "Because $\\delta$ moves with $s_t$", "Because $\\Lambda(s_t)$ is chosen so that precautionary saving exactly offsets intertemporal substitution", "Because the habit is external"]}
+  answer={2}
+  explanation="In a slump, the wish to borrow pushes the rate up and the high volatility of $s_{t+1}$ pushes it down. $\Lambda(s_t)$ is chosen so the two terms in $s_t - \bar s$ cancel, leaving $-\log\delta + \gamma\mu_c - \tfrac12\gamma(1-\phi)$."
+/>
+
+<Quiz
+  client:visible
+  question="An internal habit lowers marginal utility at every date by exactly 40%. What happens to asset prices?"
+  options={["They fall by 40%", "They rise by 40%", "Nothing: prices depend on ratios of marginal utilities", "The risk-free rate rises by 40%"]}
+  answer={2}
+  explanation="The SDF is a ratio of marginal utilities at two dates, so a common factor cancels. Internal and external habits differ only as much as that ratio moves over time."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- With utility over $C_t - X_t$, the local curvature is $\gamma/S_t$: 35.1 at Table 1's steady state with
+  $\gamma = 2$, and higher in slumps.
+- The SDF's volatility is $\gamma\sigma_c(1 + \Lambda(s_t))$, so the price of risk rises when the surplus falls.
+- $\Lambda(s_t)$ is chosen so that precautionary saving offsets intertemporal substitution: the risk-free rate is
+  constant, 0.94% a year at Table 1's values, with $\delta = 0.896$.
+- A low surplus means a low price–consumption ratio and a high expected return, so the price forecasts returns,
+  more strongly at long horizons.
+- An internal habit changes prices only as much as it changes the ratio of marginal utilities over time.
+
+**Next up:** "Long-run risk" keeps the curvature constant and makes consumption itself riskier than it looks.
+
+### Further reading
+
+- Campbell & Cochrane (1999)
+- Campbell (2018), Ch. 6
