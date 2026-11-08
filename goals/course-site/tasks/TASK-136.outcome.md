@@ -2,7 +2,7 @@
 
 ## Acceptance
 
-Verified revision: `8ece992` (the library commit, on `origin/main` `f13f5bf`). The outcome commit changes only this file.
+Verified revision: `32282b9`, rebased on `origin/main` `f9e81d2`, after TASK-137 merged. Verify ran again after the rebase. Later commits change only this file.
 
 - [x] Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.
   Evidence: `src/lib/math/quadrature.test.ts` (7 tests) and `src/lib/finance/habit.test.ts` (25 tests) cover all 13 exports:
@@ -19,13 +19,13 @@ Verified revision: `8ece992` (the library commit, on `origin/main` `f13f5bf`). T
   - `habitClaimReturns`: monthly and annual values by hand. On 5000 seeded years: the mean price–consumption ratio is 1.5 to 2.5 times Table 2's 18.3 (see "Deviation from Table 2" below), and the Sharpe ratio is within 0.08 of Table 2's 0.43. The slopes of `horizonSlopes` at 1, 2, 3, 5 and 7 years are negative and grow with the horizon, each between 0.5 and 1.2 times Table 5's (p. 23).
   - `habitMarginalUtility`: with $h = 0$, both habits give $C_t^{-\gamma}$. With $h = 0.5$, the internal habit matches a trapezoid integral that does not use Gauss–Hermite.
 
-  Run results: `npm ci` exit 0. `npm test` exit 0, with `Test Files 81 passed (81)` and `Tests 896 passed (896)`. `npx vitest run tests/notation.test.ts` gives `Tests 4 passed (4)`.
+  Run results: `npm ci` exit 0. `npm test` exit 0, with `Test Files 82 passed (82)` and `Tests 917 passed (917)`. `npx vitest run tests/notation.test.ts` gives `Tests 4 passed (4)`.
 - [x] `npm run build` passes (`astro check` reports 0 errors).
-  Evidence: exit 0. `Result (236 files): 0 errors, 0 warnings, 1 hint`, and `37 page(s) built`. The hint is the unused `Matrix` import in `src/lib/finance/news.ts`, outside this task and already reported as #88.
+  Evidence: exit 0. `Result (238 files): 0 errors, 0 warnings, 1 hint`, and `37 page(s) built`. The hint is the unused `Matrix` import in `src/lib/finance/news.ts`, outside this task and already reported as #88.
 - [x] The outcome states the grid, the stopping rule and the measured time of one `priceConsumptionRatio` solve.
   Evidence: the section "The price–consumption solver" below.
 - [x] `docs/STYLE_GUIDE.md` §3 has a Part X block with the habit symbols, and the outcome lists each with the clash it avoids.
-  Evidence: seven rows added to the Part X block that TASK-138 created; every disaster row is kept. They are listed in the section "Notation" below.
+  Evidence: six rows added to the Part X block that TASK-138 created. Every row of TASK-138 (disasters) and TASK-137 (long-run risk) is kept. They are listed in the section "Notation" below.
 - [x] `git status --short` shows only `src/lib/finance/habit.ts`, `src/lib/math/quadrature.ts`, their tests, `docs/STYLE_GUIDE.md` and this task's outcome file.
   Evidence: before the library commit it printed ` M docs/STYLE_GUIDE.md`, `?? src/lib/finance/habit.test.ts`, `?? src/lib/finance/habit.ts`, `?? src/lib/math/quadrature.test.ts` and `?? src/lib/math/quadrature.ts`. After the commits it prints nothing.
 
@@ -71,7 +71,7 @@ Rows added to the Part X block of `docs/STYLE_GUIDE.md` §3:
 
 | Symbol | Clash it avoids |
 |---|---|
-| $X_t$ (habit) | The payoff $X_{t+1}$ of the SDF table and the undated block $X$ of Chapter 31. It is always dated and next to $C_t$, and Chapter 37 writes no payoff as $X$. |
+| $X_t$ (habit) | The payoff $X_{t+1}$ of the SDF table, the undated block $X$ of Chapter 31, and the long-run risk state $x_t$ of Chapter 38. It is always dated, upper-case and next to $C_t$, and Chapter 37 writes no payoff as $X$. |
 | $S_t$, $s_t$ (surplus ratio and its log) | The GMM long-run covariance $S$, the state $s$ of $\pi(s)$ and the share $s$ of Chapters 28–34. It is always dated. The paper's local curvature $\eta_t$ is written $\gamma/S_t$, because $\eta_t$ is the conditional SDF intercept of Chapter 22. |
 | $\bar S$, $\bar s$ (steady state) | A sample mean such as $\bar R$. Chapter 37 writes no sample mean of $S_t$. |
 | $s_{\max}$, $S_{\max}$ (upper bound) | $SR_{\max}$, the APT Sharpe-ratio bound of Chapter 31. |
