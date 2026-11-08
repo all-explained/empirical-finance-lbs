@@ -220,6 +220,13 @@ flowchart TD
   end
   subgraph M_13["M-13 · Part XI: The term structure: facts"]
     TASK_039["TASK-039 Plan: decompose M-13"]
+    TASK_143["TASK-143 Library: zero-coupon curves, forward and par rates, bond holding returns and the expectations-hypothesis yield"]
+    TASK_144["TASK-144 Library: Campbell–Shiller and Fama–Bliss regressions by maturity and a seeded expectations-hypothesis world"]
+    TASK_145["TASK-145 Library: the Cochrane–Piazzesi tent factor, its single-factor loadings and forecasts with yield principal components"]
+    TASK_146["TASK-146 Chapter 40: Yields, forwards and bond returns"]
+    TASK_147["TASK-147 Chapter 41: Testing the expectations hypothesis"]
+    TASK_148["TASK-148 Chapter 42: Level, slope, curvature and bond risk premia"]
+    TASK_149["TASK-149 Orchestrator reads Part XI and signs it off"]
   end
   subgraph M_14["M-14 · Part XII: Term structure models"]
     TASK_040["TASK-040 Plan: decompose M-14"]
@@ -292,6 +299,7 @@ flowchart TD
   TASK_038 --> TASK_039
   TASK_139 --> TASK_039
   TASK_039 --> TASK_040
+  TASK_146 --> TASK_040
   TASK_040 --> TASK_041
   TASK_041 --> TASK_042
   TASK_042 --> TASK_043
@@ -395,6 +403,14 @@ flowchart TD
   TASK_139 --> TASK_142
   TASK_140 --> TASK_142
   TASK_141 --> TASK_142
+  TASK_143 --> TASK_144
+  TASK_143 --> TASK_145
+  TASK_143 --> TASK_146
+  TASK_144 --> TASK_147
+  TASK_145 --> TASK_148
+  TASK_146 --> TASK_149
+  TASK_147 --> TASK_149
+  TASK_148 --> TASK_149
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
