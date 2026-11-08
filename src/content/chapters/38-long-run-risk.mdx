@@ -1,0 +1,330 @@
+---
+title: "Long-run risk"
+part: 10
+chapter: 38
+difficulty: 3
+prerequisites: [5, 35]
+summary: "With Epstein–Zin preferences, a small and persistent part of consumption growth, too faint to see in a century of data, can carry a large share of the equity premium."
+---
+
+import LongRunRisk from '../../components/plots/LongRunRisk';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapters 5 and 35">
+[Chapter 35](/empirical-finance-lbs/chapters/35-equity-premium-and-risk-free-rate-puzzles/) showed that power utility
+needs a huge $\gamma$ to price the equity premium, and that this $\gamma$ then predicts a risk-free rate far above
+the data. [Chapter 5](/empirical-finance-lbs/chapters/05-persistence-ar1-and-var/) built the AR(1), its persistence
+$\phi$ and its half-life. This chapter puts an AR(1) inside expected consumption growth. It does not build on
+Chapter 37, "Internal and external habits", so you can read the two in either order.
+</Callout>
+
+## <span class="section-tag">Hook</span> A signal too faint to see
+
+Take the 96 years of real consumption per person in fred-consumption-annual, 1930 to 2025, the sample of
+Chapter 35. Growth averaged 1.83% a year, with a standard deviation of 2.17%. It has a little memory: its
+first-order autocorrelation is 0.36. But a good part of that comes from the way the national accounts average
+consumption over the year. [Chapter 36](/empirical-finance-lbs/chapters/36-measuring-consumption/) showed that
+averaging alone pushes this autocorrelation toward 1/4.
+
+Now suppose that expected growth is not constant. Suppose it drifts, a little above normal for a few years, then a
+little below. In the calibration of Bansal, Kiku & Yaron (2012), this slow part is only 2.8% of the variance of
+monthly growth. Next month's growth then has a correlation of 0.028 with this month's. No test on a century of data
+could reliably find that. Yet in the same model it earns 2.05 of the 6.42 percentage points of the equity premium.
+
+So here is the question. Can a part of consumption growth that you can hardly see in the data be what makes stocks
+risky? And if it is that hard to see, how would you ever test it?
+
+## <span class="section-tag">Intuition</span> Small, slow, and priced
+
+Write monthly consumption growth as a mean, plus a slow part $\Signal{x_t}$, plus noise. The slow part is an AR(1),
+as in Chapter 5. In the calibration of Bansal, Kiku & Yaron, which Beeler & Campbell (2012) call BKY, its persistence
+is $\phi_x = 0.975$ a month, a half-life of 27.4 months. The older calibration of Bansal and Yaron (2004), called BY,
+has $\phi_x = 0.979$, a half-life of 32.7 months (Beeler & Campbell, working paper, pdf p. 34).
+
+The widget draws 100 seeded years of log consumption, less its trend. The solid line includes $\Signal{x_t}$. The
+dashed line uses the very same shocks without it.
+
+<LongRunRisk client:visible />
+
+Month by month, the two lines move together: the noise is the same, and $\Signal{x_t}$ adds a tiny drift. But the
+drift lasts for years, so it adds up. In seed 1, the two lines drift up to 0.29 log points apart.
+A small, persistent drift is a large change in the level of consumption, decades out.
+
+The lower panel measures this with the **variance ratio**: the variance of growth over $k$ years, divided by $k$ times
+the variance of one year's growth. White noise gives 1 at every horizon. Small positive autocorrelations that last
+make the ratio climb. For the model, over a 10,000-year path, it reaches 2.63 at 10 years. For our data it is 1.61.
+
+Why would an investor care about a drift they hardly see? Because in this model the investor *does* see it. The
+agent knows $\Signal{x_t}$; only we, with our short sample, do not. And with the right preferences, news about growth
+far in the future is feared in itself. A stock whose dividends fall when long-run growth falls pays badly exactly in
+those states. That is long-run risk.
+
+<Callout type="key">A persistent part of expected growth is small month by month but large over decades. With
+Epstein–Zin preferences, its shocks carry their own price of risk.</Callout>
+
+## <span class="section-tag">Formalisation</span> Preferences, dynamics, solution
+
+### Two parameters for two attitudes
+
+Power utility ties two things together. Risk aversion $\gamma$ says how much you dislike uncertainty across states.
+The elasticity of intertemporal substitution $\psi$ says how willingly you shift consumption across time when the
+interest rate moves. Under power utility $\psi = 1/\gamma$, so a $\gamma$ of 10 forces $\psi = 0.1$, and a saver who
+barely substitutes demands a high rate to save. That is the risk-free rate puzzle of Chapter 35.
+
+Epstein–Zin preferences, used by Bansal, Kiku & Yaron (2012, working paper, pdf p. 6) after Epstein and Zin (1989),
+cut that tie. Your value $V_t$ mixes today's consumption with a certainty equivalent of tomorrow's value:
+
+$$
+\begin{aligned}
+V_t^{1-1/\psi} &= (1 - \delta)\,C_t^{1-1/\psi} + \delta\,\mathit{CE}_t^{1-1/\psi}, \\
+\mathit{CE}_t &= \left(\mathbb{E}_t\!\left[V_{t+1}^{1-\gamma}\right]\right)^{1/(1-\gamma)}.
+\end{aligned}
+$$
+
+The certainty equivalent bends risk with $\gamma$. The first line bends time with $\psi$. Set $\gamma = 1/\psi$ and
+the two curvatures agree: that is power utility.
+
+### The log SDF
+
+Write $\theta_{\text{EZ}} = (1 - \gamma)/(1 - 1/\psi)$ and $\Ret{r_{c,t+1}}$ for the log return on the claim to all
+future consumption, which is aggregate wealth. The log SDF is
+
+$$
+\begin{aligned}
+\SDF{m_{t+1}} = {} & \theta_{\text{EZ}}\log\delta - \frac{\theta_{\text{EZ}}}{\psi}\Delta c_{t+1} \\
+& + (\theta_{\text{EZ}} - 1)\Ret{r_{c,t+1}}.
+\end{aligned}
+$$
+
+Under power utility, $\theta_{\text{EZ}} = 1$ and the return drops out: $\SDF{m_{t+1}} = \log\delta - \gamma\Delta c_{t+1}$,
+the SDF of Chapter 35. With $\gamma = 10$ and $\psi = 1.5$, as in both calibrations, $\theta_{\text{EZ}} = -27$. Then the
+return on wealth enters with weight $-28$: a fall in wealth is a bad state in itself.
+
+<details>
+<summary>Derivation of the log SDF, step by step</summary>
+
+1. The SDF is the ratio of marginal values, $\SDF{M_{t+1}} = (\partial V_t/\partial C_{t+1})/(\partial V_t/\partial C_t)$,
+   per unit of probability $\Prob{\pi(s)}$. Differentiate the first line: $\partial V_t/\partial C_t = (1-\delta)V_t^{1/\psi}C_t^{-1/\psi}$
+   and $\partial V_t/\partial\mathit{CE}_t = \delta V_t^{1/\psi}\mathit{CE}_t^{-1/\psi}$.
+2. Differentiate the certainty equivalent: $\partial\mathit{CE}_t/\partial V_{t+1}(s) = \Prob{\pi(s)}\,\mathit{CE}_t^{\gamma}V_{t+1}(s)^{-\gamma}$.
+   Then $\partial V_{t+1}/\partial C_{t+1} = (1-\delta)V_{t+1}^{1/\psi}C_{t+1}^{-1/\psi}$. Chain the three:
+   $\SDF{M_{t+1}} = \delta (C_{t+1}/C_t)^{-1/\psi}(V_{t+1}/\mathit{CE}_t)^{1/\psi - \gamma}$.
+3. $V_t$ is homogeneous of degree one in the whole consumption stream, so $V_t$ equals the sum of each future
+   consumption times its marginal value. Divide by $\partial V_t/\partial C_t$: the price of the claim to all
+   consumption after today, $P_{c,t}$, satisfies $P_{c,t} + C_t = V_t^{1-1/\psi}C_t^{1/\psi}/(1-\delta)$.
+4. Put this in the first line of the preferences: $\delta\,\mathit{CE}_t^{1-1/\psi} = (1-\delta)P_{c,t}C_t^{-1/\psi}$.
+   The return on the claim, $(P_{c,t+1} + C_{t+1})/P_{c,t}$, is then
+   $e^{\Ret{r_{c,t+1}}} = \delta^{-1}(V_{t+1}/\mathit{CE}_t)^{1-1/\psi}(C_{t+1}/C_t)^{1/\psi}$.
+5. Solve step 4 for $(V_{t+1}/\mathit{CE}_t)^{1-1/\psi}$ and raise it to the power
+   $(1/\psi - \gamma)/(1 - 1/\psi) = \theta_{\text{EZ}} - 1$. Put that into step 2 and take logs.
+
+</details>
+
+### The dynamics
+
+The model runs in months, with four independent standard normal shocks:
+
+$$
+\begin{aligned}
+\Delta c_{t+1} &= \mu_c + \Signal{x_t} + \sigma_t\eta_{t+1}, \\
+\Signal{x_{t+1}} &= \phi_x\Signal{x_t} + \varphi_e\sigma_t e_{t+1}, \\
+\sigma^2_{t+1} &= \bar\sigma^2 + \phi_\sigma(\sigma^2_t - \bar\sigma^2) + \sigma_w w_{t+1}, \\
+\Delta d_{t+1} &= \mu_d + \beta_{d,x}\Signal{x_t} + \beta_{d,\eta}\sigma_t\eta_{t+1} \\
+&\quad + \varphi_d\sigma_t u_{t+1}.
+\end{aligned}
+$$
+
+Here $\bar\sigma^2$ is a parameter, the long-run mean of $\sigma^2_t$, not a sample mean. Volatility itself moves
+slowly, with $\phi_\sigma = 0.999$ in BKY. Dividends load on $\Signal{x_t}$ with leverage $\beta_{d,x} = 2.5$ (BKY) or
+3 (BY), so the stock market feels long-run growth more than consumption does.
+
+### The log-linear solution
+
+Linearise the return on wealth as in [Chapter 10](/empirical-finance-lbs/chapters/10-campbell-shiller-decomposition/),
+with the log price–consumption ratio $\Signal{pc_t}$ in place of $\Signal{pd_t}$:
+$\Ret{r_{c,t+1}} \approx \kappa_c + \rho_c\Signal{pc_{t+1}} + \Delta c_{t+1} - \Signal{pc_t}$. Guess that the ratio
+is linear in the two states, $\Signal{pc_t} = A_0 + A_1\Signal{x_t} + A_2\sigma^2_t$.
+
+Price wealth with its own return: $\mathbb{E}_t[e^{\SDF{m_{t+1}} + \Ret{r_{c,t+1}}}] = 1$. The exponent is
+
+$$
+\begin{aligned}
+& \SDF{m_{t+1}} + \Ret{r_{c,t+1}} \\
+& \quad = \theta_{\text{EZ}}\big[\log\delta + \kappa_c + (1 - 1/\psi)\Delta c_{t+1} \\
+& \qquad + \rho_c\Signal{pc_{t+1}} - \Signal{pc_t}\big].
+\end{aligned}
+$$
+
+Given the states, it is normal, so its mean plus half its variance must be zero, whatever $\Signal{x_t}$ is. Only
+the mean depends on $\Signal{x_t}$. Collect its $\Signal{x_t}$ terms: $(1 - 1/\psi)$ from growth,
+$\rho_c A_1\phi_x$ from the next ratio and $-A_1$ from today's. They must cancel:
+
+$$
+A_1 = \frac{1 - 1/\psi}{1 - \rho_c\phi_x}.
+$$
+
+The $\sigma^2_t$ terms give $A_2$, and the constants give $A_0$, in the same way (Bansal, Kiku & Yaron, pdf p. 8).
+Each claim's $\rho_c$ and $\kappa_c$ come from its own mean ratio, so the library solves for them together. In BKY,
+$\rho_c = 0.9987$ and $A_1 = 12.70$.
+
+The sign of $A_1$ is the sign of $1 - 1/\psi$. Good news about growth does two things. It raises future cash flows,
+which raises prices. It also raises interest rates, here by $1/\psi = 0.67$ times $\Signal{x_t}$, which lowers them.
+With $\psi > 1$ the first effect wins, so prices rise with $\Signal{x_t}$ (Bansal, Kiku & Yaron, pdf p. 8). At
+$\psi = 1$ the two cancel (Beeler & Campbell, pdf p. 3). Below 1, good news lowers the price of wealth.
+
+### Three prices of risk
+
+The surprise in $\SDF{m_{t+1}}$ comes from the surprises in $\Delta c_{t+1}$ and $\Ret{r_{c,t+1}}$, and so from the three
+shocks that move them. Collect them:
+
+$$
+\begin{aligned}
+\SDF{m_{t+1}} - \mathbb{E}_t\SDF{m_{t+1}} = {} & -\lambda_\eta\sigma_t\eta_{t+1} \\
+& - \lambda_e\sigma_t e_{t+1} \\
+& - \lambda_w\sigma_w w_{t+1},
+\end{aligned}
+$$
+
+with $\lambda_\eta = \gamma$, $\lambda_e = (1 - \theta_{\text{EZ}})\rho_c A_1\varphi_e$ and
+$\lambda_w = (1 - \theta_{\text{EZ}})\rho_c A_2$ (Bansal, Kiku & Yaron, pdf p. 9).
+
+<details>
+<summary>Where the three prices come from</summary>
+
+The surprise in $\Ret{r_{c,t+1}}$ is $\sigma_t\eta_{t+1} + \rho_c A_1\varphi_e\sigma_t e_{t+1} + \rho_c A_2\sigma_w w_{t+1}$:
+growth, plus the change in the next ratio. In $\SDF{m_{t+1}}$, $\eta_{t+1}$ enters through growth with weight
+$-\theta_{\text{EZ}}/\psi$ and through the return with weight $\theta_{\text{EZ}} - 1$. The sum is
+$\theta_{\text{EZ}}(1 - 1/\psi) - 1 = (1 - \gamma) - 1 = -\gamma$. The other two shocks enter only through the
+return, with weight $\theta_{\text{EZ}} - 1$.
+
+</details>
+
+Under power utility $\theta_{\text{EZ}} = 1$, so $\lambda_e = \lambda_w = 0$: only this month's consumption shock is
+priced. Since $(1 - \theta_{\text{EZ}})(1 - 1/\psi) = \gamma - 1/\psi$, the price of long-run risk $\lambda_e$ is
+positive only when $\gamma > 1/\psi$. In BKY, $\lambda_\eta = 10$, $\lambda_e = 13.5$ and $\lambda_w$ is about
+$-57{,}000$. That last number multiplies the tiny $\sigma_w = 2.8 \times 10^{-6}$; its sign says that a rise in
+volatility is a bad state.
+
+### The equity premium
+
+The market's log return has surprises $\beta_{m,\eta}\sigma_t\eta_{t+1} + \beta_{m,e}\sigma_t e_{t+1} +
+\beta_{m,w}\sigma_w w_{t+1}$ plus its own dividend shock. Write the pricing rule for the market and for the
+risk-free asset in logs, as in Chapter 35, and subtract:
+
+$$
+\begin{aligned}
+& \mathbb{E}_t[\Ret{r_{m,t+1}} - \Rf{r^f_t}] + \tfrac12\operatorname{Var}_t(\Ret{r_{m,t+1}}) \\
+& \quad = \beta_{m,\eta}\lambda_\eta\sigma^2_t + \beta_{m,e}\lambda_e\sigma^2_t \\
+& \qquad + \beta_{m,w}\lambda_w\sigma^2_w.
+\end{aligned}
+$$
+
+The market's beta on long-run news is $\beta_{m,e} = \rho_m A_{1,m}\varphi_e$, with
+$A_{1,m} = (\beta_{d,x} - 1/\psi)/(1 - \rho_m\phi_x)$: leverage makes it large (Bansal, Kiku & Yaron, pdf p. 23).
+
+At $\sigma^2_t = \bar\sigma^2$, BKY gives a premium of 6.42% a year and a risk-free rate of 1.28%. The three terms are
+1.62, 2.05 and 2.76 points: 25%, 32% and 43% of the premium, the split Bansal, Kiku & Yaron report (pdf p. 12). BY
+gives 5.54% and 2.58%. Now keep BY's $\gamma = 10$ and set $\psi = 1/\gamma$, power utility. The premium falls to
+0.00% and the risk-free rate jumps to 16.75%. Both puzzles of Chapter 35 come back.
+
+In the language of [Chapter 11](/empirical-finance-lbs/chapters/11-cash-flow-and-discount-rate-news/), $\Signal{x_t}$ moves
+cash-flow news and $\sigma^2_t$ moves discount-rate news. BKY's slower volatility gives discount rates a larger role
+than BY (Beeler & Campbell, pdf pp. 4–5).
+
+<Callout type="note" title="The symbols">
+The curriculum writes $\mu$, $\theta$, $\rho$ and $\varphi_e$; the papers also write $\kappa_1$. Here the mean is
+$\mu_c$, as in Chapter 35. $\theta_{\text{EZ}}$ keeps its subscript because $\theta$ is the GMM parameter vector, the
+persistence is $\phi_x$ because $\rho$ is a Campbell–Shiller constant, and $\kappa_1$ is $\rho_c$, the Chapter 10
+constant of the consumption claim. $\varphi_e$ stays, always with its subscript, so it never reads as the filter
+weight $\varphi$ of Chapter 36. All rates are
+log real rates; annual figures are 12 times the monthly ones. The premium includes the half variance, as in
+Bansal, Kiku & Yaron's eq. (10), pdf p. 9. Both papers are 2012 *Critical Finance Review* articles; pages are those
+of their working papers.
+</Callout>
+
+### Can the data see it?
+
+Two tests. First, the variance ratio. If $\Signal{x_t}$ is there, long-horizon growth should vary more than short
+horizons suggest. Our data give $\mathit{VR}(10) = 1.61$; the model's 10,000-year path gives 2.63 for BKY and 3.26 for
+BY. But one century is short. In 1,000 seeded samples of 96 years, 21.3% of BKY samples and 8.3% of BY samples have
+a $\mathit{VR}(10)$ at or below 1.61. The ratio cannot tell BKY from the data.
+
+Second, the test of Beeler & Campbell (pdf pp. 12–16). If prices rise with $\Signal{x_t}$, the price–dividend ratio
+should forecast consumption growth. Regress growth over the next $k$ years on $\Signal{pd_t}$. On our data, 1930 to
+2025, the one-year slope is 0.006 ($t = 0.80$, Newey–West with $k$ lags) and the $R^2$ is 0.018. At five years the
+slope is $-0.025$ ($t = -1.61$) and the $R^2$ 0.068, with the wrong sign. In the model's long path, the one-year
+$R^2$ is 0.387 for BY and 0.043 for BKY.
+
+Beeler & Campbell report population $R^2$ of 0.390 at one year and 0.373 at five for BY, against 0.068 and 0.000
+in their data, 1930–2006 (theirs, Table VI, pdf p. 41). Over their years, our data give 0.072 at one year. In our
+1,000 seeded samples, no BY sample has a one-year $R^2$ as low as our 0.018. For BKY, 18.7% do.
+
+Bansal, Kiku & Yaron answer that the price–dividend ratio mixes two states, so it is a weak proxy for
+$\Signal{x_t}$. With the risk-free rate added in a VAR, they find a consumption $R^2$ of 26% at one year in their data
+(theirs, pdf pp. 12–13).
+
+<Callout type="warning" title="What the evidence can and cannot show">
+The data reject BY's large, visible $\Signal{x_t}$. They do not reject BKY, but only because BKY makes $\Signal{x_t}$
+small and gives volatility much of the work. The tests have little power: a 96-year sample is short next to a
+signal with a half-life of two years and a share of 2.8% of the variance. The estimates are point values with
+Newey–West standard errors from one sample, and the 1,000 seeded samples assume the model is true.
+</Callout>
+
+## <span class="section-tag">Playground</span> Tune the hidden signal
+
+Go back to the widget above. The calibration buttons reset both sliders. The persistence slider changes the model's
+consumption, so both panels move. The elasticity slider changes only prices: consumption does not depend on $\psi$.
+
+<p class="try-this"><strong>Try this:</strong> in BKY, drag $\phi_x$ down from 0.975 to 0.95. The premium falls
+from 6.42% to 2.88%, and the model's variance ratio sinks toward the data. Push it to 0.99, and the premium is
+15.41%. Persistence is where the premium comes from, and also what makes it visible.</p>
+
+<p class="try-this"><strong>Try this too:</strong> keep BKY and move $\psi$ from 1.5 to 0.9. $A_1$ turns negative
+($-4.28$), the premium falls to 5.17% and the risk-free rate rises to 3.00%. Then press "New seed" twice. In
+seed 3 the century's $\mathit{VR}(10)$ is 1.52, below the data, although the model is true.</p>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="Under power utility, which shocks carry a price of risk in the long-run risks model?"
+  options={["All three: $\\eta$, $e$ and $w$", "Only the shock to this month's consumption, $\\eta$", "Only the long-run shock $e$", "None"]}
+  answer={1}
+  explanation="Power utility sets $\theta_{\text{EZ}} = 1$, and $\lambda_e$ and $\lambda_w$ both carry the factor $1 - \theta_{\text{EZ}}$. Only $\lambda_\eta = \gamma$ is left."
+/>
+
+<Quiz
+  client:visible
+  question="Why does $\psi > 1$ make good news about growth raise the price of wealth?"
+  options={["It lowers risk aversion", "The rise in future consumption outweighs the rise in interest rates", "It makes $x_t$ more persistent", "It removes stochastic volatility"]}
+  answer={1}
+  explanation="$A_1 = (1 - 1/\psi)/(1 - \rho_c\phi_x)$ is positive when $\psi > 1$. Higher growth raises the cash flows and raises rates by $1/\psi$ times $x_t$; with $\psi > 1$ the cash-flow effect wins."
+/>
+
+<Quiz
+  client:visible
+  question="On our data, the price–dividend ratio barely forecasts consumption growth. What does that do to the BKY calibration?"
+  options={["It rejects BKY, as it rejects BY", "It does not reject BKY: in 18.7% of its 96-year samples the one-year $R^2$ is as low as ours", "It proves that $x_t$ does not exist", "It shows that $\\psi < 1$"]}
+  answer={1}
+  explanation="BKY makes $x_t$ small and lets volatility move prices, so its $R^2$ is low too. A weak test that fails to reject is not evidence that $x_t$ exists."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- Epstein–Zin preferences give risk aversion $\gamma$ and the elasticity $\psi$ separate jobs, and add the return on
+  wealth to the SDF with weight $\theta_{\text{EZ}} - 1$.
+- A small, persistent $\Signal{x_t}$ is priced at $\lambda_e = (1 - \theta_{\text{EZ}})\rho_c A_1\varphi_e$, which is
+  positive only when $\gamma > 1/\psi$.
+- With $\psi > 1$, prices rise with expected growth, and leverage makes the market's beta on long-run news large.
+- BKY gives a premium of 6.42% and a risk-free rate of 1.28%; power utility gives almost no premium.
+- Our data reject BY's visible $\Signal{x_t}$ but cannot reject BKY's faint one: the evidence is weak either way.
+
+**Next up:** "Rare disasters and jump risk" asks whether a small chance of a large fall in consumption can do the
+same job.
+
+### Further reading
+
+- Bansal, Kiku & Yaron (2012)
+- Beeler & Campbell (2012)
+- Campbell (2018), Ch. 6
