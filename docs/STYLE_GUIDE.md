@@ -246,6 +246,20 @@ equation's shocks and $\gamma$ is risk aversion.
 | $\mu_c$, $\sigma_c$ | — | Mean and standard deviation of log consumption growth $\Delta c_{t+1}$ (Chapters 35–36), as in $r^f_t = -\log\delta + \gamma\mu_c - \tfrac12\gamma^2\sigma_c^2$ and $\sigma(M)/\mathbb{E}[M] = \sqrt{e^{\gamma^2\sigma_c^2} - 1} \approx \gamma\sigma_c$. The curriculum writes $g$ for the mean; $g$ is the GMM moment function $g(x_t, \theta)$ (Chapter 24). The curriculum's $\delta$ in that formula is a rate of time preference; here it is $-\log\delta$. The subscript $c$ separates them from $\mu$ and $\sigma$, a return's mean and standard deviation, and from the AR(1) intercept $\mu_x$ |
 | $\sigma_i$, $\sigma_{ic}$ | — | Standard deviation of the log return $r_{i,t+1}$ and its covariance with consumption growth, $\sigma_{ic} = \operatorname{Cov}(r_{i,t+1}, \Delta c_{t+1})$ (Chapters 35–36), as in $\mathbb{E}[r_{i,t+1} - r^f_t] + \tfrac12\sigma_i^2 = \gamma\sigma_{ic}$. Lower-case like $\sigma_{\beta\lambda}$ (Chapter 22), so $\sigma_{ic}$ never reads as an entry of the return covariance matrix $\Sigma$. The $c$ is consumption, never an asset index |
 
+### Part X: habits, long-run risk and disasters (Chapters 37–39)
+
+| Symbol | Macro | Meaning |
+|---|---|---|
+| $\pi_D$ | `\Prob` | Chance of a disaster each year (Chapter 39), in $[0, 1)$. The curriculum writes $p$, which is a log price; a probability is $\pi$, as in $\pi(s)$. The subscript $D$ separates it from the state probability $\pi(s)$ and the weights $\pi_t$ |
+| $b_D$ | — | Fraction of consumption a disaster takes (Chapter 39): $\Delta c_{t+1} = \mu_c + \sigma_c\varepsilon_{t+1} + \mathbb{I}_{D,t+1}\log(1 - b_D)$, with $\mu_c$ and $\sigma_c$ of Part IX for normal years. Its $(1 - b_D)^{-\gamma}$ is marginal utility in a disaster, so $\mathbb{E}[M] \propto 1 - \pi_D + \pi_D(1 - b_D)^{-\gamma}$. The curriculum writes $b$, the SDF loadings of Part VI and a predictive slope; it always keeps its subscript |
+| $b_{D,i}$ | — | Fraction of claim $i$'s value a disaster takes (Chapter 39); $b_{D,i} = b_D$ for the claim to consumption. The premium is $\gamma\sigma_{ic}$ plus a disaster part close to $\pi_D b_{D,i}[(1 - b_D)^{-\gamma} - 1]$. The $D$ keeps it apart from an SDF loading $b$ |
+| $\mathbb{I}_{D,t+1}$ | — | Indicator that year $t+1$ holds a disaster, 1 with probability $\pi_D$ (Chapter 39). Not $J$, which is the GMM statistic of Part VI, nor $\mathbf{1}$, the vector of ones |
+| $g_t(\gamma)$ | — | The Euler moment of year $t$, $g_t(\gamma) = e^{-\gamma\Delta c_t}R^e_t$ (Chapter 39), with $R^e_t = e^{r_t} - e^{r^f_t}$ the real excess return: the moment at $t$ of Chapter 24, with $\theta = \gamma$ and $\delta$ dropped, since it scales every $g_t$ alike |
+| $\pi_t$ | `\Prob` | Weight the entropy or empirical likelihood estimator gives year $t$ (Chapter 39), positive and summing to 1, against $1/T$ in a sample mean: $\sum_t \pi_t g_t(\gamma) = 0$. Julliard & Ghosh (2012) write $p_t$, which is a log price. The date $t$ separates it from $\pi(s)$ and $\pi_D$ |
+| $\ell$ | — | Multiplier of the dual problem (Chapter 39): $\pi_t \propto e^{\ell g_t}$ for the entropy weights, $\pi_t = 1/(T(1 + \ell g_t))$ for the empirical likelihood weights. Julliard & Ghosh (2012) write $\lambda$, a risk premium here. Bare, so it never reads as the eigenvalue $\ell_k$, which keeps its index |
+| $\mathit{KL}(\gamma)$ | — | Relative entropy of the weights from equal weights, $\mathit{KL}(\gamma) = \sum_t \pi_t\log(T\pi_t) \ge 0$, minimised over $\pi_t$ (Chapter 39); 0 only when $\pi_t = 1/T$. Julliard & Ghosh (2012) write $K(p, F)$; $K$ counts factors. Not the entropy $L(X)$ of Part III, a property of one variable. Italic letters, as in $\mathit{cc}_k$ |
+| $\mathit{LR}(\gamma)$ | — | Empirical likelihood ratio statistic, $\mathit{LR}(\gamma) = -2\sum_t\log(T\pi_t)$ with the empirical likelihood weights (Chapter 39), compared with $\chi^2_1$. Julliard & Ghosh (2012) write $\mathit{elr}(\gamma)$. Not $J$, the GMM statistic |
+
 ### Bonds and the term structure
 
 | Symbol | Macro | Meaning |
