@@ -100,7 +100,10 @@ describe('chapter 37 prose numbers', () => {
     expect([fixed(DEFAULT_DELTA, 2), fixed(P.delta ** 12, 3)]).toEqual(['0.99', '0.896']);
     expect(pct(annualRate(habitRiskFree(P)), 2)).toBe('0.94');
     expect(fixed(sharpeRatio(long.re), 2)).toBe('0.47');
-    expect(fixed(impliedTimeDiscount(puzzle.moments.mean.rf, puzzle.gamma.fromSharpe, puzzle.moments.mean.dc, puzzle.moments.sd.dc), 3)).toBe('1.245');
+    const matchingDelta = (gamma: number) =>
+      impliedTimeDiscount(puzzle.moments.mean.rf, gamma, puzzle.moments.mean.dc, puzzle.moments.sd.dc);
+    // The table's γ = 20.0, then the γ = 15.0 of chapter 35's table.
+    expect([fixed(matchingDelta(lowest.gamma), 3), fixed(matchingDelta(puzzle.gamma.fromSharpe), 3)]).toEqual(['1.310', '1.245']);
     // The three terms of eq. (12), a year.
     const terms = [-annualRate(Math.log(P.delta)), annualRate(P.gamma * P.mean), annualRate((P.gamma * (1 - P.phi)) / 2)];
     expect([pct(terms[0], 1), pct(terms[1], 2), pct(terms[2], 2)]).toEqual(['11.0', '3.78', '13.85']);
