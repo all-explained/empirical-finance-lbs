@@ -2,7 +2,7 @@
 
 ## Acceptance
 
-Verified on branch `goal/course-site/task-138`, based on `origin/main` `7bddfe4`.
+Verified revision: `5a75b97` (the library commit, rebased on `origin/main` `79b3740`). Verify ran again after the rebase, with the same results. The outcome commit changes only this file.
 
 - [x] Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.
   Evidence: `src/lib/finance/disasters.test.ts` has 23 tests covering all seven exports:
