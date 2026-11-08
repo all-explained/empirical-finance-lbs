@@ -98,6 +98,8 @@ describe('chapter 36 prose numbers', () => {
     expect(annual.gamma / measureStats(full.high.unfiltered).gamma).toBeGreaterThan(10);
     expect(measureStats(postwar.high.annual).gamma / measureStats(postwar.high.unfiltered).gamma).toBeGreaterThan(10);
     const extreme = measureStats(consumptionMeasures(data, 0.8).unfiltered);
+    // "Try this too": a volatility of about 11% a year.
+    expect(pct(extreme.sd)).toBe('10.82');
     expect(extreme.autocorrelation).toBeLessThan(-0.3);
     expect(Math.max(...consumptionMeasures(data, 0.8).unfiltered.dc.map(Math.abs))).toBeGreaterThan(0.2);
     // A correlation of 0.15 over 95 years is about 1.5 standard errors (1/√T) from zero.

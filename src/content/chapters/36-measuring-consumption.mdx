@@ -14,12 +14,13 @@ import { Quiz } from '../../components/ui/Quiz';
 
 <Callout type="note" title="What you need from Chapters 5 and 35">
 - An AR(1) series keeps the share $\phi$ of its last value. Its first-order autocorrelation is $\phi$
-  ([Chapter 5](../05-persistence-ar1-and-var/)).
+  ([Chapter 5](/empirical-finance-lbs/chapters/05-persistence-ar1-and-var/)).
 - With power utility and lognormal consumption and returns, the market's Euler equation gives
   $\mathbb{E}[\Ret{r_{t+1}} - \Rf{r^f_t}] + \tfrac12\sigma_i^2 = \gamma\,\sigma_{ic}$, with $i$ the market. Here
   $\sigma_{ic}$ is the covariance of the market's log return with consumption growth $\Delta c_{t+1}$. So the
   risk aversion $\gamma$ that prices the equity premium is the premium, plus half the variance, over that
-  covariance. Chapter 35, *The equity premium and risk-free rate puzzles*, builds this formula.
+  covariance. [Chapter 35](/empirical-finance-lbs/chapters/35-equity-premium-and-risk-free-rate-puzzles/), *The
+  equity premium and risk-free rate puzzles*, builds this formula.
 </Callout>
 
 ## <span class="section-tag">Hook</span> Is the puzzle in the ruler?
@@ -28,6 +29,8 @@ Take US consumption of nondurable goods and services per person, after inflation
 From 1931 to 2025 its growth has a volatility of 2.08% a year. Its correlation with the real return of the
 stock market is 0.03. Put those numbers into the Euler equation above, and the risk aversion that prices the
 equity premium is 849. A person with that risk aversion would refuse almost any gamble. Nobody is like that.
+The sample starts in 1931, not in 1930 as in Chapter 35, because the unfiltered series of this chapter needs the
+previous year. That is why these numbers differ from the 2.17% and 271 of Chapter 35.
 
 Now look at a different ruler. Kroencke (2017) reports that Savov (2011) used garbage as a measure of
 consumption, and that it prices the equity premium far better (working paper p. 1; page numbers here are
@@ -286,7 +289,7 @@ the weight you choose. The readout compares the two over 1931 to 2025.
 "0.20: averaging". The correlation drops to 0.07, and $\gamma$ is 260.</p>
 
 <p class="try-this"><strong>Try this too:</strong> push the weight to 0.80. $\gamma$ keeps falling, but the
-dashed line now swings by tens of percent a year, and its autocorrelation is strongly negative. No household
+dashed line now has a volatility of about 11% a year, and its autocorrelation is strongly negative. No household
 consumption moves like that. A low $\gamma$ bought with a weight this high is not believable.</p>
 
 So say plainly what our data show. Undoing the smoothing raises the covariance of consumption with stocks, and
@@ -340,8 +343,13 @@ puzzle, not all of it.</Callout>
   From 1953, the fourth-quarter measure gives 100. Neither is a plausible risk aversion, and both depend on
   choices the data do not pin down.
 
-**Next up:** Part X opens with *Internal and external habits*, which changes the investor rather than the data:
-a habit makes the investor fear consumption falls far more than power utility does.
+**Next up:** the puzzle survives better measurement, so Part X keeps the data and changes the model. It offers
+three answers. [Chapter 37](/empirical-finance-lbs/chapters/37-internal-and-external-habits/), *Internal and
+external habits*, changes the investor: a habit makes falls in consumption far more feared than power utility
+does. [Chapter 38](/empirical-finance-lbs/chapters/38-long-run-risk/), *Long-run risk*, makes consumption itself
+riskier than it looks, through a small and persistent part of its growth.
+[Chapter 39](/empirical-finance-lbs/chapters/39-rare-disasters-and-jump-risk/), *Rare disasters and jump risk*,
+adds a small chance of a deep fall in consumption that a century of data may never show.
 
 ### Further reading
 
