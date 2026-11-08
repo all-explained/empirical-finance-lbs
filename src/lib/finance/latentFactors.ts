@@ -92,9 +92,9 @@ function inverseRoot(S: readonly (readonly number[])[]): number[][] {
  * Canonical correlations of two blocks of series, X (T × K_X) and Y (T × K_Y): cc_1 is the highest
  * correlation of any combination X w^X with any combination Y w^Y, and each later cc_k is the highest
  * one among combinations uncorrelated with the earlier ones. The cc_k² are the eigenvalues of
- * Σ_XX⁻¹ Σ_XY Σ_YY⁻¹ Σ_YX, found here with symmetricEigen on the symmetric form BB', with
- * B = Σ_XX^{-1/2} Σ_XY Σ_YY^{-1/2}. Its eigenvectors e_k give w^X_k = Σ_XX^{-1/2} e_k and
- * w^Y_k = Σ_YY⁻¹ Σ_YX w^X_k / cc_k (undefined when cc_k = 0). Replacing X by X G' for any invertible G
+ * Σ_XX⁻¹ Σ_XY Σ_YY⁻¹ Σ_YX, found here with symmetricEigen on the symmetric form ΨΨ', with
+ * Ψ = Σ_XX^{-1/2} Σ_XY Σ_YY^{-1/2}. Its eigenvectors e_k give w^X_k = Σ_XX^{-1/2} e_k and
+ * w^Y_k = Σ_YY⁻¹ Σ_YX w^X_k / cc_k (undefined when cc_k = 0). Replacing X by X H' for any invertible H
  * (a rotation of the block) leaves the cc_k unchanged, so they compare two factor sets that are known
  * only up to a rotation. Needs columns that are not collinear within either block.
  */
@@ -109,9 +109,9 @@ export function canonicalCorrelations(
   const Syy = S.slice(kx).map((row) => row.slice(kx));
   const xRoot = inverseRoot(Sxx);
   const yRoot = inverseRoot(Syy);
-  // BB' is symmetric to the last bit, however badly scaled the blocks are.
-  const B = matMul(matMul(xRoot, Sxy), yRoot);
-  const eig = symmetricEigen(matMul(B, transpose(B)));
+  // ΨΨ' is symmetric to the last bit, however badly scaled the blocks are.
+  const Psi = matMul(matMul(xRoot, Sxy), yRoot);
+  const eig = symmetricEigen(matMul(Psi, transpose(Psi)));
   const m = Math.min(kx, Syy.length);
   const correlations = eig.values.slice(0, m).map((v) => Math.sqrt(Math.max(v, 0)));
   const xWeights = eig.vectors.slice(0, m).map((e) => times(xRoot, e));
