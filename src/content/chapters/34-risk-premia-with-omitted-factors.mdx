@@ -252,13 +252,13 @@ no harm. Step 3 gives an $R^2$ of 0.98, 0.99 and 0.95: the components span all t
 
 All numbers are in % a month, with the three-pass standard error in parentheses. Each three-pass premium is within
 half a standard error of the factor's mean, as it should be for a traded factor. With $K = 3$ they are 0.549%,
-0.153% and 0.340%, about the same. With too few components, the bias of the last step above shows: HML's premium is −0.030% with one
+0.153% and 0.340%, about the same. With too few components, the too-few case of step 5 above shows: HML's premium is −0.030% with one
 component, whose $R^2$ for HML is 0.01, and 0.174% with two.
 
 More components are not free in a sample of 25 portfolios, though. Going from six to seven moves Mkt-RF's premium
 from 0.536% to 0.611%, because the seventh term is 0.075%: still under half a standard error.
 
-Now add the 30 industry portfolios of `ff30-industry-monthly`, for 55 portfolios. HML alone in the two-pass gets
+Now add Kenneth French's 30 industry portfolios, for 55 portfolios. HML alone in the two-pass gets
 −0.512% a month. The three-pass estimates with $K = 5$ are 0.582%, 0.138% and 0.106%. Mkt-RF and SMB stay close to
 their means, but HML's premium is 1.9 standard errors below its mean of 0.294%, although the components span 84% of
 its variance. The industries bring strong comovement that is not value, and their mean returns pull the second step
