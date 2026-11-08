@@ -5,7 +5,7 @@ import type { Series } from '../data/series';
 import { sampleCovariance } from '../finance/portfolio';
 import { normalRng } from '../math/rng';
 import {
-  directionVariance, ff25Returns, gswYieldChanges, pca, projectOnDirection, reconstruct, reconstructionError,
+  directionVariance, ff25Returns, gswYieldChanges, gswYields, pca, projectOnDirection, reconstruct, reconstructionError,
   rotatePair, scores,
 } from './pca';
 
@@ -136,6 +136,15 @@ describe('data panels', () => {
     expect([p.X.length, p.names.length, p.dates[0], p.names[0], p.names[24]]).toEqual([1202, 25, '1926-07-01', 'ME1-BM1', 'ME5-BM5']);
     const raw = (ff25 as unknown as Series<'ff25-size-bm-monthly'>).rows[0];
     p.X[0].forEach((v, i) => expect(v).toBeCloseTo((raw[i + 1] as number) / 100, 12));
+  });
+
+  test('gswYields: decimal yields in maturity order', () => {
+    const s = gsw as unknown as Series<'gsw-zero-coupon'>;
+    const p = gswYields(s);
+    expect([p.X.length, p.names.length, p.dates[0], p.names[0], p.names[29]]).toEqual([s.rows.length, 30, '1985-11-29', 'SVENY01', 'SVENY30']);
+    // The first source row: SVENY01 = 7.7914 and SVENY30 = 10.3233 percent.
+    expect(p.X[0][0]).toBeCloseTo(0.077914, 12);
+    expect(p.X[0][29]).toBeCloseTo((s.rows[0][30] as number) / 100, 12);
   });
 
   test('gswYieldChanges: first monthly change of every maturity', () => {

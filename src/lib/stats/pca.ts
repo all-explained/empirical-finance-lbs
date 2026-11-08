@@ -101,9 +101,14 @@ export function ff25Returns(series: Series<'ff25-size-bm-monthly'>): Panel {
   return panel(series);
 }
 
+/** The 1- to 30-year GSW zero-coupon yields (continuously compounded), percent converted to decimals. */
+export function gswYields(series: Series<'gsw-zero-coupon'>): Panel {
+  return panel(series);
+}
+
 /** Monthly changes of the 1- to 30-year GSW zero-coupon yields, in decimals (0.0001 = 1 basis point). */
 export function gswYieldChanges(series: Series<'gsw-zero-coupon'>): Panel {
-  const levels = panel(series);
+  const levels = gswYields(series);
   return {
     dates: levels.dates.slice(1),
     names: levels.names,
