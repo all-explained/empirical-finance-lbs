@@ -207,6 +207,7 @@ flowchart TD
     TASK_129["TASK-129 Chapter 35: The equity premium and risk-free rate puzzles"]
     TASK_130["TASK-130 Chapter 36: Measuring consumption"]
     TASK_131["TASK-131 Orchestrator reads Part IX and signs it off"]
+    TASK_150["TASK-150 Part IX sign-off fixes: bridge to Part X, chapter 36 wording, chapter 37 number, stale notes"]
   end
   subgraph M_12["M-12 · Part X: Habits, long-run risk and disasters"]
     TASK_038["TASK-038 Plan: decompose M-12"]
