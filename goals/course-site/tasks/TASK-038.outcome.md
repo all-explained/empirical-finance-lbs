@@ -72,7 +72,7 @@ Deviations:
 - No owner-review task. The spec asks for a `delivery: manual` task in which the owner reads Part X. The owner rule of 2026-10-23 (in `goal rules`) forbids "owner reads and approves" gates. So `part-10-signoff` is a `kind: gate` read-through that the orchestrator signs off, as TASK-131 does for Part IX. It is last in the graph.
 - Routes. The proposal format has no `route` field. `policy.default_route` is claude opus high, which is right for all seven tasks: three libraries, three chapters and the gate. No data task needs codex.
 
-Verified revision: the proposal at this PR's head, on top of `origin/main` 89cb6ba.
+Verified revision: the proposal at this PR's head, on top of `origin/main` 2e7ac3a. Rechecked after rebasing onto it: TASK-135 is still the highest ID, so the projected IDs TASK-136 to TASK-142 hold.
 
 Proposed follow-ups:
 - Orchestrator: after apply, approve and dispatch TASK-136, TASK-137 and TASK-138 at once.
