@@ -155,3 +155,13 @@ export function symmetricEigen(A: readonly (readonly number[])[]): SymmetricEige
   });
   return { values: order.map((i) => a[i][i]), vectors };
 }
+
+/**
+ * A^p = Q Λ^p Q' for a symmetric positive definite A = Q Λ Q' and any real p, such as the square
+ * root (p = 1/2) or the inverse square root (p = -1/2). Throws unless every eigenvalue is positive.
+ */
+export function symmetricPower(A: readonly (readonly number[])[], p: number): Matrix {
+  const { values, vectors } = symmetricEigen(A);
+  if (!(values[values.length - 1] > 0)) throw new RangeError('symmetricPower: matrix must be positive definite');
+  return A.map((_, i) => A.map((__, j) => values.reduce((sum, s, k) => sum + s ** p * vectors[k][i] * vectors[k][j], 0)));
+}

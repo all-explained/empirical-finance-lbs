@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { identity, inverse, matMul, matPow, solve, symmetricEigen, transpose } from './linalg';
+import { identity, inverse, matMul, matPow, solve, symmetricEigen, symmetricPower, transpose } from './linalg';
 import { normalRng } from './rng';
 
 function expectMatrixClose(actual: number[][], expected: number[][], digits: number) {
@@ -176,5 +176,29 @@ describe('symmetricEigen', () => {
   it('rejects a non-symmetric or non-square matrix', () => {
     expect(() => symmetricEigen([[1, 2], [3, 4]])).toThrow(RangeError);
     expect(() => symmetricEigen([[1, 2, 3]])).toThrow(RangeError);
+  });
+});
+
+describe('symmetricPower', () => {
+  it('matches the closed form for [5 4; 4 5]', () => {
+    // Eigenvalues 9 and 1 with vectors [1, 1]/√2 and [1, -1]/√2, so A^{1/2} = [2 1; 1 2] and A^{-1/2} is its inverse.
+    const A = [[5, 4], [4, 5]];
+    expectMatrixClose(symmetricPower(A, 0.5), [[2, 1], [1, 2]], 14);
+    expectMatrixClose(symmetricPower(A, -0.5), [[2 / 3, -1 / 3], [-1 / 3, 2 / 3]], 14);
+    expectMatrixClose(symmetricPower(A, 1), A, 13);
+  });
+
+  it('gives A^{1/2} A^{1/2} = A and A^{-1/2} A A^{-1/2} = I for a random 5×5 covariance matrix', () => {
+    const B = randomMatrix(7, 5, 5);
+    const A = matMul(B, transpose(B));
+    const root = symmetricPower(A, 0.5);
+    const inverseRoot = symmetricPower(A, -0.5);
+    expectMatrixClose(matMul(root, root), A, 11);
+    expectMatrixClose(matMul(matMul(inverseRoot, A), inverseRoot), identity(5), 11);
+  });
+
+  it('rejects a matrix that is not positive definite', () => {
+    expect(() => symmetricPower([[1, 2], [2, 4]], 0.5)).toThrow(/positive definite/);
+    expect(() => symmetricPower([[1, 0], [0, -1]], -0.5)).toThrow(/positive definite/);
   });
 });

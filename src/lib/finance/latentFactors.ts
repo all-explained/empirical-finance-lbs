@@ -5,7 +5,7 @@
 //
 // Every estimate here uses the whole sample: the components are chosen with the same returns they
 // then price, so an in-sample fit flatters them (Chapters 28 and 30 make this point).
-import { inverse, matMul, symmetricEigen, transpose } from '../math/linalg';
+import { inverse, matMul, symmetricEigen, symmetricPower, transpose } from '../math/linalg';
 import { pca, scores } from '../stats/pca';
 import { crossSectionalRegression, type CrossSectionalRegression } from './crossSection';
 import { sampleCovariance } from './portfolio';
@@ -81,13 +81,6 @@ export function rotateFactors(
   return { beta: matMul(beta, inverse(H)), factors: matMul(factors, transpose(H)) };
 }
 
-// S^{-1/2} = Q L^{-1/2} Q' for a symmetric positive definite S = QLQ'.
-function inverseRoot(S: readonly (readonly number[])[]): number[][] {
-  const { values, vectors } = symmetricEigen(S);
-  if (!(values[values.length - 1] > 0)) throw new RangeError('The columns of a block are collinear');
-  return S.map((_, i) => S.map((_, j) => vectors.reduce((sum, q, k) => sum + (q[i] * q[j]) / Math.sqrt(values[k]), 0)));
-}
-
 /**
  * Canonical correlations of two blocks of series, X (T × K_X) and Y (T × K_Y): cc_1 is the highest
  * correlation of any combination X w^X with any combination Y w^Y, and each later cc_k is the highest
@@ -107,8 +100,9 @@ export function canonicalCorrelations(
   const Sxx = S.slice(0, kx).map((row) => row.slice(0, kx));
   const Sxy = S.slice(0, kx).map((row) => row.slice(kx));
   const Syy = S.slice(kx).map((row) => row.slice(kx));
-  const xRoot = inverseRoot(Sxx);
-  const yRoot = inverseRoot(Syy);
+  // Collinear columns within a block make Sxx or Syy singular, and symmetricPower throws.
+  const xRoot = symmetricPower(Sxx, -0.5);
+  const yRoot = symmetricPower(Syy, -0.5);
   // ΨΨ' is symmetric to the last bit, however badly scaled the blocks are.
   const Psi = matMul(matMul(xRoot, Sxy), yRoot);
   const eig = symmetricEigen(matMul(Psi, transpose(Psi)));

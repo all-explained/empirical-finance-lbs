@@ -9,8 +9,9 @@
 //
 // Arrays: Z[t] is Z_t, the N × dim z matrix whose row i is z_{it}'. excess[t] is R^e_{t+1}, the N
 // excess returns from t to t+1, so Z[t] and excess[t] share the index t. Returns are decimals.
-import { inverse, matMul, solve, symmetricEigen, transpose, type Matrix } from '../math/linalg';
+import { identity, inverse, matMul, solve, symmetricEigen, symmetricPower, transpose, type Matrix } from '../math/linalg';
 import { mulberry32, normalRng } from '../math/rng';
+import { rotateFactors } from './latentFactors';
 import { sampleCovariance, sampleMeans } from './portfolio';
 
 export interface IpcaPanel {
@@ -69,12 +70,6 @@ const matVec = (A: readonly (readonly number[])[], v: readonly number[]) => A.ma
 
 function maxAbsDiff(A: readonly (readonly number[])[], B: readonly (readonly number[])[]): number {
   return A.reduce((m, row, i) => row.reduce((r, v, j) => Math.max(r, Math.abs(v - B[i][j])), m), 0);
-}
-
-// A^p = Σ_k s_k^p v_k v_k' for a symmetric positive definite A with eigenpairs (s_k, v_k).
-function symmetricPower(A: readonly (readonly number[])[], p: number): Matrix {
-  const { values, vectors } = symmetricEigen(A);
-  return A.map((_, i) => A.map((__, j) => values.reduce((sum, s, k) => sum + s ** p * vectors[k][i] * vectors[k][j], 0)));
 }
 
 // Columns of M rotated to an orthonormal basis of the same column space: M (M'M)^{-1/2}.
@@ -252,19 +247,16 @@ export function ipcaFit(
     converged = change < tolerance;
   }
 
-  // Normalisation (p. 13). Each step maps Γ_β → Γ_βG and f → G⁻¹f, so Γ_βf, Γ_α and the fit stay the same.
-  // 1. Γ_β'Γ_β = I with G = (Γ_β'Γ_β)^{-1/2}.
-  const root = symmetricPower(matMul(transpose(gammaBeta), gammaBeta), 0.5);
-  gammaBeta = matMul(gammaBeta, inverse(root));
-  factors = factors.map((f) => matVec(root, f));
-  // 2. Diagonal factor covariance, descending: G = V, the eigenvectors of the factors' covariance.
-  const { vectors } = symmetricEigen(sampleCovariance(factors));
-  gammaBeta = matMul(gammaBeta, transpose(vectors));
-  factors = factors.map((f) => vectors.map((v) => dot(v, f)));
-  // 3. Non-negative factor means: flip the sign of factor k and of column k of Γ_β where needed.
+  // Normalisation (p. 13). Each step is a rotateFactors call, (Γ_β, f) → (Γ_β H⁻¹, H f), so Γ_βf, Γ_α and
+  // the fit stay the same.
+  // 1. Γ_β'Γ_β = I with H = (Γ_β'Γ_β)^{1/2}.
+  ({ beta: gammaBeta, factors } = rotateFactors(gammaBeta, factors, symmetricPower(matMul(transpose(gammaBeta), gammaBeta), 0.5)));
+  // 2. Diagonal factor covariance, descending: H is the matrix whose rows are the eigenvectors of the
+  //    factors' covariance.
+  ({ beta: gammaBeta, factors } = rotateFactors(gammaBeta, factors, symmetricEigen(sampleCovariance(factors)).vectors));
+  // 3. Non-negative factor means: H is diagonal with -1 for each factor whose mean is negative and 1 otherwise.
   const signs = sampleMeans(factors).map((mean) => (mean < 0 ? -1 : 1));
-  gammaBeta = gammaBeta.map((row) => row.map((v, k) => signs[k] * v));
-  factors = factors.map((f) => f.map((v, k) => signs[k] * v));
+  ({ beta: gammaBeta, factors } = rotateFactors(gammaBeta, factors, identity(K).map((row, k) => row.map((v) => signs[k] * v))));
 
   return {
     gammaBeta,
