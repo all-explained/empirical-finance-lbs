@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { forwardSums, simulatePredictive } from '../finance/predictive';
-import { autocorrelations, bartlettWeights, overlapCorrelation, overlapMeanVariance } from './autocorr';
+import { arithmeticMean, sampleVariance } from '../finance/returns';
+import { normalRng } from '../math/rng';
+import { autocorrelations, bartlettWeights, overlapCorrelation, overlapMeanVariance, varianceRatio } from './autocorr';
 import { ols } from './ols';
 
 describe('autocorrelations', () => {
@@ -84,5 +86,32 @@ describe('overlapMeanVariance', () => {
     // forwardSums(r, 6) on 60 draws gives n = 54 sums; Monte Carlo error is about 7% with 400 draws.
     expect(v / overlapMeanVariance(6, 54, 1)).toBeGreaterThan(0.8);
     expect(v / overlapMeanVariance(6, 54, 1)).toBeLessThan(1.2);
+  });
+});
+
+describe('varianceRatio', () => {
+  it('matches a hand computation from the autocorrelations of 1..5', () => {
+    // rho_1 = 0.4, rho_2 = -0.1: VR(2) = 1 + 2(1/2)(0.4); VR(3) = 1 + 2[(2/3)(0.4) + (1/3)(-0.1)].
+    expect(varianceRatio([1, 2, 3, 4, 5], 1)).toBe(1);
+    expect(varianceRatio([1, 2, 3, 4, 5], 2)).toBeCloseTo(1.4, 14);
+    expect(varianceRatio([1, 2, 3, 4, 5], 3)).toBeCloseTo(1 + 2 * (0.8 / 3 - 0.1 / 3), 14);
+    expect(() => varianceRatio([1, 2, 3], 0)).toThrow(RangeError);
+    expect(() => varianceRatio([1, 2, 3], 4)).toThrow(RangeError);
+  });
+
+  it('is within 0.05 of 1 for 100,000 seeded white-noise draws, at 12 and 60 periods', () => {
+    // Its standard error is about sqrt(4k/(3n)): 0.013 at k = 12 and 0.028 at k = 60.
+    const normal = normalRng(11);
+    const noise = Array.from({ length: 100_000 }, () => normal());
+    expect(Math.abs(varianceRatio(noise, 12) - 1)).toBeLessThan(0.05);
+    expect(Math.abs(varianceRatio(noise, 60) - 1)).toBeLessThan(0.05);
+  });
+
+  it('agrees with the ratio of sample variances of overlapping sums up to end effects', () => {
+    const { x } = simulatePredictive({ T: 20000, phi: 0.9, seed: 5 });
+    const sums = forwardSums([0, ...x], 12);
+    const direct = sampleVariance(sums) / (12 * sampleVariance(x));
+    expect(Math.abs(varianceRatio(x, 12) / direct - 1)).toBeLessThan(0.01);
+    expect(arithmeticMean(sums)).toBeCloseTo(12 * arithmeticMean(x), 1);
   });
 });

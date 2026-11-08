@@ -43,3 +43,18 @@ export function overlapMeanVariance(k: number, n: number, sigma2: number): numbe
   for (let j = 1; j < Math.min(k, n); j++) sum += 2 * (n - j) * (k - j);
   return (sigma2 / n ** 2) * sum;
 }
+
+/** Variance ratio VR(k) = Var(x_{t+1} + … + x_{t+k}) / (k Var(x_t)) of a stationary series, for k ≥ 1.
+ * For any covariance-stationary x it equals Σ_{|j|<k} (1 − |j|/k) ρ_j = 1 + 2 Σ_{j=1}^{k−1} (1 − j/k) ρ_j,
+ * the Bartlett weights with L = k − 1 on the autocorrelations. This estimator plugs in the sample ρ_j, so it
+ * differs from the ratio of the sample variances of overlapping k-sums only by end effects of order k/n.
+ * VR is 1 for white noise, above 1 when positive autocorrelations pile up at long horizons, below 1 under mean
+ * reversion. overlapMeanVariance does not give it: that is the variance of a mean of overlapping sums.
+ */
+export function varianceRatio(x: readonly number[], horizon: number): number {
+  if (!Number.isInteger(horizon) || horizon < 1 || horizon > x.length) {
+    throw new RangeError('varianceRatio: horizon must be an integer from 1 to length');
+  }
+  const rho = autocorrelations(x, horizon - 1);
+  return bartlettWeights(horizon - 1).reduce((sum, w, j) => sum + (j === 0 ? 1 : 2) * w * rho[j], 0);
+}
