@@ -1,0 +1,367 @@
+---
+title: "Rare disasters and jump risk"
+part: 10
+chapter: 39
+difficulty: 3
+prerequisites: [8, 35]
+summary: "A small yearly chance of a deep fall in consumption can price the equity premium, but a century may hold no such fall, and reweighting our own years shows how much disaster risk the data would need."
+---
+
+import DisasterLottery from '../../components/plots/DisasterLottery';
+import EntropyReweighting from '../../components/plots/EntropyReweighting';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapters 8, 24 and 35">
+- An asset is priced by $\mathbb{E}[\SDF{M}\Ret{R^e}] = 0$, where the expectation weights each state by its
+  probability, and power utility gives $\SDF{M_{t+1}} = \delta(C_{t+1}/C_t)^{-\gamma}$
+  ([Chapter 8](/empirical-finance-lbs/chapters/08-euler-equation-and-sdf/)).
+- GMM replaces an expectation by a sample mean, which gives every period the weight $1/T$
+  ([Chapter 24](/empirical-finance-lbs/chapters/24-generalized-method-of-moments/)).
+- On the annual sample from 1930, measured consumption is far too smooth to price the equity premium with a
+  modest $\gamma$ ([Chapter 35](/empirical-finance-lbs/chapters/35-equity-premium-and-risk-free-rate-puzzles/)).
+</Callout>
+
+## <span class="section-tag">Hook</span> The disaster that did not come
+
+Chapter 35 left us with two puzzles. From 1930 to 2025, stocks beat bills by 6.28% a year, yet real consumption
+per person grew smoothly, with a standard deviation of 2.17% a year. To price that premium, power utility needs
+a risk aversion of at least 15, and then it predicts a risk-free rate far above the data.
+
+Part X gives three answers. The first two, in Chapters 37 and 38 (*Internal and external habits* and *Long-run
+risk*), change the preferences or the way consumption grows. This chapter keeps power utility and changes only the
+odds. Suppose that each year holds a small chance of a disaster: a year like the worst of the Great Depression, in
+which consumption and stocks both collapse. Julliard & Ghosh (2012, p. 2) trace this idea to Rietz (1988) and to
+its revival by Barro (2006). Investors who fear such a year will demand a large premium to hold stocks, even if the
+year rarely comes.
+
+That raises a question you should have. If disasters are rare, how would you ever know how likely they are? A
+century can hold none at all. Then its stocks look like a free lunch, and you blame a high $\gamma$ for a premium
+that was really a fee for a risk you never saw.
+
+## <span class="section-tag">Intuition</span> A lottery you never want to win
+
+Here is a made-up economy. In normal years, consumption grows by 2%, give or take 2%. Each year, with chance
+$\Prob{\pi_D} = 1.7\%$, a disaster takes $b_D = 40\%$ of consumption, and a stock loses 40% of its value too. In
+normal years the stock is risky, with a volatility of 16%, but that risk has nothing to do with consumption. So
+without disasters it would earn no premium at all. The widget draws one seeded century of log consumption, with
+each disaster year shaded.
+
+<DisasterLottery client:visible />
+
+<p class="try-this"><strong>Try this:</strong> at the start, risk aversion is 4. The closed forms give a premium of
+4.14% a year and a risk-free rate of −2.13%. Drag $\Prob{\pi_D}$ to zero. The premium falls to zero and the
+risk-free rate jumps to 8.69%. Then press "New century" a few times and watch the count of disasters.</p>
+
+Why does a 1.7% chance matter so much? Because a dollar in a disaster year is worth far more than a dollar in a
+normal year. With $\gamma = 4$, marginal utility rises by the factor $(1 - 0.4)^{-4} = 7.7$ when consumption falls
+by 40%. The stock loses 40% exactly then. So its expected loss counts almost eight times over.
+
+Disasters also explain the low risk-free rate. Fear of a deep fall makes people want to save, whatever the rate.
+That pushes the rate down, here from 8.69% to below zero.
+
+The default century, seed 2, holds two disasters, in years 25 and 39, and its sample premium is 3.18%. Other
+seeds hold none. Of the centuries with seeds 1 to 10,000, 17.9% hold no disaster at all. In those centuries
+consumption never falls by much, and the premium is still there.
+
+<Callout type="key">A small chance of a large fall in consumption can carry a large premium, because the fall comes
+when a dollar is worth the most. The same fear lowers the risk-free rate.</Callout>
+
+## <span class="section-tag">Formalisation</span> Pricing the disaster, then finding it in the data
+
+### The Euler equation with a disaster state
+
+Let $\mathbb{I}_{D,t+1}$ be 1 if year $t+1$ holds a disaster, with probability $\Prob{\pi_D}$, and 0 otherwise.
+Log consumption growth is a normal draw plus a jump:
+
+$$
+\Delta c_{t+1} = \mu_c + \sigma_c\varepsilon_{t+1} + \mathbb{I}_{D,t+1}\log(1 - b_D),
+$$
+
+with $\varepsilon_{t+1}$ standard normal and independent of the jump. Here $\mu_c$ and $\sigma_c$ describe normal
+years only. The power-utility SDF is $\SDF{M_{t+1}} = \delta e^{-\gamma\Delta c_{t+1}}$. Put in the growth and split
+the exponential in two:
+
+$$
+\SDF{M_{t+1}} = \delta e^{-\gamma(\mu_c + \sigma_c\varepsilon_{t+1})}\,(1 - b_D)^{-\gamma\,\mathbb{I}_{D,t+1}}.
+$$
+
+The two factors are independent, so the expectation of the product is the product of the expectations. The first
+is lognormal: by the fact of Chapter 35, $\mathbb{E}[e^x] = e^{\mu_x + \frac12\sigma_x^2}$. The second takes the
+value $(1 - b_D)^{-\gamma}$ with probability $\Prob{\pi_D}$ and 1 otherwise:
+
+$$
+\begin{aligned}
+\mathbb{E}[\SDF{M}] &= \delta e^{-\gamma\mu_c + \frac12\gamma^2\sigma_c^2}\,\mathcal{D}_0, \\
+\mathcal{D}_0 &= 1 - \Prob{\pi_D} + \Prob{\pi_D}(1 - b_D)^{-\gamma}.
+\end{aligned}
+$$
+
+The term $\Prob{\pi_D}(1 - b_D)^{-\gamma}$ is the disaster state. It is the chance of the state times marginal
+utility in it. With $b_D = 0.4$ and $\gamma = 4$, the state has a chance of only 1.7% but a weight of 7.7, so it
+moves the whole expectation.
+
+### The risk-free rate
+
+The riskless asset prices to $\mathbb{E}[\SDF{M}](1 + \Rf{R^f}) = 1$, so $\Rf{r^f} = -\log\mathbb{E}[\SDF{M}]$:
+
+$$
+\Rf{r^f} = -\log\delta + \gamma\mu_c - \tfrac12\gamma^2\sigma_c^2 - \log \mathcal{D}_0.
+$$
+
+The first three terms are those of Chapter 35. The last one is new. Since $(1 - b_D)^{-\gamma} > 1$, $\mathcal{D}_0 > 1$ and
+$-\log \mathcal{D}_0 < 0$: disaster risk is a second kind of precautionary saving. In the widget's economy, it takes the rate
+from 8.69% to −2.13%.
+
+### The premium
+
+Let stock $i$ have the log return $\Ret{r_{i,t+1}} = \mu_i + \sigma_iu_{t+1} + \mathbb{I}_{D,t+1}\log(1 - b_{D,i})$, where
+$b_{D,i}$ is the fraction of its value a disaster takes, and $u_{t+1}$ is standard normal with
+$\operatorname{Cov}(\sigma_c\varepsilon_{t+1}, \sigma_iu_{t+1}) = \sigma_{ic}$. Three expectations do the work.
+
+**Step 1.** The pricing rule $\mathbb{E}[\SDF{M}(1 + \Ret{R_i})] = 1$. The normal part has variance
+$\gamma^2\sigma_c^2 + \sigma_i^2 - 2\gamma\sigma_{ic}$, as in Chapter 35. In a disaster, the SDF is multiplied by
+$(1 - b_D)^{-\gamma}$ and the payoff by $1 - b_{D,i}$:
+
+$$
+\begin{aligned}
+1 &= \delta e^{-\gamma\mu_c + \mu_i + \frac12(\gamma^2\sigma_c^2 + \sigma_i^2 - 2\gamma\sigma_{ic})}\,\mathcal{D}_i, \\
+\mathcal{D}_i &= 1 - \Prob{\pi_D} + \Prob{\pi_D}(1 - b_D)^{-\gamma}(1 - b_{D,i}).
+\end{aligned}
+$$
+
+**Step 2.** The expected payoff alone. In a disaster the payoff shrinks by $1 - b_{D,i}$, so
+
+$$
+\mathbb{E}[1 + \Ret{R_i}] = e^{\mu_i + \frac12\sigma_i^2}\,(1 - \Prob{\pi_D}b_{D,i}).
+$$
+
+**Step 3.** Divide Step 2 by $1 + \Rf{R^f} = 1/\mathbb{E}[\SDF{M}]$, that is, multiply it by $\mathbb{E}[\SDF{M}]$.
+Step 1 says that $\delta e^{-\gamma\mu_c + \mu_i + \frac12\gamma^2\sigma_c^2 + \frac12\sigma_i^2} = e^{\gamma\sigma_{ic}}/\mathcal{D}_i$, so
+
+$$
+\mathbb{E}[1 + \Ret{R_i}]\,\mathbb{E}[\SDF{M}] = \frac{e^{\gamma\sigma_{ic}}(1 - \Prob{\pi_D}b_{D,i})\mathcal{D}_0}{\mathcal{D}_i}.
+$$
+
+Take logs:
+
+$$
+\begin{aligned}
+&\log\mathbb{E}[1 + \Ret{R_i}] - \Rf{r^f} \\
+&= \gamma\sigma_{ic} + \log(1 - \Prob{\pi_D}b_{D,i}) + \log\frac{\mathcal{D}_0}{\mathcal{D}_i}.
+\end{aligned}
+$$
+
+The first term is the premium of Chapter 35. The rest is the disaster premium. For a small $\Prob{\pi_D}$, it is close to
+
+$$
+\Prob{\pi_D}\,b_{D,i}\left[(1 - b_D)^{-\gamma} - 1\right]:
+$$
+
+the chance of the disaster, times the stock's loss in it, times how much more a dollar is worth then.
+
+<details>
+<summary>The first-order step</summary>
+
+Write $a = (1 - b_D)^{-\gamma}$. For a small $x$, $\log(1 + x) \approx x$. So $\log \mathcal{D}_0 \approx \Prob{\pi_D}(a - 1)$,
+$\log \mathcal{D}_i \approx \Prob{\pi_D}(a(1 - b_{D,i}) - 1)$ and $\log(1 - \Prob{\pi_D}b_{D,i}) \approx -\Prob{\pi_D}b_{D,i}$.
+Add the first and third, subtract the second:
+
+$$
+\begin{aligned}
+&\Prob{\pi_D}\left[(a - 1) - a(1 - b_{D,i}) + 1 - b_{D,i}\right] \\
+&= \Prob{\pi_D}\,b_{D,i}(a - 1).
+\end{aligned}
+$$
+
+</details>
+
+In the widget, $\sigma_{ic} = 0$ and $b_{D,i} = b_D = 0.4$. The approximation gives
+$0.017 \times 0.4 \times 6.7 = 4.57\%$. The exact premium is 4.14%. The gap is the error of the approximation, which
+grows with $(1 - b_D)^{-\gamma}$.
+
+The premium is very steep in $b_D$. With $b_D = 0.3$, it is only 1.52%. To earn the 6.28% of our data, this
+economy needs $\Prob{\pi_D} = 2.72\%$ a year with $b_D = 0.4$, but 8.72% with $b_D = 0.3$, a disaster every 11
+years. So the case for disasters rests on their size. Julliard & Ghosh (2012, p. 16) describe the usual
+calibration after Barro (2006): $\gamma$ about 4 and a disaster chance about 1.7%, with each disaster's size drawn
+from the falls recorded across many countries. They argue that it counts a fall that lasted several years as if it
+came in one. When they spread each fall over its years, they need a disaster about every 6.6 years, a chance of
+15.1%, to price the premium with $\gamma = 4$ (p. 17).
+
+### The peso problem
+
+A century of $T = 100$ years holds no disaster with probability $(1 - \Prob{\pi_D})^{T}$. With
+$\Prob{\pi_D} = 1.7\%$, that is $0.983^{100} = 18.0\%$, and 17.9% of our 10,000 seeded centuries hold none. Economists
+call this the **peso problem**: a sample that misses a rare state misleads you about the true distribution.
+
+In those centuries the stock still earns its premium; on average, the sample premium is 4.81%. But consumption
+looks smooth and the stock looks safe. The sample mean gives every year the weight $1/T$, and no year was a
+disaster. So the only way the consumption CAPM can fit the premium is with a large $\gamma$. Julliard & Ghosh
+(p. 5) make exactly this point: when a sample holds fewer disasters than their true chance, estimators with equal
+weights credit the premium to high risk aversion.
+
+### Let the data choose the weights
+
+Their fix is to stop insisting on $1/T$. Write the Euler moment of year $t$ as
+
+$$
+g_t(\gamma) = e^{-\gamma\Delta c_t}\Ret{R^e_t},
+$$
+
+with $\Ret{R^e_t} = e^{\Ret{r_t}} - e^{\Rf{r^f_t}}$ the real excess return. This is the moment of Chapter 24
+with $\theta = \gamma$. We drop $\delta$, since it scales every $g_t$ alike. GMM sets the equal-weight mean
+$\frac1T\sum_t g_t$ to zero. Instead, give year $t$ a weight $\Prob{\pi_t}$, positive with
+$\sum_t \Prob{\pi_t} = 1$, and ask $\sum_t \Prob{\pi_t}g_t(\gamma) = 0$. Many weights do this. Pick the ones closest
+to $1/T$ in **relative entropy**:
+
+$$
+\begin{aligned}
+\min_{\pi}\ & \mathit{KL} = \sum_t \Prob{\pi_t}\log(T\Prob{\pi_t}) \\
+\text{s.t. } & \textstyle\sum_t \Prob{\pi_t} = 1,\ \sum_t \Prob{\pi_t}g_t(\gamma) = 0.
+\end{aligned}
+$$
+
+$\mathit{KL}$ is 0 at equal weights and positive at any others. It measures how far the reweighted years are from
+the years as they came. This is the problem of Julliard & Ghosh (2012, eq. (6), p. 7). The weights it gives are
+those of the BETEL estimator of Schennach (2005), as they name it (p. 5). If $\gamma$ is fixed, the weights are
+a calibration: the distribution of years closest to the data that would make the model price the premium (p. 8).
+
+### The dual: one number instead of $T$
+
+The problem has $T$ unknowns, but it reduces to one. Attach the multiplier $\ell$ to the moment:
+
+$$
+\textstyle\sum_t \Prob{\pi_t}\log(T\Prob{\pi_t}) - \ell\sum_t \Prob{\pi_t}g_t.
+$$
+
+Its derivative in $\Prob{\pi_t}$ is $\log(T\Prob{\pi_t}) + 1 - \ell g_t$. The sum to one adds a second multiplier,
+the same for every year. Set the derivative to zero: $\log\Prob{\pi_t}$ is $\ell g_t$ plus a term that is the same
+for every year, so $\Prob{\pi_t} \propto e^{\ell g_t}$. The sum to one fixes the constant:
+
+$$
+\Prob{\pi_t} = \frac{e^{\ell g_t}}{\sum_s e^{\ell g_s}}.
+$$
+
+Now put these weights into the moment. It says $\sum_t g_t e^{\ell g_t} = 0$, which is the first-order condition
+for the minimum over $\ell$ of $\frac1T\sum_t e^{\ell g_t}$. That function is convex, since its second derivative
+$\frac1T\sum_t g_t^2e^{\ell g_t}$ is positive. So one equation in one unknown gives $\ell$ (Julliard & Ghosh,
+Appendix A.1.2, eqs. (17)–(18), p. 32). With $\log(T\Prob{\pi_t}) = \log T + \ell g_t - \log\sum_s e^{\ell g_s}$ and
+$\sum_t\Prob{\pi_t}g_t = 0$, the entropy is
+
+$$
+\mathit{KL}(\gamma) = -\log\Big(\tfrac1T\textstyle\sum_t e^{\ell g_t}\Big).
+$$
+
+At $\ell = 0$ the mean is 1, and the minimum can only be lower, so $\mathit{KL} \ge 0$. Weights exist only if some
+$g_t$ are negative and some positive. Here the sign of $g_t$ is the sign of $\Ret{R^e_t}$, so on our sample they
+exist at every $\gamma$.
+
+The weights say which years the model wants more of. If $\gamma$ is too low, the mean of $g_t$ is positive: the
+premium is too big. Then $\ell < 0$, and the weight moves onto years with $g_t < 0$, when stocks lost. It moves most
+where $e^{-\gamma\Delta c_t}$ is large, when stocks lost *and* consumption fell.
+
+### Estimating $\gamma$, and a test
+
+Now let $\gamma$ vary. The $\gamma$ that minimises $\mathit{KL}(\gamma)$ is the BETEL estimate. Julliard & Ghosh also
+use empirical likelihood (eq. (3), p. 6), whose weights are $\Prob{\pi_t} = 1/(T(1 + \ell g_t))$ (p. 32). Its
+statistic $\mathit{LR}(\gamma) = -2\sum_t\log(T\Prob{\pi_t})$ tests a given $\gamma$ against $\chi^2_1$ (p. 7).
+
+Be clear about what is new. With one moment and one parameter, both criteria reach zero where the equal-weight mean
+is zero, which is the just-identified GMM estimate of Chapter 24. The point estimate is not new. What is new is
+the test, and the weights themselves: they show what history would have had to look like.
+
+### The numbers on our annual sample
+
+We use the annual sample of Chapter 35: fred-consumption-annual with goyal-welch-annual, 1930 to 2025, 96 years.
+The four years with the largest consumption falls are 1930, 1932, 1933 and 2020.
+
+| Risk aversion | 0 | 4 | 10 | 20 | 30 |
+|---|---|---|---|---|---|
+| $\mathit{KL}(\gamma)$ | 0.0862 | 0.0740 | 0.0541 | 0.0243 | 0.0062 |
+| Weight on the four worst years | 4.7% | 4.9% | 5.0% | 5.1% | 4.7% |
+| $\mathit{LR}(\gamma)$ | 14.39 | 12.04 | 8.63 | 4.01 | 1.10 |
+| $p$-value | 0.0001 | 0.0005 | 0.0033 | 0.045 | 0.29 |
+
+At equal weights the four worst years hold 4.2%. Both criteria pick $\hat\gamma = 42.8$. The test rejects
+$\gamma = 10$, with $\mathit{LR} = 8.63$ and a $p$-value of 0.0033. Cut the sample at 2009, the last year of Julliard
+& Ghosh's sample, and the estimate falls to 35.7, with $\mathit{LR}(10) = 4.85$ ($p$-value 0.028).
+
+Their Table 1, Panel A (p. 37), with the market return over 1929–2009, gives an EL estimate of 28.5 (standard
+error 9.23), a BETEL mode of 28.5 with a 95% band of 11.5 to 46.6, and an EL test that $\gamma$ can be as small as 10 of
+4.31 ($p$-value 0.038). Our estimates are higher, even on the years to 2009, and the measures differ. They use nondurables alone, the CRSP index of all stocks and the PCE deflator (p. 9). We use nondurables and services, the CRSP value-weighted S&P 500 and CPI inflation.
+The verdict is the same: $\gamma = 10$ is rejected, and the data want a $\gamma$ far above 10.
+
+Now look at where the weight goes. At $\gamma = 10$, 1931 gets 3.12 times its equal weight, a weight of 3.25%
+against $1/96 = 1.04\%$. Then come 1930 (2.25 times) and 2008 (1.93 times). But 1933, a year of falling consumption,
+gets only 0.34 times its equal weight, because stocks rose that year. So the four worst consumption years together
+gain little: 5.0% against 4.2%. The estimator does not ask for deeper consumption disasters. It asks for more years
+in which stocks crash while consumption dips. Julliard & Ghosh (pp. 19–20) find the same pattern: their largest BETEL
+weight at $\gamma = 10$ is 2.6%, against a sample frequency of 1.3%. They read this as recession risk rather than
+disaster risk (p. 4).
+
+<Callout type="warning" title="What the evidence can and cannot show">
+The weights can only sit on years we observed. If the true disaster is worse than any year in the sample, no
+reweighting finds it. Julliard & Ghosh test this by putting disasters recorded in other countries in place of the Great
+Depression (pp. 15–17), which we do not reproduce. The $\chi^2_1$ reference is asymptotic, and 96 years is not many. The estimate also depends on the
+timing of consumption, as Chapter 35 shows, and on how it is measured, as
+[Chapter 36](/empirical-finance-lbs/chapters/36-measuring-consumption/) shows.
+</Callout>
+
+## <span class="section-tag">Playground</span> Reweight the years yourself
+
+Each stem shows a year's entropy weight relative to equal weight. A stem above the dashed line is a year the model
+wants more of.
+
+<EntropyReweighting client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start at $\gamma = 10$ and find 1931 and 1933. Then raise $\gamma$
+step by step towards 43. The stems shrink, the relative entropy falls to near zero, and the test stops
+rejecting.</p>
+
+<p class="try-this"><strong>Try this too:</strong> switch to "To 2009", the years of Julliard & Ghosh. The
+estimate falls to 35.7. The years after 2009 had a high premium, so they make the puzzle worse.</p>
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="With $\gamma = 4$, a disaster takes half of consumption. How many times more is a dollar worth in the disaster than in a year with no change in consumption?"
+  options={["2", "4", "8", "16"]}
+  answer={3}
+  explanation="Marginal utility scales with $(1 - b_D)^{-\gamma} = 0.5^{-4} = 16$. That large weight is why a rare disaster can carry a large premium."
+/>
+
+<Quiz
+  client:visible
+  question="Disasters hit with chance 1% a year. Roughly what is the chance that a century holds none?"
+  options={["1%", "37%", "63%", "99%"]}
+  answer={1}
+  explanation="The chance is $0.99^{100} = 0.37$. So more than a third of centuries would show no disaster, and the premium would look like a puzzle in them."
+/>
+
+<Quiz
+  client:visible
+  question="At $\gamma = 10$ the entropy weights give 1931 three times its equal weight but cut 1933, when consumption also fell. Why?"
+  options={["1933 is too early in the sample", "In 1933 stocks rose, so its moment $g_t$ is positive and the estimator needs less of it", "The estimator ignores consumption", "1933 had a high risk-free rate"]}
+  answer={1}
+  explanation="The sign of $g_t = e^{-\gamma\Delta c_t}R^e_t$ is the sign of the excess return. With the premium too large for $\gamma = 10$, the weights move onto years with negative $g_t$, when stocks fell."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- With disasters of chance $\Prob{\pi_D}$ and size $b_D$, $\mathbb{E}[\SDF{M}]$ gains the factor
+  $\mathcal{D}_0 = 1 - \Prob{\pi_D} + \Prob{\pi_D}(1 - b_D)^{-\gamma}$. The disaster premium is close to
+  $\Prob{\pi_D}b_{D,i}[(1 - b_D)^{-\gamma} - 1]$, and the risk-free rate falls by $\log \mathcal{D}_0$.
+- The premium is very steep in the disaster's size, so the case for disasters rests on how large they are.
+- A century can miss its disasters. Then equal-weight estimates blame a high $\gamma$: the peso problem.
+- The relative entropy estimator lets the years' weights move, as little as possible, until the Euler equation
+  holds. Its dual has one unknown, and the weights show which years the model wants.
+- On our annual sample it still needs $\gamma = 42.8$, and it wants more years of stock crashes, not deeper
+  consumption disasters.
+
+**Next up:** "Yields, forwards and bond returns" opens Part XI and moves from stocks to the prices of bonds.
+
+### Further reading
+
+- Julliard & Ghosh (2012)
+- Campbell (2018), Ch. 6
