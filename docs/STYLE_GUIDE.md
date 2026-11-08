@@ -297,6 +297,9 @@ Bansal, Kiku & Yaron (2012) and Beeler & Campbell (2012) write $\mu$.
 | $y^{(n)}_t$ | — | Log yield, $y^{(n)}_t = -p^{(n)}_t/n$. The short rate is $y^{(1)}_t = r^f_t$ |
 | $f^{(n)}_t$ | — | Log forward rate, $f^{(n)}_t = p^{(n-1)}_t - p^{(n)}_t$. It always carries its maturity superscript, so it never looks like a factor $f_t$ |
 | $rx^{(n)}_{t+1}$ | `\Ret` | Log excess return of holding the $n$-period bond for one period: $p^{(n-1)}_{t+1} - p^{(n)}_t - y^{(1)}_t$ |
+| $r^{(n)}_{t+1}$ | `\Ret` | Log holding-period return of buying the $n$-period bond at $t$ and selling it at $t+1$: $p^{(n-1)}_{t+1} - p^{(n)}_t$, so $rx^{(n)}_{t+1} = r^{(n)}_{t+1} - y^{(1)}_t$. The maturity superscript separates it from the stock log return $r_{t+1}$ |
+| $\mathit{par}^{(n)}_t$ | — | Par yield: the coupon rate per year at which an $n$-period coupon bond, priced with the zero-coupon discount factors, is worth 1. Say how often it pays (once or twice a year). It is a coupon rate, not a log yield, so it never takes the letter $y$ of $y^{(n)}_t$, and never $c$, which is log consumption $c_t$. Italic letters, as in $\mathit{tp}^{(n)}_t$ |
+| $\mathit{tp}^{(n)}_t$ | — | Term premium: $y^{(n)}_t$ minus the average short rate over the bond's life. Ex post (Chapter 40) the short rates are the realised ones, $\mathit{tp}^{(n)}_t = y^{(n)}_t - \tfrac1n\sum_{j=0}^{n-1} y^{(1)}_{t+j}$; with expected short rates it is the model term premium of Part XII. Not $c$, the constant of Campbell & Shiller (1991), which is log consumption here, nor $\lambda$, which is a factor risk premium |
 
 ### Probability and statistics
 
