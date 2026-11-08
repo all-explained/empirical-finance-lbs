@@ -28,8 +28,8 @@ The branch is now rebased on `origin/main` (`afe32d4`); the only file that diffe
 ## Summary
 
 I read Chapters 37, 38 and 39 (2,856, 2,730 and 2,969 words of prose, by the count command of TASK-141) in the
-source and as built pages, and Chapters 35 and 36 for every claim that Part X makes about them. I looked at the dark and light desktop and phone screenshots of all
-five pages. A Playwright probe, kept in `/tmp` and not committed, set each Part X widget to the state that its
+source and as built pages, and Chapters 35 and 36 for every claim that Part X makes about them. I looked at the dark
+and light desktop and phone screenshots of all five pages. A Playwright probe, kept in `/tmp` and not committed, set each Part X widget to the state that its
 "Try this" prompts describe and read the readout. I read the shared code that Part X touches: `PredictiveRegression`,
 `predictiveSample.ts`, `habitSample.ts`, `seriesSample.ts`, `consumptionPuzzle.ts`, `quadrature.ts` and the three
 Part X libraries. I changed no chapter, widget, library or doc. I did not check the paper page numbers.
@@ -102,8 +102,8 @@ The chapters reuse the shared widgets and libraries without forking them.
   quadrature of their own.
 - No duplicate loading code in Part X. `puzzleSample.ts`, `disasterSample.ts` and `longRunRiskSample.ts` use
   `useSeriesData`; `HabitSimulator` loads nothing, and its seeded paths use `mulberry32` and `normalRng`. The hand-made
-  `useEffect` plus `loadSeries` loaders of `predictiveSample.ts` and `caySample.ts` date from Chapters 9 and 14, before the shared hook of
-  TASK-083; they are not Part X code and Part X adds none.
+  `useEffect` plus `loadSeries` loaders of `predictiveSample.ts` and `caySample.ts` date from Chapters 9 and 14,
+  before the shared hook of TASK-083; they are not Part X code and Part X adds none.
 - The Part X block of `docs/STYLE_GUIDE.md` §3 covers every symbol of the three chapters, and each chapter explains where
   it departs from its paper's letters ($\Lambda$ for $\lambda$, $\mu_c$ for $g$ and $\mu$, $\theta_{\text{EZ}}$,
   $\phi_x$, $\ell$ for $\lambda$, $\pi_D$ for $p$). I found no symbol used two ways. $\phi$ is persistence in Chapters
@@ -150,9 +150,9 @@ Four changes. Each becomes an M-12 task for claude opus high, and this PR is mer
    Chapter 37, Intuition, add the same words to the "Try this" prompt ("raise the utility curvature $\gamma$ to 4").
    Run `npm run clickthrough -- 37-internal-and-external-habits` and change any test that names the old label.
 3. **Wording: Chapters 37 and 39.** Chapter 37, line 300: say what "the slope times 10" is and why it is scaled (check
-   the paper's Table 5), or give the slopes themselves, which are the numbers the widget shows. Chapter 39, lines 289–295: split the
-   sentence on Table 1 into three, state the test as "a test of $\gamma = 10$ gives 4.31 ($p$-value 0.038)", wrap the
-   two long source lines, and keep the numbers.
+   the paper's Table 5), or give the slopes themselves, which are the numbers the widget shows. Chapter 39, lines
+   289–295: split the sentence on Table 1 into three, state the test as "a test of $\gamma = 10$ gives 4.31
+   ($p$-value 0.038)", wrap the two long source lines, and keep the numbers.
 4. **Links and the Part XI bridge: Chapters 36, 37, 38 and 39.** Link every chapter that is now on the site, with chapter
    number and italic title: Chapter 36's Next up (Chapter 37); Chapter 37's Next up (Chapter 38); Chapter 38's callout
    (Chapter 37) and Next up (Chapter 39); Chapter 39's Hook (Chapters 37 and 38). Then add the bridge in Chapter 39's
