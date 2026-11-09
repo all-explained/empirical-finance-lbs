@@ -116,8 +116,8 @@ describe('chapter 37 prose numbers', () => {
     expect([fixed(one.data.slope, 3), fixed(one.data.tStat, 2)]).toEqual(['-0.042', '-0.94']);
     expect([fixed(one.model.slope, 3), fixed(one.model.tStat, 2), pct(one.model.r2, 1)]).toEqual(['-0.233', '-3.35', '10.2']);
     expect(pct(predictiveRegression(model.r, model.dp, 10).r2, 1)).toBe('41.4');
-    const slopes = [1, 2, 3, 5, 7].map((k) => fixed(10 * predictiveRegression(long.re, long.pc, k).slope, 1));
-    expect(slopes).toEqual(['-1.6', '-3.0', '-4.1', '-5.9', '-7.3']);
+    const slopes = [1, 2, 3, 5, 7].map((k) => fixed(predictiveRegression(long.re, long.pc, k).slope, 2));
+    expect(slopes).toEqual(['-0.16', '-0.30', '-0.41', '-0.59', '-0.73']);
     expect([fixed(sd(long.pc), 2), fixed(sd(pd.dp), 2)]).toEqual(['0.13', '0.50']);
   });
 
