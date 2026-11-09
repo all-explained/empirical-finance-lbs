@@ -26,14 +26,16 @@ import { Quiz } from '../../components/ui/Quiz';
 
 Chapter 35 left us with two puzzles. From 1930 to 2025, stocks beat bills by 6.28% a year, yet real consumption
 per person grew smoothly, with a standard deviation of 2.17% a year. To price that premium, power utility needs
-a risk aversion of at least 15, and then it predicts a risk-free rate far above the data.
+a risk aversion of at least 15 on our annual sample, and 20 to reach the Sharpe ratio of 0.45, as Chapter 35
+explains. Then it predicts a risk-free rate far above the data.
 
-Part X gives three answers. The first two, in Chapters 37 and 38 (*Internal and external habits* and *Long-run
-risk*), change the preferences or the way consumption grows. This chapter keeps power utility and changes only the
-odds. Suppose that each year holds a small chance of a disaster: a year like the worst of the Great Depression, in
-which consumption and stocks both collapse. Julliard & Ghosh (2012, p. 2) trace this idea to Rietz (1988) and to
-its revival by Barro (2006). Investors who fear such a year will demand a large premium to hold stocks, even if the
-year rarely comes.
+Part X gives three answers. The first two change the preferences or the way consumption grows:
+[Chapter 37](/empirical-finance-lbs/chapters/37-internal-and-external-habits/), *Internal and external habits*, and
+[Chapter 38](/empirical-finance-lbs/chapters/38-long-run-risk/), *Long-run risk*. This chapter keeps power
+utility and changes only the odds. Suppose that each year holds a small chance of a disaster: a year like the
+worst of the Great Depression, in which consumption and stocks both collapse. Julliard & Ghosh (2012, p. 2)
+trace this idea to Rietz (1988) and to its revival by Barro (2006). Investors who fear such a year will demand a
+large premium to hold stocks, even if the year rarely comes.
 
 That raises a question you should have. If disasters are rare, how would you ever know how likely they are? A
 century can hold none at all. Then its stocks look like a free lunch, and you blame a high $\gamma$ for a premium
@@ -286,10 +288,12 @@ At equal weights the four worst years hold 4.2%. Both criteria pick $\hat\gamma 
 $\gamma = 10$, with $\mathit{LR} = 8.63$ and a $p$-value of 0.0033. Cut the sample at 2009, the last year of Julliard
 & Ghosh's sample, and the estimate falls to 35.7, with $\mathit{LR}(10) = 4.85$ ($p$-value 0.028).
 
-Their Table 1, Panel A (p. 37), with the market return over 1929–2009, gives an EL estimate of 28.5 (standard
-error 9.23), a BETEL mode of 28.5 with a 95% band of 11.5 to 46.6, and an EL test that $\gamma$ can be as small as 10 of
-4.31 ($p$-value 0.038). Our estimates are higher, even on the years to 2009, and the measures differ. They use nondurables alone, the CRSP index of all stocks and the PCE deflator (p. 9). We use nondurables and services, the CRSP value-weighted S&P 500 and CPI inflation.
-The verdict is the same: $\gamma = 10$ is rejected, and the data want a $\gamma$ far above 10.
+Their Table 1, Panel A (p. 37), uses the market return over 1929–2009. It gives an EL estimate of 28.5 (standard
+error 9.23) and a BETEL mode of 28.5 with a 95% band of 11.5 to 46.6. A test of $\gamma = 10$ gives 4.31
+($p$-value 0.038). Our estimates are higher, even on the years to 2009, and the measures differ. They use
+nondurables alone, the CRSP index of all stocks and the PCE deflator (p. 9). We use nondurables and services, the
+CRSP value-weighted S&P 500 and CPI inflation. The verdict is the same: $\gamma = 10$ is rejected, and the data
+want a $\gamma$ far above 10.
 
 Now look at where the weight goes. At $\gamma = 10$, 1931 gets 3.12 times its equal weight, a weight of 3.25%
 against $1/96 = 1.04\%$. Then come 1930 (2.25 times) and 2008 (1.93 times). But 1933, a year of falling consumption,
@@ -359,7 +363,19 @@ estimate falls to 35.7. The years after 2009 had a high premium, so they make th
 - On our annual sample it still needs $\gamma = 42.8$, and it wants more years of stock crashes, not deeper
   consumption disasters.
 
-**Next up:** "Yields, forwards and bond returns" opens Part XI and moves from stocks to the prices of bonds.
+Part X in three lines:
+
+- **Habits** ([Chapter 37](/empirical-finance-lbs/chapters/37-internal-and-external-habits/)): the premium needs risk
+  aversion that moves: the local curvature $\gamma/S_t$ is 35.1 at the steady state and rises in slumps. The data
+  agree that prices forecast returns, but more weakly than the model.
+- **Long-run risk** ([Chapter 38](/empirical-finance-lbs/chapters/38-long-run-risk/)): the premium needs a small,
+  persistent part of consumption growth, and BKY's calibration prices 6.42%. Our century rejects a visible part but
+  cannot reject a faint one.
+- **Disasters** (this chapter): the premium needs a small yearly chance of a large fall, 2.72% with $b_D = 0.4$ to
+  earn 6.28%. A century can miss its disasters, and reweighting ours still needs $\gamma = 42.8$.
+
+**Next up:** all three answers price stocks. Part XI opens with Chapter 40, *Yields, forwards and bond returns*, and
+turns to the facts of bond prices and their risk premia; Part XII then builds the models that price them.
 
 ### Further reading
 
