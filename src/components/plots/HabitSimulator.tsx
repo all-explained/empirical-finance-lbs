@@ -123,7 +123,7 @@ export default function HabitSimulator() {
       plot={plot}
       controls={
         <>
-          <Slider label="Curvature $\gamma$" value={gamma} min={1} max={4} step={0.1} onChange={setGamma} format={(v) => v.toFixed(1)} />
+          <Slider label="Utility curvature $\gamma$" value={gamma} min={1} max={4} step={0.1} onChange={setGamma} format={(v) => v.toFixed(1)} />
           <Slider label="Persistence $\phi^{12}$, a year" value={phi} min={0.7} max={0.95} step={0.01} onChange={setPhi} format={(v) => v.toFixed(2)} />
           <Slider label="Date $t$" value={year} min={0} max={HABIT_YEARS} step={0.5} onChange={setYear} format={yearLabel} />
           <Button onClick={() => setSeed((s) => s + 1)}>New seed</Button>
