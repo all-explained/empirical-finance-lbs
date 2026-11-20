@@ -223,6 +223,7 @@ flowchart TD
     TASK_153["TASK-153 Part X fix: HabitSimulator slider label"]
     TASK_154["TASK-154 Part X fix: wording in chapters 37 and 39"]
     TASK_155["TASK-155 Part X fix: cross-chapter links and Part XI bridge"]
+    TASK_156["TASK-156 Part X fix: link chapter 40 from chapter 39 Next up"]
   end
   subgraph M_13["M-13 · Part XI: The term structure: facts"]
     TASK_039["TASK-039 Plan: decompose M-13"]
@@ -434,6 +435,7 @@ flowchart TD
   TASK_140 --> TASK_155
   TASK_141 --> TASK_155
   TASK_154 --> TASK_155
+  TASK_151 --> TASK_156
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
