@@ -106,6 +106,23 @@ export function gswYields(series: Series<'gsw-zero-coupon'>): Panel {
   return panel(series);
 }
 
+/**
+ * The GSW zero-coupon yield levels at the chosen integer maturities (years, 1–30, in the order given), in decimals:
+ * the columns of `gswYields` for those maturities, as the panel whose principal components are level, slope and
+ * curvature.
+ */
+export function gswYieldLevels(series: Series<'gsw-zero-coupon'>, maturities: readonly number[]): Panel {
+  const all = gswYields(series);
+  if (maturities.length === 0 || !maturities.every((n) => Number.isInteger(n) && n >= 1 && n <= all.names.length)) {
+    throw new RangeError(`Maturities must be integers from 1 to ${all.names.length}`);
+  }
+  return {
+    dates: all.dates,
+    names: maturities.map((n) => all.names[n - 1]),
+    X: all.X.map((row) => maturities.map((n) => row[n - 1])),
+  };
+}
+
 /** Monthly changes of the 1- to 30-year GSW zero-coupon yields, in decimals (0.0001 = 1 basis point). */
 export function gswYieldChanges(series: Series<'gsw-zero-coupon'>): Panel {
   const levels = gswYields(series);
