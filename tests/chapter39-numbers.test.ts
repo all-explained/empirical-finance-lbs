@@ -8,13 +8,16 @@ import consumption from '../src/data/series/fred-consumption-annual.json';
 import goyalWelchAnnual from '../src/data/series/goyal-welch-annual.json';
 import cay from '../src/data/series/fred-cay-quarterly.json';
 import goyalWelchMonthly from '../src/data/series/goyal-welch-monthly.json';
+import ff3 from '../src/data/series/ff3-monthly.json';
+import type { Series } from '../src/lib/data/series';
 import { requiredDisasterProbability, simulateDisasterCentury } from '../src/lib/finance/disasters';
 import { arithmeticMean } from '../src/lib/finance/returns';
 import {
   DEFAULT_CENTURY_SEED, disasterLottery, emptyCenturyShare, entropyViews, LOTTERY, LOTTERY_DEFAULTS, lotteryParams,
   type DisasterData,
 } from '../src/components/plots/disasterSample';
-import { puzzleViews, type PuzzleData } from '../src/components/plots/puzzleSample';
+import { powerUtilityPath, puzzleViews, type PuzzleData } from '../src/components/plots/puzzleSample';
+import { marketSharpe, SAMPLE_STARTS } from '../src/components/plots/sdfSamples';
 
 const data = { 'fred-consumption-annual': consumption, 'goyal-welch-annual': goyalWelchAnnual } as unknown as DisasterData;
 const { full, jg } = entropyViews(data);
@@ -32,7 +35,10 @@ describe('chapter 39 prose numbers', () => {
   test('hook: the puzzle of Chapter 35', () => {
     expect([pct(annual.moments.mean.re, 2), pct(annual.moments.sd.dc, 2)]).toEqual(['6.28', '2.17']);
     expect([annual.first, annual.last]).toEqual(['1930', '2025']);
-    expect(fixed(annual.gamma.fromSharpe, 0)).toBe('15');
+    // The γ at which power utility reaches the market's Sharpe ratio, as in chapters 35 and 37.
+    const market = marketSharpe(ff3 as unknown as Series<'ff3-monthly'>, SAMPLE_STARTS[0]);
+    const lowest = powerUtilityPath(annual.moments.mean.dc, annual.moments.sd.dc, market.sharpe).lowest!;
+    expect([fixed(market.sharpe, 2), fixed(lowest.gamma, 1)]).toEqual(['0.45', '20.0']);
   });
 
   test('intuition: the default economy and its closed forms', () => {
