@@ -3,7 +3,7 @@ id: TASK-155
 title: 'Part X fix: cross-chapter links and Part XI bridge'
 milestone: M-12
 state: approved
-depends_on: [TASK-139, TASK-140, TASK-141]
+depends_on: [TASK-139, TASK-140, TASK-141, TASK-154]
 delivery: pr
 ---
 

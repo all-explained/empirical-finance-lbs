@@ -432,6 +432,7 @@ flowchart TD
   TASK_139 --> TASK_155
   TASK_140 --> TASK_155
   TASK_141 --> TASK_155
+  TASK_154 --> TASK_155
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
