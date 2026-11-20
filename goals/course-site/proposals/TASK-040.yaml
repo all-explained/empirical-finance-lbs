@@ -1,0 +1,487 @@
+format: goal-proposal/v1
+task: TASK-040
+add:
+  - ref: data-gsw-svensson
+    title: 'Data: the Svensson parameters of the GSW curve, end of month'
+    milestone: M-14
+    why: >-
+      SC-4, SC-7 and M-14. Chapter 44 estimates an affine model the way Adrian, Crump & Moench (2013) do: monthly
+      excess returns of bonds of 6 to 120 months over the one-month yield. Those need yields at monthly maturities,
+      including maturities below one year, and `gsw-zero-coupon` holds only the 1- to 30-year yields. The same
+      Federal Reserve CSV publishes the six Svensson parameters from which GSW compute every yield; Adrian, Crump &
+      Moench rebuild their curves from those parameters (pdf p. 16). The CSV is public, with no credentials.
+    scope: |-
+      Add one dataset to the data pipeline, from the source `gsw-zero-coupon` already uses. Set up `.venv` as `docs/DATA.md` describes before `npm run data`. Read first: `docs/DATA.md` (file contract, the `gsw-zero-coupon` row and its build note "take the final daily source observation of each completed month"), `scripts/data/fetch.py` (the GSW download and its month-end rule), `src/lib/data/series.ts` and `src/lib/data/series.test.ts`.
+
+      Dataset: `gsw-svensson-parameters`, from `https://www.federalreserve.gov/data/yield-curve-tables/feds200628.csv`: the columns `BETA0`, `BETA1`, `BETA2`, `BETA3` (percent) and `TAU1`, `TAU2` (years), on exactly the dates of the committed `gsw-zero-coupon` (1985-11-29 to 2026-09-30, the last daily observation of each completed month), through the same month-end helper; do not write a second one. Keep source units; compute no yields (the library task that follows does that). Check each column name and unit against the CSV header before you use it. If a parameter is missing in a month, keep the month with a null, and list the months in the outcome.
+
+      Keep `gsw-zero-coupon` as committed. GSW is "subject to revision" (`docs/DATA.md`), so a fresh download can change its yields, and chapters 40 to 42 pin numbers on them: restore that file with `git checkout -- src/data/series/gsw-zero-coupon.json`, and restore any other JSON file `npm run data` changes, and say so in the outcome. The new file's dates must equal the committed GSW dates; a test checks this.
+
+      Docs. In `docs/DATA.md`, add the row to the sources table (same Board terms and GSW citation as `gsw-zero-coupon`), update the dataset count in the opening lines and in "A normal run ... rewrites all ... outputs", and add a build note: the units, that the dates match `gsw-zero-coupon`, and that GSW yields at any maturity follow from the six parameters (name the source of the formula only as `docs/DATA.md` already cites GSW; the formula itself goes into the library). In `docs/CURRICULUM.md`, add `gsw-svensson-parameters` to the **Data:** line of chapter 44; change nothing else there.
+
+      Touch only: `scripts/data/fetch.py`, the new JSON file in `src/data/series/`, `src/lib/data/series.ts` (one new `seriesColumns` entry), `src/lib/data/series.test.ts` (schema test, three raw-source cells, and the test that the dates equal those of `gsw-zero-coupon`), `docs/DATA.md` and `docs/CURRICULUM.md`. The JSON file stays under 100 KB. Out of scope: library maths, chapters and widgets. If the download is blocked, stop with `Goal-Blocked` and name the exact file the owner must download.
+
+      Where jobs run: this is small work (one public CSV, seconds), so it runs on the MacBook. It reads no CRSP, option or tick data; nothing goes to the cluster or the CEMFI PC.
+    acceptance:
+      - '`npm run data` writes `src/data/series/gsw-svensson-parameters.json`, and the outcome states its first and last date, row count, size and any month with a null.'
+      - '`npm test` passes, including the new schema, raw-cell and matching-dates tests.'
+      - '`npm run build` passes.'
+      - '`git status --short` shows only the files named above and this task''s outcome file; `src/data/series/gsw-zero-coupon.json` is unchanged.'
+    verify: |-
+      npm ci
+      npm run data
+      git checkout -- src/data/series/gsw-zero-coupon.json
+      git status --short
+      npm test
+      npm run build
+      du -k src/data/series/gsw-svensson-parameters.json
+  - ref: data-fred-macro-debt
+    title: 'Data: FRED monthly activity and inflation, and federal debt held by the public to GDP'
+    milestone: M-14
+    why: >-
+      SC-4, SC-7 and M-14. Chapter 45 asks whether growth and inflation forecast bond returns beyond the yield curve,
+      as Bauer & Hamilton (2018) and Duffee (2011) do; the pipeline has no activity series and its only inflation
+      series, `infl` of `goyal-welch-monthly`, ends in 2025-12. Chapter 46 regresses the corporate–Treasury spread on
+      the log of government debt to GDP, as Krishnamurthy & Vissing-Jorgensen (2012) do; the spread's yields are
+      committed (`AAA`, `BAA` and `lty` of `goyal-welch-annual`), but debt to GDP is not. The "Data wanted later"
+      table of `docs/CURRICULUM.md` lists it for chapter 46. FRED serves all of them with no API key.
+    scope: |-
+      Add two datasets to the data pipeline, from FRED, with no credentials. Set up `.venv` as `docs/DATA.md` describes before `npm run data`. Read first: `docs/DATA.md` (file contract and the notes of the FRED datasets), `scripts/data/fetch.py` (its FRED helpers and the FRED entries in `build_all`), `src/lib/data/series.ts` and `src/lib/data/series.test.ts`.
+
+      Datasets:
+      - `fred-macro-monthly`, from `https://fred.stlouisfed.org/graph/fredgraph.csv?id=INDPRO,CPIAUCSL,CFNAI`: industrial production (`INDPRO`, index), the consumer price index for all urban consumers (`CPIAUCSL`, seasonally adjusted index) and the Chicago Fed National Activity Index (`CFNAI`, a weighted average of standardised indicators, 0 = trend growth). Monthly, keeping the months with all three fields (CFNAI starts in 1967-03). Keep source units; compute no growth rates or averages (the library does that). Bauer & Hamilton's growth measure is the three-month average of CFNAI (`/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/BauerHamilton2018.pdf`, pdf p. 20); Duffee uses industrial production growth and CPI inflation (`/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/Duffee2013.pdf`, pdf p. 40). Read each series' terms on its FRED page: if CFNAI may not be redistributed, drop it, keep the other two, and say so in the outcome.
+      - `fred-debt-gdp-annual`: federal debt held by the public as a percent of GDP, annual. Krishnamurthy & Vissing-Jorgensen use the face value of publicly held debt over GDP (`/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/KrishnamurthyVissingJorgensen2012.pdf`, pdf p. 2). Use `FYPUGDA188S` if its FRED page confirms that definition; otherwise use the FRED series for the same quantity with the longest annual history, and record the choice and why. Say in the build note whether the years are fiscal or calendar years.
+      Check each ID and unit against the CSV header and the FRED series page before you use it; if FRED has renamed or discontinued one, use the current series for the same quantity and record the swap, as the cay notes do.
+
+      Docs. In `docs/DATA.md`, add both rows to the sources table (terms and citation of each source: the Board for `INDPRO`, BLS for `CPIAUCSL`, the Chicago Fed for `CFNAI`, and the source FRED names for the debt series), update the dataset count in the opening lines and in "A normal run ... rewrites all ... outputs", and add a bullet for each under "File contract and transformations" with its units and first and last date. In `docs/CURRICULUM.md`, add `fred-macro-monthly` to the **Data:** line of chapter 45, add `fred-debt-gdp-annual` and `goyal-welch-annual` to that of chapter 46, and delete the chapter-46 row of "Data wanted later", whose two series are then committed (Aaa and Baa in `goyal-welch-annual`); change nothing else there.
+
+      Touch only: `scripts/data/fetch.py`, the two new JSON files in `src/data/series/`, `src/lib/data/series.ts` (two new `seriesColumns` entries), `src/lib/data/series.test.ts` (schema test and three raw-source cells for each, as for the others), `docs/DATA.md` and `docs/CURRICULUM.md`. `npm run data` rebuilds every dataset; if it changes any other JSON file, restore it with `git checkout -- <file>` and say so in the outcome. Each JSON file stays under 100 KB. Out of scope: library maths, chapters and widgets. If a download is blocked, stop with `Goal-Blocked` and name the exact file the owner must download.
+
+      Where jobs run: this is small work (public FRED CSVs, seconds), so it runs on the MacBook. It reads no CRSP, option or tick data; nothing goes to the cluster or the CEMFI PC.
+    acceptance:
+      - '`npm run data` writes `src/data/series/fred-macro-monthly.json` and `src/data/series/fred-debt-gdp-annual.json`, and the outcome states the first and last date, row count and size of each, and the series ID chosen for debt to GDP.'
+      - '`npm test` passes, including the new schema and raw-cell tests.'
+      - '`npm run build` passes.'
+      - '`git status --short` shows only the files named above and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm run data
+      git status --short
+      npm test
+      npm run build
+      du -k src/data/series/fred-macro-monthly.json src/data/series/fred-debt-gdp-annual.json
+  - ref: lib-affine
+    title: 'Library: Gaussian affine term structure models, bond pricing recursions, risk-neutral yields and the term premium'
+    milestone: M-14
+    why: >-
+      SC-7 and M-14. Part XII prices bonds from a state that follows a VAR, a short rate linear in the state and
+      prices of risk linear in the state. All four chapters use the recursions for $A_n$ and $B_n$: chapter 43 drags
+      a model's state and prices of risk, chapter 44 feeds estimated parameters into them, chapter 45 inverts them
+      to recover the state from yields, and chapter 46 reads its spreads against the term structure. `src/lib` has
+      VAR(1) estimation (`fitVAR1`) and bond arithmetic (`bonds.ts`) but no model that prices bonds. Needs no data
+      task, so it starts at once.
+    scope: |-
+      Add `src/lib/finance/affine.ts` and `src/lib/finance/affine.test.ts`. Read first: the entries of chapters 43–46 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3 (the "Bonds and the term structure" table, the predictability table with $\phi$, $\mu_x$, $v_{t+1}$ and the VAR matrix $A$, the Returns and prices table with $\mu$ and $\Sigma$, and the SDF table), `src/lib/stats/var.ts` (`fitVAR1`, `forecastVAR1`), `src/lib/finance/bonds.ts` (`YieldCurve`, `logPrices`, `forwardRates`), `src/lib/math/linalg.ts` and `src/lib/math/rng.ts`.
+
+      Readings. Open with `pdftotext -layout` and cite pages in doc comments for anything you take from it: `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/AdrianCrumpMoench2013.pdf` (New York Fed Staff Report 340, revised April 2013; cite the 2013 *Journal of Financial Economics* article and name working-paper pdf pages; printed page = pdf page − 2): the VAR of the state, eqs. (1)–(2), pdf p. 6; the exponentially affine pricing kernel and the prices of risk, eqs. (4)–(5), pdf p. 7; the expected excess return, eqs. (8)–(10), pdf p. 7; the affine yields and the recursions, eqs. (21)–(27), pdf p. 11; $\beta^{(n)\prime} = B_n'$, eq. (28), the role of $\sigma^2$, and the risk-neutral parameters $A^{RF}_n$, $B^{RF}_n$ with $\lambda_0 = \lambda_1 = 0$, pdf p. 12. Campbell, Lo & MacKinlay (1997), Ch. 11, is a book that is not in `source/papers/` (see `docs/READINGS.md`): take no fact from it.
+
+      Units and parameter form. One period is one month; rates are decimal log rates per month, and the functions that return yields annualise by 12 (say so in each doc comment). Write the model once, in Adrian, Crump & Moench's form: $X_{t+1} = \mu + \Phi X_t + v_{t+1}$ with $v_{t+1} \sim N(0, \Sigma)$, the short rate $\delta_0 + \delta_1'X_t$, and prices of risk $\lambda_0 + \lambda_1 X_t$ that enter the recursions as $\mu - \lambda_0$ and $\Phi - \lambda_1$. The curriculum's Key math writes $X_{t+1} = \mu + \Phi X_t + \Sigma\varepsilon_{t+1}$ and the recursions with $\Sigma\lambda_0$ and $\Sigma\lambda_1$: derive in a doc comment that the two are the same model when the paper's $\lambda_0$, $\lambda_1$ equal the curriculum's times its $\Sigma$, and test it. Keep the optional $\tfrac12\sigma^2$ term of eq. (25) (default 0) and say what it is.
+
+      Functions:
+      - `affineLoadings(model, maxN)`: $A_n$ and $B_n$ for $n = 0, \dots, \mathit{maxN}$ from the recursions, with $A_0 = 0$, $B_0 = 0$, $A_1 = -\delta_0$, $B_1 = -\delta_1$; and the same with $\lambda_0 = \lambda_1 = 0$ (risk-neutral).
+      - `affineYields(model, X, maturities)`: log yields $-(A_n + B_n'X)/n$, annualised, for a state $X$; `riskNeutralYields` the same with the risk-neutral loadings, which equal the average expected short rate over the bond's life (derive why in a doc comment, as the paper states on pdf p. 12); `termPremium` the gap, $\mathit{tp}^{(n)}_t$ in §3's symbol.
+      - `expectedExcessReturn(model, X, n)`: the one-month expected log excess return of the $n$-month bond, from eqs. (10) and (28), with the convexity term.
+      - `simulateAffine(seed, model, months, options)`: a seeded path of the state, from its unconditional mean unless a start is given, with the yields, risk-neutral yields and term premia of chosen maturities on each date, and an option to add seeded i.i.d. measurement error to the yields (chapter 45 uses it).
+      - `oneFactorModel(params)` and `twoFactorModel(params)`: models for chapter 43's widget, set by readable parameters (the mean and monthly persistence of the short rate, its shock volatility, and the constant and slope of the price of risk; for two factors, a second factor that moves the slope of the curve, with its own persistence and correlation), each with a doc comment on what moving the parameter does to the curve. Give default parameters whose average curve on the annual grid is near the mean GSW curve of 1985-11 to 2026-09 (state the fit and the gap at 1, 5 and 10 years in the outcome; fit by hand or with `src/lib/math/optimize.ts`).
+      - `invertState(model, yields, maturities, Q)`: the state that the yields imply, $X_t = (Q'B)^{-1}(Q'y_t - Q'A)$ with $A$, $B$ stacked over the maturities and $Q$ a matrix of $K$ yield weights (for example the first $K$ principal-component loadings), when $Q'B$ is invertible; report its condition number, and return null when it is singular.
+
+      Notation. §3 already defines $\mathit{tp}^{(n)}_t$ ("the model term premium of Part XII"), $y^{(n)}_t$, $p^{(n)}_t$, $rx^{(n)}_{t+1}$, and reserves $A_n$ for the affine intercept (the $\bar\phi^{(n)}_y$ row). The papers' other symbols clash with §3: $X_t$ with the payoff $X_{t+1}$; $\Phi$ with the VAR matrix $A$ of Chapter 5 and `fitVAR1`; $\mu$ and $\Sigma$ with a return's mean and covariance (§3 asks other covariances to carry a subscript, as $\Sigma_\varepsilon$); $\delta_0$, $\delta_1$ with the time-discount factor $\delta$; $\lambda_0$, $\lambda_1$ with the factor risk premia $\lambda$, the conditional premium $\lambda_t$ of Chapters 22–23 and the zero-beta rate $\lambda_0$ of Chapter 17; $B_n$ with the beta matrix $B$; $e_{t+1}$ with the residual of a 2×3 portfolio in Chapter 19. Choose one symbol for each (for example a subscript $X$ on the VAR's mean and covariance, $\mu_X$ and $\Sigma_X$, as §3 does with $\mu_x$; keep $\Phi$ for the state's VAR and say in the row that Chapter 5's $A$ is the same object), add each to the "Bonds and the term structure" table of §3 with the clash it avoids and the paper's symbol, and use them in every doc comment. The other Part XII library tasks add rows to the same table; rebase on `origin/main` before you finish and keep every row. Keep the KaTeX macro check in `npm test` green.
+
+      Tests against reference values, each stated in the test: for a one-factor model, $A_n$ and $B_n$ match the closed form of a Gaussian AR(1) short rate (derive it in the test) to 1e-12; with $\lambda_0 = \lambda_1 = 0$ and $\Sigma \to 0$ every yield equals the average expected short rate and the term premium is 0; the paper's form and the curriculum's form give the same loadings to 1e-12; the risk-neutral yield equals the average of `forecastVAR1` short-rate forecasts to 1e-12; `expectedExcessReturn` equals $p^{(n-1)}$ expected next month minus $p^{(n)}$ minus the short rate, computed from the loadings, to 1e-12; `invertState` recovers the state of a simulated date to 1e-10 without measurement error; `simulateAffine` is reproducible from its seed; and the default parameters' average curve against the GSW mean at 1, 5 and 10 years within a stated gap. Reuse `forecastVAR1`, `matMul`, `inverse`, `solve` and the RNG helpers; do not copy them. Out of scope: estimation on data (the next library task), chapters, widgets, and edits to files other than those named.
+
+      Where jobs run: unit tests on small made-up data and the committed GSW file, seconds, on the MacBook.
+    acceptance:
+      - 'Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.'
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - 'The outcome states the derivation that maps the paper''s prices of risk to the curriculum''s, and the gap of the default parameters'' average curve to the GSW mean at 1, 5 and 10 years.'
+      - '`docs/STYLE_GUIDE.md` §3 "Bonds and the term structure" has a row for each new symbol, and the outcome lists each with the clash it avoids.'
+      - '`git status --short` shows only `src/lib/finance/affine.ts`, its test, `docs/STYLE_GUIDE.md` and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-acm
+    title: 'Library: the Adrian–Crump–Moench three-step estimator on GSW, with fitted yields and the term premium'
+    milestone: M-14
+    after: [lib-affine, data-gsw-svensson]
+    why: >-
+      SC-7 and M-14. Chapter 44 estimates an affine model with three sets of OLS regressions instead of maximum
+      likelihood, and reads the history of the term premium it implies. It needs monthly yields at monthly
+      maturities from the Svensson parameters, principal components of yields as the state, the three steps of
+      Adrian, Crump & Moench, and the recursions of the affine library to turn the estimates into yields and term
+      premia. `ols.ts` and `pca.ts` give the regressions and components; nothing chains them.
+    scope: |-
+      Add `src/lib/finance/acm.ts` and its test file, and add `svenssonYield` and `gswMonthlyCurve` to `src/lib/finance/bonds.ts` with tests. Read first: the entries of chapters 43 and 44 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3 (the "Bonds and the term structure" table, with the rows the affine library added), the `gsw-zero-coupon` and `gsw-svensson-parameters` rows and notes of `docs/DATA.md`, `src/lib/finance/affine.ts` (from the library task this task depends on), `src/lib/finance/bonds.ts`, `src/lib/stats/pca.ts` (`pca`, `scores`, `gswYields`), `src/lib/stats/ols.ts`, `src/lib/stats/var.ts` (`fitVAR1`) and `src/lib/math/linalg.ts`.
+
+      Readings. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/AdrianCrumpMoench2013.pdf` (New York Fed Staff Report 340, revised April 2013; cite the 2013 *Journal of Financial Economics* article and name working-paper pdf pages; printed page = pdf page − 2) with `pdftotext -layout`, and cite pages in doc comments for anything you take from it: the return-generating process and its stacked form, eqs. (12)–(13), pdf p. 8; the three steps, eqs. (14)–(17), pdf p. 9; the asymptotic variance of $\hat\beta$, eqs. (19)–(20), pdf p. 10; the recursions and $\beta^{(n)\prime} = B_n'$, eqs. (25)–(28), pdf pp. 11–12; the data (GSW curves rebuilt from their parameters at 3 to 120 months, the one-month yield as the risk-free rate, excess returns at $n$ = 6, 18, 24, …, 60, 84 and 120 months, $N = 12$), pdf p. 16; the sample 1987-01 to 2011-12, $T = 300$, and $\delta_0$, $\delta_1$ from a regression of the short rate on the factors, pdf p. 17; five factors, pdf p. 19; $\mu = 0$ for demeaned components and the size of the yield pricing errors (Table 2), pdf p. 20; the prices of risk (Table 3), pdf p. 21; $\hat\beta^{(n)}$ against $B_n$ (Fig. 4), pdf pp. 24 and 61. Gürkaynak, Sack & Wright (2007) is the data citation, not a reading: state about it only what `docs/DATA.md` states.
+
+      Functions (one period is one month; decimal log rates per month inside, annualised by 12 on output):
+      - `svenssonYield(params, m)` in `bonds.ts`: the continuously compounded yield at maturity $m$ years from `BETA0`–`BETA3`, `TAU1`, `TAU2` (write the formula in the doc comment and say where it comes from as `docs/DATA.md` does). `gswMonthlyCurve(params, monthsList)`: the panel of log yields at the chosen maturities in months, on the dates of `gsw-svensson-parameters`. GSW fit coupon bonds, so the fitted curve is least reliable at the shortest maturities; name that limit in a code comment, and say where Adrian, Crump & Moench use it anyway.
+      - `acmInputs(params, options)`: the yields at 3 to 120 months, their first $K$ principal components (default 5) of demeaned yields as the state $X_t$, the one-month yield as the short rate, and the monthly log excess returns at the paper's 12 maturities, each from `gswMonthlyCurve` with $p^{(n-1)}_{t+1}$ read from the next month's curve; a date range option with the paper's sample (1987-01 to 2011-12) and ours (all months) as named presets.
+      - `acmEstimate(inputs)`: step 1, the VAR of the state by OLS, its residuals $\hat v_{t+1}$ and $\hat\Sigma$; step 2, each excess return on a constant, $\hat v_{t+1}$ and $X_t$, giving $\hat a$, $\hat\beta$, $\hat c$ and $\hat\sigma^2$; step 3, $\hat\lambda_0$ and $\hat\lambda_1$ from the cross-sectional regressions of eqs. (16)–(17); $\hat\delta_0$, $\hat\delta_1$ from the short rate on the state; and the model for `affine.ts` that these define. Standard errors of $\hat\beta$ from eq. (20); say in the doc comment that the paper's $\hat\lambda$ errors (its Appendix) are not computed.
+      - `acmStepRegressions(inputs, estimate, choice)`: the one-regressor scatter of each step for a `RegressionLab` view: a state component on its own lag (step 1), one maturity's excess return on one innovation (step 2), and, across the 12 maturities, $\hat c$ for one state component against $\hat\beta$ for the same component (step 3), each with its fitted line and the value the full estimate gives, so the chapter can say what a single regression shows and what it leaves out.
+      - `acmFit(inputs, estimate, maturities)`: fitted yields, risk-neutral yields and term premia from the affine recursions for every month; the yield pricing errors by maturity (mean and standard deviation in basis points, as Table 2); and $\hat\beta^{(n)}$ against $B_n$ (as Fig. 4).
+
+      Notation. Use the §3 symbols the affine library added for the state, its VAR, the short rate and the prices of risk. Add rows to the "Bonds and the term structure" table for the new ones: the exposures $\beta^{(n)}$ (a factor exposure, as $\beta$ is everywhere in §3, with the maturity superscript), the paper's $a$, $c$ and $e_{t+1}$ of step 2 ($a$ is an intercept here too; choose a symbol for $c$, which is log consumption, and for the return pricing error, which the paper writes $e_{t+1}$, a 2×3 residual in Chapter 19), its $\sigma^2$ (§3's $\sigma$ is a return's standard deviation; for example $\sigma^2_e$ or the symbol you choose for the error), $B^\star$ and $\iota$ (§3 writes the vector of ones $\mathbf{1}$), each with the clash it avoids and the paper's symbol. The other Part XII library tasks add rows to the same table; rebase on `origin/main` before you finish and keep every row. Keep the KaTeX macro check in `npm test` green.
+
+      Tests against reference values, each stated in the test: `svenssonYield` reproduces every committed `SVENY01`–`SVENY30` of `gsw-zero-coupon` within the rounding of the published values (state the largest gap; a larger one means GSW revised the curve, and the outcome must say so); on data simulated from a known affine model with `simulateAffine`, a long seeded sample recovers $\Phi$, $\beta$, $\lambda_0$ and $\lambda_1$ within stated bands, and the fitted yields equal the simulated ones to a stated tolerance; $\hat\beta^{(n)}$ is close to $B_n$ on our data (state the largest gap, as Fig. 4); step 3 equals eq. (18) computed directly, to 1e-10; and pinned values on the committed data for both presets: $\hat\lambda_0$, the diagonal of $\hat\lambda_1$, the yield pricing errors at 2 and 10 years, and the 10-year term premium at three named months. State the time one `acmEstimate` plus `acmFit` takes on the test machine; it must be low enough to run in a widget on load. Reuse `pca`, `scores`, `ols`, `fitVAR1` and the functions of `affine.ts` and `bonds.ts`; do not copy them. Out of scope: chapters, widgets, and edits to files other than those named.
+
+      Where jobs run: the estimate runs in milliseconds on the committed files, on the MacBook. Nothing goes to the cluster or the CEMFI PC.
+    acceptance:
+      - 'Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.'
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - 'The outcome compares, on the paper''s sample preset, our yield pricing errors with Table 2 (pdf p. 20) and our $\hat\lambda_0$ and $\hat\lambda_1$ with Table 3 (pdf p. 21), marked as theirs, and says why they may differ (GSW vintage, our rebuild of the curve, sign and scale of the principal components).'
+      - 'The outcome states the largest gap between `svenssonYield` and the committed GSW yields, and the measured time of one estimate and fit.'
+      - '`docs/STYLE_GUIDE.md` §3 "Bonds and the term structure" has rows for the new symbols, and the outcome lists each with the clash it avoids.'
+      - '`git status --short` shows only `src/lib/finance/acm.ts`, its test, `src/lib/finance/bonds.ts`, its test, `docs/STYLE_GUIDE.md` and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-spanning
+    title: 'Library: spanning regressions of bond excess returns on yield components and macro variables, with the Bauer–Hamilton bootstrap'
+    milestone: M-14
+    after: [lib-affine, data-fred-macro-debt]
+    why: >-
+      SC-7 and M-14. Chapter 45 asks whether anything outside the yield curve forecasts bond returns. In an
+      invertible affine model the state is a function of yields, so the answer should be no; regressions say yes,
+      but with persistent predictors and overlapping returns their size is wrong. The chapter needs the regressions,
+      the bootstrap under the spanning null and a seeded version whose predictor persistence the reader can move.
+      `stambaugh.ts` simulates one persistent predictor; nothing tests a block of them against yield components.
+    scope: |-
+      Add `src/lib/finance/spanning.ts` and its test file. Read first: the entries of chapters 12, 43 and 45 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3 (the "Bonds and the term structure" table with the rows of the earlier Part XII libraries, the predictability table, and the PCA rows with $Q$ for eigenvectors), the `gsw-zero-coupon` and `fred-macro-monthly` rows of `docs/DATA.md`, `src/lib/finance/affine.ts` (`invertState`, `simulateAffine`), `src/lib/finance/bonds.ts` (`holdingReturns`), `src/lib/stats/pca.ts` (`pca`, `scores`, `gswYields`), `src/lib/stats/ols.ts`, `src/lib/stats/var.ts` (`fitVAR1`), `src/lib/stats/stambaugh.ts` (`quantile`) and `src/lib/math/rng.ts`.
+
+      Readings. Open these PDFs with `pdftotext -layout` and cite pages in doc comments for anything you take from them:
+      - `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/BauerHamilton2018.pdf` (FRBSF working paper 2015-15, May 2017 version; cite the 2018 *Review of Financial Studies* article and name working-paper pdf pages): the spanning hypothesis, pdf p. 7; why the state may not be recoverable from yields (measurement error, hidden factors), pdf p. 8; the predictive regression and its null $\beta_2 = 0$, eq. (1), pdf p. 8; standard-error bias with persistent predictors and overlapping returns, pdf pp. 9–16, with the $R^2$ gain, eq. (13), pdf p. 16; the bootstrap under the null (three principal components, a VAR(1) for them and one for the other predictors, residuals drawn jointly, 5000 samples), pdf pp. 17–18; the growth and inflation predictors of Joslin, Priebsch & Singleton, the sample 1985–2008 and Table 2, pdf pp. 20–21.
+      - `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/Duffee2013.pdf` (the January 2011 final version of "Information in (and not in) the term structure"; cite the 2011 *Review of Financial Studies* article, as `docs/READINGS.md` records, and name pdf pages): yields as an affine function of the state and when the state can be inferred from them, eqs. (12)–(13), pdf pp. 7–8; hidden factors, which move expected returns but not today's yields, pdf pp. 9–13; industrial production growth and CPI inflation, smoothed, as candidate macro drivers, pdf p. 40.
+      Joslin, Priebsch & Singleton (2014) and Ludvigson & Ng (2009) are not in `source/papers/`: name them only where an opened reading does, with its page, and take no fact from them. Their inflation measure is a survey forecast that is not public; say in a doc comment that ours is realised CPI inflation.
+
+      Functions (annual holding periods on monthly observations unless stated; decimal log rates; Hansen–Hodrick standard errors with 12 lags by default, as Part XI):
+      - `macroPredictors(series)`: from `fred-macro-monthly`, growth as the three-month average of CFNAI (Bauer & Hamilton, pdf p. 20) or, if the data task dropped CFNAI, twelve-month industrial production growth (Duffee, pdf p. 40), and inflation as twelve-month CPI inflation; name the choice in the doc comment.
+      - `spanningInputs(curve, macro, options)`: for each month, a constant and the first three principal components of yield levels (from `pca` on `gswYields`), the macro predictors, and the excess returns $rx^{(n)}_{t+1}$ at $n$ = 2, 5 and 10 years from `holdingReturns` and their average; the sample from 1985-11 and the months it shares with Bauer & Hamilton's (to 2008-12) as named presets.
+      - `spanningRegression(inputs, n, options)`: excess returns on the components alone and with the macro predictors added; the slopes, standard errors, the Wald statistic for the null that the macro slopes are 0 with its asymptotic $p$-value, both $R^2$ and adjusted $R^2$, and the gain.
+      - `spanningBootstrap(seed, inputs, n, options)`: Bauer & Hamilton's bootstrap under the null, as their pdf pp. 17–18 describe; the bootstrap distribution of the $R^2$ gain and of the Wald statistic, the share of samples at or above the data's values (the bootstrap $p$-value), and the size of the asymptotic test at 5%. Option for the number of samples; state the default and the time one call takes on the test machine.
+      - `simulatedSpanning(seed, params, options)`: a seeded world for the widget in which a macro variable $z_t$ (or the §3 symbol) is an AR(1) with persistence the reader sets, independent of bond returns, and returns are overlapping annual sums of monthly shocks with the persistence of the yield components fitted to our data; the distribution of the $R^2$ gain across samples as long as ours, and its 95th percentile; fast enough to redraw on a slider move (state what you measured).
+      - `hiddenFactorDemo(seed, options)`: built on `simulateAffine`, a three-factor model whose third factor has (almost) no loading on yields but moves the prices of risk (Duffee, pdf pp. 9–13): the state recovered with `invertState` from noisy yields, its error for the hidden factor, and the share of expected-return variance that the yield components miss.
+
+      Notation. §3 has $z_t$ for the state variable of Chapters 22–23 and the human-capital gap of Chapter 14, $x_t$ for a predictor, $Q$ for orthonormal eigenvectors (Bauer & Hamilton write $\hat W$, the GMM weighting matrix here) and $\beta$ only for exposures (Bauer & Hamilton write $\beta_1$, $\beta_2$ for predictive slopes; §3 uses $b$). Choose symbols for the macro predictors, the yield components (the curriculum writes $PC_t$), the $R^2$ gain and the bootstrap draws, and write the curriculum's $b_1$, $b_2$ so they do not read as SDF loadings (as Part XI did with subscripts). Add each to the "Bonds and the term structure" table of §3 with the clash it avoids and the papers' symbol. The other Part XII library tasks add rows to the same table; rebase on `origin/main` before you finish and keep every row. Keep the KaTeX macro check in `npm test` green.
+
+      Tests against reference values, each stated in the test: on data simulated under the null, the asymptotic test rejects more than 5% when the predictor is persistent and the returns overlap, and the bootstrap test rejects close to 5% (state the bands and the number of samples); under an alternative where the macro variable enters returns, the bootstrap rejects in most samples; `spanningRegression`'s Wald statistic and $R^2$ match a hand computation on a small fixture; the bootstrap and `simulatedSpanning` are reproducible from their seeds; with no measurement error `hiddenFactorDemo` recovers the two visible factors to 1e-10; and pinned values on the committed data for both presets at $n$ = 2 and 10 (the $R^2$ with and without macro, the Wald $p$-value and the bootstrap $p$-value). Reuse `holdingReturns`, `pca`, `scores`, `ols`, `fitVAR1`, `quantile`, the functions of `affine.ts` and the RNG helpers; do not copy them. Out of scope: chapters, widgets, and edits to files other than those named.
+
+      Where jobs run: the bootstrap runs on the committed files in seconds, on the MacBook; size the default number of samples so `npm test` stays under 2 minutes on one core. Nothing goes to the cluster or the CEMFI PC.
+    acceptance:
+      - 'Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.'
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - 'The outcome sets our $R^2$ with and without macro, and our asymptotic and bootstrap $p$-values, next to Bauer & Hamilton''s Table 2 (pdf p. 21), marked as theirs, and says why they differ (predictors, sample, GSW against their yields).'
+      - 'The outcome states the default number of bootstrap samples and the measured time of `spanningBootstrap` and of `simulatedSpanning`.'
+      - '`docs/STYLE_GUIDE.md` §3 "Bonds and the term structure" has rows for the new symbols, and the outcome lists each with the clash it avoids.'
+      - '`git status --short` shows only `src/lib/finance/spanning.ts`, its test, `docs/STYLE_GUIDE.md` and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: lib-convenience
+    title: 'Library: the corporate–Treasury spread, its regression on debt to GDP, and a demand curve for safe assets'
+    milestone: M-14
+    after: [data-fred-macro-debt]
+    why: >-
+      SC-7 and M-14. Chapter 46 measures the convenience yield of Treasuries: the Aaa–Treasury spread is low when
+      government debt is plentiful and high when it is scarce, which traces a downward-sloping demand for safe
+      assets. The chapter needs the spread, the regression on log debt to GDP with default controls, and the
+      demand curve with its equilibrium spread for the widget. Nothing in `src/lib` computes yield spreads or
+      reads debt.
+    scope: |-
+      Add `src/lib/finance/convenience.ts` and its test file. Read first: the entries of chapters 40 and 46 in `docs/CURRICULUM.md`, `docs/STYLE_GUIDE.md` §3 (the "Bonds and the term structure" table with the rows of the earlier Part XII libraries, and the predictability table), the `goyal-welch-annual`, `fred-treasury-monthly` and `fred-debt-gdp-annual` rows and notes of `docs/DATA.md` (the Goyal–Welch note on Bloomberg indices from 2022), `src/lib/data/series.ts`, `src/lib/finance/bonds.ts` (`treasuryCurve`), `src/lib/stats/ols.ts` and `src/lib/math/optimize.ts`.
+
+      Readings. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/KrishnamurthyVissingJorgensen2012.pdf` (working paper of 12 February 2008; cite the 2012 *Journal of Political Economy* article, as `docs/READINGS.md` records, and name working-paper pdf pages; its tables carry Roman numerals) with `pdftotext -layout`, and cite pages in doc comments for anything you take from it: the spread against debt to GDP, 1925–2005 (Figure 1), pdf p. 2; the semi-elasticity and the 72 basis points at a debt ratio of 0.37, pdf p. 3; the spread as default, risk premium and convenience, eqs. (1)–(4), pdf pp. 7–9; the log demand function $\alpha + B\log(\text{Debt}/\text{GDP})$ with $B < 0$, pdf pp. 10–11; the Aaa and long Treasury yields, pdf p. 11; the controls (Baa–Aaa, the slope, stock volatility), pdf pp. 13–14; Table I, pdf p. 45; Table IV, pdf p. 48; the exponential specification (Table VII), pdf p. 51.
+
+      Functions (annual data, decimal yields; Newey–West standard errors, lags stated, since annual spreads are persistent):
+      - `convenienceSample(goyalWelch, debt, options)`: for each year with both, the Aaa–Treasury spread (`AAA` minus `lty` of `goyal-welch-annual`), the Baa–Aaa spread, the slope (`lty` minus `tbl`) and $\log(\text{Debt}/\text{GDP})$; a range option with the paper's years (to 2005) and ours (all years) as named presets. State in the doc comment what `lty` measures as `docs/DATA.md` describes it, and that its source changes from 2022. As a check, the Aaa minus 20-year Treasury spread from `fred-treasury-monthly` (`GS20`, annual average of the months present) over the years both exist, and its correlation with the Goyal–Welch spread.
+      - `convenienceRegression(sample, controls)`: the spread on a constant and $\log(\text{Debt}/\text{GDP})$, alone and with the Baa–Aaa spread and the slope, as Table I's columns; slopes, standard errors, $R^2$, the fitted line and the points for a scatter.
+      - `exponentialDemand(sample)`: the paper's exponential form, fitted by nonlinear least squares with `optimize.ts`, and the convenience yield it implies at a given debt ratio (the spread minus its limit as debt grows without bound), as the paper's 72 basis points.
+      - `demandCurve(params)` and `equilibriumSpread(params, debtToGdp)`: for the widget, a downward-sloping demand for Treasuries in log or exponential form, a vertical supply at the chosen debt ratio, a shifter for the strength of safety demand, and the spread where they meet; also the change in the spread for a one-point rise in debt to GDP (the paper's 1.7 to 3.6 basis points per point, pdf p. 3).
+
+      Notation. The curriculum writes $y^{\text{other}}_t - y^{\text{Treas}}_t = a + b\log(\text{Debt}_t/\text{GDP}_t)$; the paper writes $\alpha + B\log(\cdot)$, where §3 has $\alpha$ for a pricing error and $B$ for the beta matrix and $B_n$ for the affine slope, and the paper's $\Theta^T_t$ and $\Delta^*_t$ have no row. Choose symbols for the spread, the debt ratio, the semi-elasticity (a slope with a subscript, as Part XI's $b_{\Delta y}$), the convenience yield and the demand shifter. Add each to the "Bonds and the term structure" table of §3 with the clash it avoids and the paper's symbol. The other Part XII library tasks add rows to the same table; rebase on `origin/main` before you finish and keep every row. Keep the KaTeX macro check in `npm test` green.
+
+      Tests against reference values, each stated in the test: on simulated data with a known slope plus seeded noise, `convenienceRegression` recovers it within a stated band; the Newey–West standard error matches a hand computation on a small fixture; `equilibriumSpread` lies on the demand curve at the supply and falls as supply rises; the exponential form's convenience yield is positive and tends to 0 as debt grows; and pinned values on the committed data for both presets (the slope and $R^2$ alone and with controls, and the convenience yield at the last year's debt ratio). Reuse `ols`, the `optimize.ts` minimiser and `getColumn`; do not copy them. Out of scope: chapters, widgets, and edits to files other than those named.
+
+      Where jobs run: unit tests on the committed annual files, seconds, on the MacBook.
+    acceptance:
+      - 'Every exported function has a test against a reference value, and `npm test` passes, including the KaTeX macro check.'
+      - '`npm run build` passes (`astro check` reports 0 errors).'
+      - 'The outcome sets our slopes, $R^2$ and convenience yield on the paper''s years next to Table I (pdf p. 45), Table VII (pdf p. 51) and the 72 basis points (pdf p. 3), marked as theirs, and says why they differ (the long Treasury yield, the debt series, years).'
+      - '`docs/STYLE_GUIDE.md` §3 "Bonds and the term structure" has rows for the new symbols, and the outcome lists each with the clash it avoids.'
+      - '`git status --short` shows only `src/lib/finance/convenience.ts`, its test, `docs/STYLE_GUIDE.md` and this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      git status --short
+  - ref: chapter-43
+    title: 'Chapter 43: Affine term structure models'
+    milestone: M-14
+    after: [lib-affine]
+    why: >-
+      SC-7 and M-14. Part XII opens by building bond prices from three pieces: a VAR for the state, a short rate
+      linear in it and prices of risk linear in it. The reader derives the recursions, drags a model's state and
+      prices of risk and watches the curve reshape, and splits a yield into expected short rates and a term
+      premium. This chapter follows the pattern of the Part I to Part XI chapters.
+    scope: |-
+      Write chapter 43 of `docs/CURRICULUM.md`, "Affine term structure models", as `src/content/chapters/43-affine-term-structure-models.mdx`, with its widgets. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md` (with the "Bonds and the term structure" table of §3), `docs/DATA.md`, the finished chapters `src/content/chapters/05-persistence-ar1-and-var.mdx` (the VAR), `src/content/chapters/08-euler-equation-and-sdf.mdx` (a price as an expected discounted payoff) and `src/content/chapters/40-yields-forwards-and-bond-returns.mdx` (yields, forwards and the ex post term premium), chapters 41 and 42 if they are merged, and the code named below: `src/lib/finance/affine.ts` (from the library task this task depends on), `src/lib/finance/bonds.ts` and `src/components/plots/bondSample.ts` (`useBondView`). Check each file name with `ls src/content/chapters/` before you link it.
+
+      Readings. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/AdrianCrumpMoench2013.pdf` (New York Fed Staff Report 340; cite the 2013 *Journal of Financial Economics* article and name working-paper pdf pages) for the model and the recursions (pdf pp. 6–7 and 11–12); the library's doc comments list the pages. Campbell, Lo & MacKinlay (1997), Ch. 11, is not in `source/papers/`: list it under further reading in the short form and take no fact from it. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data or a seeded model is read from library output, never from a paper.
+
+      Data. Seeded models from `affine.ts` (`oneFactorModel`, `twoFactorModel`, `simulateAffine`), and `gsw-zero-coupon` through `useBondView` of `bondSample.ts` for the reference curve; write no new loading code.
+
+      Chapter:
+      - Frontmatter: `part: 12`, `chapter: 43`, `difficulty: 3`, `prerequisites: [5, 8, 40]`, a one-sentence `summary`. Link chapters 5, 8 and 40, and chapter 42 for the facts this Part models if it is merged when you finish; otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site; name chapter 44, "Pricing the term structure with linear regressions", only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: the VAR for the state, the short rate, the exponentially affine SDF and the prices of risk, the guess $p^{(n)}_t = A_n + B_n'X_t$ and the derivation of both recursions from $P^{(n)}_t = \mathbb{E}_t[M_{t+1}P^{(n-1)}_{t+1}]$ (break the display math to fit a 375px phone), risk-neutral yields as average expected short rates, and the term premium as the gap. Write the model in the §3 symbols the library added and say, in one sentence, how the curriculum's form ($\Sigma\lambda_0$, $\Sigma\lambda_1$) maps to it, as the library derives. Link chapter 40's ex post term premium and say how the model's differs (expected, not realised, short rates).
+      - Every number in the prose is read from library output, never typed from memory. Add `tests/chapter43-numbers.test.ts` that recomputes each one, as `tests/chapter40-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through `affine.ts`:
+      - `AffineCurve`: a `Segmented` for the one- and two-factor model, `Slider`s for the state (the short rate, and the second factor), the persistence and the price-of-risk constant and slope; the model's yield curve and its risk-neutral curve from 1 month to 30 years, with the GSW curve of a chosen month as reference points (a date `Select` or `Slider`; do not let colour be the only cue between model and data). Readout: the 1-, 10- and 30-year yields, the 10-year term premium, and the slope.
+      - `TermPremium`: a seeded path of the 10-year yield, its risk-neutral yield and the gap over time, with a maturity `Slider` (1–30 years), a `Button` for a new seed, and a readout of the mean and standard deviation of each line. Write it so chapter 44 can add a preset that draws the estimated model's series on our data in place of the seeded path (one optional prop, documented in the component); chapter 44 adds that preset, not this task.
+      Both follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout (break wide display math so it fits a 375px phone, and keep each readout line short enough not to wrap at 360px), `prefers-reduced-motion`. In `options={[...]}` strings, double every backslash. Use plain `<details>`, not `<Details>` (issue #83). If you animate with `useTweened`, guard against issue #120 as the power-utility view of `HJBound` does, until that issue is fixed.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` (report mismatches in the outcome, including the $\Sigma\lambda$ form), changes to shared code. A symbol the chapter needs that §3 lacks goes into the "Bonds and the term structure" table of `docs/STYLE_GUIDE.md` §3 in this PR, with the clash it avoids (rebase first and keep every row); where the curriculum's Key math and §3 disagree, follow §3 and report the mismatch. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`.
+
+      Where jobs run: build, tests, screenshots and click-through run on the MacBook on committed files and seeded models; nothing reads CRSP, option or tick data.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 43-affine-term-structure-models` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 43-affine-term-structure-models` passes and reports every widget of the chapter.'
+      - 'The six `section-tag` headings are in template order.'
+      - 'No hex colour in the chapter or its widgets.'
+      - '`AffineCurve` and `TermPremium` compute only through `affine.ts`, use seeded models from `src/lib/math/rng.ts`, and read GSW through `bondSample.ts`.'
+      - 'The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.'
+      - 'The prose is 1,500–3,000 words (give the command).'
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 43-affine-term-structure-models
+      npm run clickthrough -- 43-affine-term-structure-models
+      grep -n 'section-tag' src/content/chapters/43-affine-term-structure-models.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/43-affine-term-structure-models.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-44
+    title: 'Chapter 44: Pricing the term structure with linear regressions'
+    milestone: M-14
+    after: [lib-acm, chapter-43]
+    why: >-
+      SC-7 and M-14. An affine model can be estimated with three sets of OLS regressions instead of maximum
+      likelihood. The chapter runs them on our data, checks that the fitted curve prices the yields it never
+      targeted, and reads the history of the 10-year term premium it implies. It waits for chapter 43 because it
+      adds a preset to chapter 43's `TermPremium` widget. This chapter follows the pattern of the Part I to Part XI
+      chapters.
+    scope: |-
+      Write chapter 44 of `docs/CURRICULUM.md`, "Pricing the term structure with linear regressions", as `src/content/chapters/44-pricing-the-term-structure-with-linear-regressions.mdx`, with its widget views. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md` (with the "Bonds and the term structure" table of §3), `docs/DATA.md`, the finished chapters `src/content/chapters/03-regression-and-standard-errors.mdx` (`RegressionLab`), `src/content/chapters/06-principal-components.mdx`, `src/content/chapters/43-affine-term-structure-models.mdx` and chapter 42 if it is merged, and the code named below: `src/lib/finance/acm.ts` and `src/lib/finance/affine.ts` (from the library tasks), `src/components/plots/TermPremium.tsx` (from chapter 43), `src/components/plots/RegressionLab.tsx` and `src/components/plots/regressionSample.ts` (how chapter 26 added the `gmm` preset). Check each file name with `ls src/content/chapters/` before you link it.
+
+      Readings. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/AdrianCrumpMoench2013.pdf` (New York Fed Staff Report 340; cite the 2013 *Journal of Financial Economics* article and name working-paper pdf pages) and name the page for any number or fact you take from it; the library's doc comments list the pages of the three steps, the data, Table 2, Table 3 and Fig. 4. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper. Say about how GSW builds its curves only what `docs/DATA.md` states.
+
+      Data. `gsw-svensson-parameters` (and `gsw-zero-coupon` where the chapter compares with the published yields), loaded through one hook in `src/components/plots/acmSample.ts` built on `useSeriesData`, that runs `acmInputs`, `acmEstimate` and `acmFit` once and shares the result between the widgets; write no other loading code.
+
+      Chapter:
+      - Frontmatter: `part: 12`, `chapter: 44`, `difficulty: 3`, `prerequisites: [42, 43]`, a one-sentence `summary`. Link chapters 3, 6 and 43, and chapter 42 if it is merged when you finish; otherwise name it by title and say so in the outcome. Every sentence about another chapter must be true of the merged site; name chapter 45, "Spanned and unspanned factors", only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: principal components as pricing factors and their VAR, why the expected excess return is $\beta'(\lambda_0 + \lambda_1 X_t)$ minus a convexity term, the stacked regression and its three steps, how the prices of risk come from a cross-sectional regression on $\beta$ (link chapter 17's two-pass idea only if you say how it differs), why no recursion is imposed and how close $\hat\beta^{(n)}$ comes to $B_n$ anyway, the fitted yields and their pricing errors, and the term premium's history on our data. Write the curriculum's symbols in those of §3 and report each replacement. Set our numbers next to Adrian, Crump & Moench's Table 2 and Table 3, marked as theirs, on the paper's sample preset.
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter44-numbers.test.ts` that recomputes each one, as `tests/chapter40-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widgets (in `src/components/plots/`), computing only through the libraries above:
+      - `TermPremium` preset: the estimated model's fitted yield, risk-neutral yield and term premium on our data, month by month, through the optional prop chapter 43 documented, with a maturity `Slider` and a `Segmented` for the two sample presets; the readout names the date, the three values and the yield pricing error. The seeded view stays unchanged, and chapter 43 must render as before (run its screenshots and click-through).
+      - `RegressionLab` presets: one per step, from `acmStepRegressions` (`acm-var`, `acm-returns`, `acm-cross-section`), each with the selector the step needs (state component, maturity) and a readout that names what the full estimate gives. The `data`, `fan` and `gmm` sources stay unchanged, and chapters 3 and 26 must render as before (run their screenshots and click-through). No other task in this Part edits `RegressionLab`.
+      Both follow style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout (break wide display math so it fits a 375px phone, and keep each readout line short enough not to wrap at 360px), `prefers-reduced-motion`. In `options={[...]}` strings, double every backslash. Use plain `<details>`, not `<Details>` (issue #83). If you animate with `useTweened`, guard against issue #120 as the power-utility view of `HJBound` does, until that issue is fixed.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` (report mismatches in the outcome), changes to shared code other than the two widget extensions above and the `acmSample.ts` hook. A symbol the chapter needs that §3 lacks goes into the "Bonds and the term structure" table of `docs/STYLE_GUIDE.md` §3 in this PR, with the clash it avoids (rebase first and keep every row); where the curriculum's Key math and §3 disagree, follow §3 and report the mismatch. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`.
+
+      Where jobs run: build, tests, screenshots and click-through run on the MacBook on committed files; the estimate takes milliseconds; nothing reads CRSP, option or tick data.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 44-pricing-the-term-structure-with-linear-regressions`, `npm run screenshots -- 43-affine-term-structure-models`, `npm run screenshots -- 03-regression-and-standard-errors` and `npm run screenshots -- 26-gmm-for-asset-pricing-models` pass in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough` passes for `44-pricing-the-term-structure-with-linear-regressions`, `43-affine-term-structure-models`, `03-regression-and-standard-errors` and `26-gmm-for-asset-pricing-models` and reports every widget of each chapter.'
+      - 'The six `section-tag` headings are in template order.'
+      - 'No hex colour in the chapter or its widgets.'
+      - 'The `TermPremium` preset, the three `RegressionLab` presets and the prose numbers use the committed `gsw-svensson-parameters` through `acmSample.ts`; the seeded `TermPremium` view and the other `RegressionLab` sources are unchanged.'
+      - 'The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.'
+      - 'The prose is 1,500–3,000 words (give the command).'
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 44-pricing-the-term-structure-with-linear-regressions
+      npm run screenshots -- 43-affine-term-structure-models
+      npm run screenshots -- 03-regression-and-standard-errors
+      npm run screenshots -- 26-gmm-for-asset-pricing-models
+      npm run clickthrough -- 44-pricing-the-term-structure-with-linear-regressions
+      npm run clickthrough -- 43-affine-term-structure-models
+      npm run clickthrough -- 03-regression-and-standard-errors
+      npm run clickthrough -- 26-gmm-for-asset-pricing-models
+      grep -n 'section-tag' src/content/chapters/44-pricing-the-term-structure-with-linear-regressions.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/44-pricing-the-term-structure-with-linear-regressions.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-45
+    title: 'Chapter 45: Spanned and unspanned factors'
+    milestone: M-14
+    after: [lib-spanning]
+    why: >-
+      SC-7 and M-14. In an invertible affine model the state is a function of today's yields, so nothing else should
+      forecast bond returns. Regressions often say growth and inflation do; the chapter shows why persistent
+      predictors and overlapping returns make that evidence look stronger than it is, gets the size right with a
+      bootstrap, and explains how a hidden factor could still exist. This chapter follows the pattern of the Part I
+      to Part XI chapters.
+    scope: |-
+      Write chapter 45 of `docs/CURRICULUM.md`, "Spanned and unspanned factors", as `src/content/chapters/45-spanned-and-unspanned-factors.mdx`, with its widget. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md` (with the "Bonds and the term structure" table of §3), `docs/DATA.md`, the finished chapters `src/content/chapters/04-autocorrelation-and-newey-west.mdx` (overlapping returns), `src/content/chapters/12-stambaugh-bias.mdx` (`StambaughBias`, persistent predictors), chapter 42 and chapter 43 if they are merged, and the code named below: `src/lib/finance/spanning.ts` and `src/lib/finance/affine.ts` (from the library tasks), `src/components/plots/StambaughBias.tsx` and `src/components/plots/stambaughSample.ts`. Check each file name with `ls src/content/chapters/` before you link it.
+
+      Readings. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/BauerHamilton2018.pdf` (FRBSF working paper 2015-15; cite the 2018 *Review of Financial Studies* article and name working-paper pdf pages) and `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/Duffee2013.pdf` (cite the 2011 *Review of Financial Studies* article, as `docs/READINGS.md` records; the curriculum calls it Duffee (2013): use the year `docs/READINGS.md` gives and report the mismatch), and name the page for any number or fact you take from them; the library's doc comments list the pages. Joslin, Priebsch & Singleton (2014) and Ludvigson & Ng (2009) are not in `source/papers/`: name them only where an opened reading does, with its page, and take no fact from them. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data or simulations is read from library output, never from a paper.
+
+      Data. `gsw-zero-coupon` through `useBondView` of `bondSample.ts`, `fred-macro-monthly` through one hook in `src/components/plots/spanningSample.ts` built on `useSeriesData`, and seeded simulations from `simulatedSpanning` and `hiddenFactorDemo`. The curriculum's data line also names `fred-treasury-monthly`; report in the outcome whether the chapter uses it, and why.
+
+      Chapter:
+      - Frontmatter: `part: 12`, `chapter: 45`, `difficulty: 3`, `prerequisites: [12, 43]`, a one-sentence `summary`. Link chapters 4 and 12, and chapters 42 and 43 if they are merged when you finish; otherwise name them by title and say so in the outcome. Every sentence about another chapter must be true of the merged site; name chapter 46, "The convenience yield of Treasuries", only in "Recap & next up" by title.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: why an invertible model makes the state a function of yields ($X_t$ from $Q'y_t$, in §3's symbols; the curriculum writes $W$, the GMM weighting matrix here), the spanning regression and its null, why a persistent predictor and overlapping returns inflate the $R^2$ gain and the $t$-statistic (link chapter 12's bias and chapter 4's overlap), the bootstrap under the null step by step, and what a hidden factor is and why yields cannot reveal it. Put numbers on our data at 2 and 10 years with growth and inflation, and set them next to Bauer & Hamilton's Table 2, marked as theirs and with its page. Say plainly what the evidence allows and what it does not.
+      - Every number in the prose is read from library output on the committed data or the seeded simulations, never typed from memory. Add `tests/chapter45-numbers.test.ts` that recomputes each one, as `tests/chapter40-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widget (in `src/components/plots/`), computing only through `spanning.ts`:
+      - `SpanningBootstrap`: the distribution of the $R^2$ gain under the null as a histogram, with the data's gain as a marked line (do not let colour be the only cue), a `Slider` for the persistence of the macro variable (redrawn from `simulatedSpanning`), a `Segmented` between that seeded world and the Bauer–Hamilton bootstrap on our data at a chosen maturity (2 or 10 years), a `Button` for a new seed, and a readout of the share of samples at or above the data's gain, the 95th percentile and the asymptotic $p$-value. Compute the bootstrap view once per maturity and keep each redraw within what the library measured.
+      It follows style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout (break wide display math so it fits a 375px phone, and keep each readout line short enough not to wrap at 360px), `prefers-reduced-motion`. In `options={[...]}` strings, double every backslash. Use plain `<details>`, not `<Details>` (issue #83). If you animate with `useTweened`, guard against issue #120 as the power-utility view of `HJBound` does, until that issue is fixed.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` (report mismatches in the outcome), changes to shared code other than the `spanningSample.ts` hook. A symbol the chapter needs that §3 lacks goes into the "Bonds and the term structure" table of `docs/STYLE_GUIDE.md` §3 in this PR, with the clash it avoids (rebase first and keep every row); where the curriculum's Key math and §3 disagree, follow §3 and report the mismatch. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`.
+
+      Where jobs run: build, tests, screenshots and click-through run on the MacBook on committed files and seeded simulations; nothing reads CRSP, option or tick data.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 45-spanned-and-unspanned-factors` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 45-spanned-and-unspanned-factors` passes and reports every widget of the chapter.'
+      - 'The six `section-tag` headings are in template order.'
+      - 'No hex colour in the chapter or its widget.'
+      - '`SpanningBootstrap` and the prose numbers use the committed `gsw-zero-coupon` and `fred-macro-monthly` and seeded simulations from `src/lib/math/rng.ts`.'
+      - 'The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.'
+      - 'The prose is 1,500–3,000 words (give the command).'
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 45-spanned-and-unspanned-factors
+      npm run clickthrough -- 45-spanned-and-unspanned-factors
+      grep -n 'section-tag' src/content/chapters/45-spanned-and-unspanned-factors.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/45-spanned-and-unspanned-factors.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: chapter-46
+    title: 'Chapter 46: The convenience yield of Treasuries'
+    milestone: M-14
+    after: [lib-convenience]
+    why: >-
+      SC-7 and M-14. Investors accept a lower yield on Treasuries because they are safe and liquid. The chapter
+      measures that convenience yield with the corporate–Treasury spread, shows that it falls when the government
+      supplies more debt, reads that as a downward-sloping demand for safe assets, and closes Part XII. This chapter
+      follows the pattern of the Part I to Part XI chapters.
+    scope: |-
+      Write chapter 46 of `docs/CURRICULUM.md`, "The convenience yield of Treasuries", as `src/content/chapters/46-the-convenience-yield-of-treasuries.mdx`, with its widget. Read first: the chapter's entry in `docs/CURRICULUM.md`, all of `docs/STYLE_GUIDE.md` (with the "Bonds and the term structure" table of §3), `docs/DATA.md`, the finished chapters `src/content/chapters/03-regression-and-standard-errors.mdx`, `src/content/chapters/08-euler-equation-and-sdf.mdx` and `src/content/chapters/40-yields-forwards-and-bond-returns.mdx`, chapters 43–45 if they are merged, and the code named below: `src/lib/finance/convenience.ts` (from the library task this task depends on) and `src/components/plots/seriesSample.ts` (`useSeriesData`). Check each file name with `ls src/content/chapters/` before you link it.
+
+      Readings. Open `/Users/jesusvillotamiranda/GitHub/empirical-finance-lbs/source/papers/KrishnamurthyVissingJorgensen2012.pdf` (working paper of February 2008; cite the 2012 *Journal of Political Economy* article, as `docs/READINGS.md` records, and name working-paper pdf pages) and name the page for any number or fact you take from it; the library's doc comments list the pages of the model, Figure 1, Table I, Table IV, Table VII and the 72 basis points. Cite readings in the short form. Explain ideas in your own words; never copy text, figures or tables, and never copy from the LBS outline. State no fact or number as taken from a reading you have not opened. A number in the prose that comes from our data is read from library output, never from a paper.
+
+      Data. `goyal-welch-annual` (`AAA`, `BAA`, `lty`, `tbl`) and `fred-debt-gdp-annual`, with `fred-treasury-monthly` for the check of the long Treasury yield, loaded through one hook in `src/components/plots/convenienceSample.ts` built on `useSeriesData`; write no other loading code. Say in a caption that `lty`'s source changes in 2022, as `docs/DATA.md` states.
+
+      Chapter:
+      - Frontmatter: `part: 12`, `chapter: 46`, `difficulty: 3`, `prerequisites: [40]`, a one-sentence `summary`. Link chapters 3, 8 and 40, and chapters 43–45 where the prose leans on them if they are merged when you finish; otherwise name them by title and say so in the outcome. Every sentence about another chapter must be true of the merged site.
+      - The six sections in the template order with `section-tag` headings, 1,500–3,000 words of prose, 2–3 `Quiz` questions.
+      - Cover the Goals and the Key math of the chapter's curriculum entry, with no step skipped: the spread as default, risk premium and convenience; why supply moves only the convenience part; the regression on $\log(\text{Debt}/\text{GDP})$ with its controls and what its negative slope means as a semi-elasticity; the demand curve for safe assets and the equilibrium spread; and what the convenience yield implies for the "risk-free" rate the earlier chapters used. Put numbers on our data for both presets of `convenienceSample`, and set them next to Krishnamurthy & Vissing-Jorgensen's Table I and the 72 basis points, marked as theirs. Report honestly if the relation is weaker after 2005, and give the reasons the reading and `docs/DATA.md` support.
+      - "Recap & next up" closes Part XII: a three-line bridge that recaps what chapters 43–46 showed (each sentence true of the merged site) and one sentence that leads to Part XIII, naming chapter 47, "Entropy bounds", by title only.
+      - Every number in the prose is read from library output on the committed data, never typed from memory. Add `tests/chapter46-numbers.test.ts` that recomputes each one, as `tests/chapter40-numbers.test.ts` does, and list each number with its test in the outcome.
+
+      Widget (in `src/components/plots/`), computing only through `convenience.ts`:
+      - `ConvenienceDemand`: the demand curve for Treasuries (spread against debt to GDP), a vertical supply line set by a `Slider` for debt to GDP, a `Slider` that shifts safety demand, a `Segmented` between the log and exponential forms, the yearly data as points with the fitted curve (do not let colour be the only cue between data and model), and a readout of the equilibrium spread, the convenience yield and the change in the spread for one more point of debt to GDP.
+      It follows style guide §5: shared frames and controls, `client:visible`, colour by CSS variable, `aria-label`, keyboard use, 360px layout (break wide display math so it fits a 375px phone, and keep each readout line short enough not to wrap at 360px), `prefers-reduced-motion`. In `options={[...]}` strings, double every backslash. Use plain `<details>`, not `<Details>` (issue #83). If you animate with `useTweened`, guard against issue #120 as the power-utility view of `HJBound` does, until that issue is fixed.
+
+      Out of scope: other chapters (link back, do not edit them), edits to `docs/CURRICULUM.md` (report mismatches in the outcome), changes to shared code other than the `convenienceSample.ts` hook. A symbol the chapter needs that §3 lacks goes into the "Bonds and the term structure" table of `docs/STYLE_GUIDE.md` §3 in this PR, with the clash it avoids (rebase first and keep every row); where the curriculum's Key math and §3 disagree, follow §3 and report the mismatch. If a library defect blocks you, report it in the outcome and stop with `Goal-Blocked` rather than patch the library. Use the colour tokens in `src/styles/theme.css` and the macros in `src/lib/katexMacros.ts`.
+
+      Where jobs run: build, tests, screenshots and click-through run on the MacBook on committed files; nothing reads CRSP, option or tick data.
+    acceptance:
+      - '`npm test` and `npm run build` pass; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots -- 46-the-convenience-yield-of-treasuries` passes in both themes at desktop and phone size, and you inspected the images.'
+      - '`npm run clickthrough -- 46-the-convenience-yield-of-treasuries` passes and reports every widget of the chapter.'
+      - 'The six `section-tag` headings are in template order.'
+      - 'No hex colour in the chapter or its widget.'
+      - '`ConvenienceDemand` and the prose numbers use the committed `goyal-welch-annual` and `fred-debt-gdp-annual` through `convenienceSample.ts`.'
+      - '"Recap & next up" holds the Part XII bridge and names chapter 47 by title only.'
+      - 'The outcome holds a voice review (one line of the chapter for each rule of `docs/STYLE_GUIDE.md` §1) and a table of every number in the prose with its test.'
+      - 'The prose is 1,500–3,000 words (give the command).'
+      - '`git ls-files | grep -ciE ''\.pdf$|^source/''` prints 0 (exit 1 is accepted under DEC-002).'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 46-the-convenience-yield-of-treasuries
+      npm run clickthrough -- 46-the-convenience-yield-of-treasuries
+      grep -n 'section-tag' src/content/chapters/46-the-convenience-yield-of-treasuries.mdx
+      git diff --name-only origin/main -- 'src/components/plots/*.tsx' src/content/chapters/46-the-convenience-yield-of-treasuries.mdx | xargs grep -nE '#[0-9a-fA-F]{3,8}\b' || echo "no hex colours"
+      git ls-files | grep -ciE '\.pdf$|^source/'
+
+      The last command prints 0 and exits 1; that is accepted under DEC-002 when the printed count is exactly 0.
+  - ref: part-12-signoff
+    title: Orchestrator reads Part XII and signs it off
+    milestone: M-14
+    kind: gate
+    after: [chapter-44, chapter-45, chapter-46]
+    why: >-
+      SC-7 and M-14. The orchestrator judges how Part XII reads before Part XIII builds on it. No owner approval is
+      needed (owner decision, 2026-10-23).
+    scope: |-
+      A read-through of chapters 43, 44, 45 and 46 (affine models, the regression estimator, spanning and the convenience yield) on merged `main`, delivered as a report in this task's outcome. The worker changes no chapter, widget, library or doc; the only file in the PR is this task's outcome file under `goals/course-site/tasks/`.
+
+      1. Run the Verify commands and paste their tails in the outcome.
+      2. Read each chapter in the browser (`npm run dev`, then `http://localhost:4321/empirical-finance-lbs/`) in both themes at desktop and 360px width, and use every widget control.
+      3. Judge four things and write one short section on each: does the voice work for a reader who starts from zero, at the Part's ●●● level (`docs/STYLE_GUIDE.md` §1); does each widget teach what its caption says; do the chapters reuse the shared widgets and libraries without forking them (the recursions only in `affine.ts`; the Svensson formula only in `bonds.ts`; one hook per dataset; the `TermPremium` preset leaves chapter 43 as it was; the `RegressionLab` presets leave chapters 3 and 26 as they were) and share the bond rows of §3 (report any duplicate loading code and any symbol used two ways, such as $X_t$, $\Phi$ or $A$, $\Sigma$, $\delta$, $\lambda$, $B$, $\beta$ or $z_t$); does Part XII read in one voice, follow from Part XI and lead to Part XIII, with every sentence about another chapter true of the merged site (chapters may name earlier Part XII chapters by title where they were not merged when written: list each such place).
+      4. End with `## Sign-off`: either "Part XII reads well" or a numbered list of changes, each naming the chapter, the file and the fix.
+
+      The orchestrator reads the report and the chapters. It signs off by merging this PR. Each listed change becomes a new M-14 task routed to claude opus high, and the orchestrator merges this PR only after those changes are merged.
+
+      Where jobs run: build, screenshots and click-through on the MacBook; nothing reads CRSP, option or tick data.
+    acceptance:
+      - '`npm test` and `npm run build` pass on merged `main`; `astro check` reports 0 errors, 0 warnings.'
+      - '`npm run screenshots` and `npm run clickthrough` pass for `43-affine-term-structure-models`, `44-pricing-the-term-structure-with-linear-regressions`, `45-spanned-and-unspanned-factors`, `46-the-convenience-yield-of-treasuries`, `03-regression-and-standard-errors` and `26-gmm-for-asset-pricing-models`.'
+      - 'The outcome holds the four judgements and a `## Sign-off` section with "Part XII reads well" or a numbered list of changes.'
+      - '`git diff --name-only origin/main` lists only this task''s outcome file.'
+    verify: |-
+      npm ci
+      npm test
+      npm run build
+      npm run screenshots -- 43-affine-term-structure-models
+      npm run screenshots -- 44-pricing-the-term-structure-with-linear-regressions
+      npm run screenshots -- 45-spanned-and-unspanned-factors
+      npm run screenshots -- 46-the-convenience-yield-of-treasuries
+      npm run screenshots -- 03-regression-and-standard-errors
+      npm run screenshots -- 26-gmm-for-asset-pricing-models
+      npm run clickthrough -- 43-affine-term-structure-models
+      npm run clickthrough -- 44-pricing-the-term-structure-with-linear-regressions
+      npm run clickthrough -- 45-spanned-and-unspanned-factors
+      npm run clickthrough -- 46-the-convenience-yield-of-treasuries
+      npm run clickthrough -- 03-regression-and-standard-errors
+      npm run clickthrough -- 26-gmm-for-asset-pricing-models
+      git diff --name-only origin/main
+link:
+  - {id: TASK-041, after: [chapter-43]}
