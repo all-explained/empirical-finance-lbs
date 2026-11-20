@@ -3,7 +3,7 @@ id: TASK-142
 title: Orchestrator reads Part X and signs it off
 milestone: M-12
 state: approved
-depends_on: [TASK-139, TASK-140, TASK-141, TASK-155]
+depends_on: [TASK-139, TASK-140, TASK-141, TASK-155, TASK-151]
 delivery: pr
 kind: gate
 ---
