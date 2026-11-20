@@ -5,8 +5,8 @@ import type { Series } from '../data/series';
 import { sampleCovariance } from '../finance/portfolio';
 import { normalRng } from '../math/rng';
 import {
-  directionVariance, ff25Returns, gswYieldChanges, gswYields, pca, projectOnDirection, reconstruct, reconstructionError,
-  rotatePair, scores,
+  directionVariance, ff25Returns, gswYieldChanges, gswYieldLevels, gswYields, pca, projectOnDirection, reconstruct,
+  reconstructionError, rotatePair, scores,
 } from './pca';
 
 // Hand example: mean zero, sample covariance [[10/3, 8/3], [8/3, 10/3]] with divisor T - 1 = 3.
@@ -152,5 +152,22 @@ describe('data panels', () => {
     const p = gswYieldChanges(s);
     expect([p.X.length, p.names.length, p.dates[0]]).toEqual([s.rows.length - 1, 30, s.rows[1][0]]);
     p.X[0].forEach((v, i) => expect(v).toBeCloseTo(((s.rows[1][i + 1] as number) - (s.rows[0][i + 1] as number)) / 100, 12));
+  });
+
+  test('gswYieldLevels: the chosen maturities in the order given; differenced, they are gswYieldChanges', () => {
+    const s = gsw as unknown as Series<'gsw-zero-coupon'>;
+    const p = gswYieldLevels(s, [5, 1]);
+    // The first source row: SVENY05 = 9.2024 and SVENY01 = 7.7914 percent.
+    expect([p.X.length, p.names, p.dates[0]]).toEqual([s.rows.length, ['SVENY05', 'SVENY01'], '1985-11-29']);
+    expect(p.X[0][0]).toBeCloseTo(0.092024, 12);
+    expect(p.X[0][1]).toBeCloseTo(0.077914, 12);
+    const maturities = Array.from({ length: 30 }, (_, i) => i + 1);
+    const levels = gswYieldLevels(s, maturities).X;
+    const changes = gswYieldChanges(s);
+    changes.X.forEach((row, t) => row.forEach((v, i) => expect(Math.abs(levels[t + 1][i] - levels[t][i] - v)).toBeLessThan(1e-14)));
+    expect(() => gswYieldLevels(s, [])).toThrow(RangeError);
+    expect(() => gswYieldLevels(s, [0, 5])).toThrow(RangeError);
+    expect(() => gswYieldLevels(s, [31])).toThrow(RangeError);
+    expect(() => gswYieldLevels(s, [1.5])).toThrow(RangeError);
   });
 });
