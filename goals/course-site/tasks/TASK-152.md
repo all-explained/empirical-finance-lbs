@@ -9,16 +9,24 @@ delivery: pr
 
 ## Why
 
-<the success criterion or milestone this serves>
+The TASK-142 read-through of Part X found numbers that disagree between chapters 37 and 39. SC-7, M-12.
 
 ## Scope
 
-<included work, touched areas and interfaces, explicitly out of scope>
+Chapter 37 (`src/content/chapters/37-internal-and-external-habits.mdx`, near line 279): state which risk aversion γ the δ = 1.245 belongs to. Chapters 37 and 39: make the 'risk aversion needed' figures agree (chapter 37 says 20, chapter 39 Hook near line 29 says 15). Recompute from the library in `src/lib`, do not hard-code; fix whichever text is wrong and cite the value the library gives. Out of scope: any other prose, widgets, libraries.
 
 ## Acceptance
 
-- <observable criterion, provable by command output>
+- Both chapters give the same risk-aversion figure, equal to the library value.
+- The δ = 1.245 sentence names its γ.
+- `npm test` and `npm run build` pass; screenshots and clickthrough pass for chapters 37 and 39.
 
 ## Verify
 
-<commands that prove the acceptance criteria>
+npm ci
+npm test
+npm run build
+npm run screenshots -- 37-internal-and-external-habits
+npm run clickthrough -- 37-internal-and-external-habits
+npm run screenshots -- 39-rare-disasters-and-jump-risk
+npm run clickthrough -- 39-rare-disasters-and-jump-risk
