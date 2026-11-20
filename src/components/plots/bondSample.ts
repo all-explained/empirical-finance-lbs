@@ -83,7 +83,7 @@ export interface MeanExcessReturn {
 /**
  * Mean one-year log excess return of the n-year bond over every purchase month with a sale month. The returns
  * overlap by eleven months, so the standard error is Hansen–Hodrick with eleven lags, the regression of rx on a
- * constant. Limit: with about 470 overlapping months the sample holds only about 40 independent years.
+ * constant. Limit: with 455 overlapping months the sample holds only about 40 independent years.
  */
 export function meanExcessReturn(curve: YieldCurve, n: number): MeanExcessReturn {
   const rx = holdingReturns(curve, n).map((h) => h.rx);

@@ -133,22 +133,22 @@ because the curve dips between 29 and 30 years.
 ### Par yields
 
 Real Treasury notes pay coupons. A coupon bond is a portfolio of zero-coupon bonds, one for each payment, and its
-price is the sum of their prices (Campbell & Shiller, 1991, working paper, pdf p. 15). Let $d(m) = e^{-m\,y(m)}$
-be the price of 1 paid in $m$ years. A bond with maturity $n$ that pays $\mathit{par}^{(n)}_t/k$ at each of $k$
-dates a year, and 1 at $n$, is worth 1 when
+price is the sum of their prices (Campbell & Shiller, 1991, working paper, pdf p. 15). The price of 1 paid in $m$
+years is $P^{(m)}_t = e^{-m\,y^{(m)}_t}$, also when $m$ is not a whole number of years. A bond with maturity $n$
+that pays $\mathit{par}^{(n)}_t/k$ at each of $k$ dates a year, and 1 at $n$, is worth 1 when
 
 $$
-\sum_{j=1}^{kn} \frac{\mathit{par}^{(n)}_t}{k}\,d(j/k) + d(n) = 1.
+\sum_{j=1}^{kn} \frac{\mathit{par}^{(n)}_t}{k}\,P^{(j/k)}_t + P^{(n)}_t = 1.
 $$
 
 Solve for the coupon rate:
 
 $$
-\mathit{par}^{(n)}_t = \frac{k\,\big(1 - d(n)\big)}{\sum_{j=1}^{kn} d(j/k)}.
+\mathit{par}^{(n)}_t = \frac{k\,\big(1 - P^{(n)}_t\big)}{\sum_{j=1}^{kn} P^{(j/k)}_t}.
 $$
 
 That is the **par yield**. With coupons once a year ($k = 1$) it needs only the GSW grid of whole years. The
-Treasury pays twice a year ($k = 2$), so the half-year discount factors need $y(m)$ between whole years. We
+Treasury pays twice a year ($k = 2$), so the half-year prices need $y^{(m)}_t$ between whole years. We
 interpolate it linearly and hold it flat below one year, an approximation the GSW file forces on us.
 
 In September 2026 the 10-year par yield is 5.31% with semi-annual coupons and 5.38% with annual ones, next to the
@@ -226,19 +226,19 @@ Why does the curve usually slope up? The oldest answer is the **expectations hyp
 average of the short rates expected over the bond's life, plus a constant,
 
 $$
-y^{(n)}_t = \frac1n\sum_{j=0}^{n-1}\mathbb{E}_t\big[y^{(1)}_{t+j}\big] + c_n .
+y^{(n)}_t = \frac1n\sum_{j=0}^{n-1}\mathbb{E}_t\big[y^{(1)}_{t+j}\big] + \mathit{tp}^{(n)} .
 $$
 
-Campbell & Shiller (1991, working paper, pdf p. 6, eq. 1) state it this way. The constant is a term premium. It
-may differ across maturities, but it does not change over time. With $c_n = 0$, a rising curve would mean that
-markets expect short rates to rise.
+Campbell & Shiller (1991, working paper, pdf p. 6, eq. 1) state it this way. The constant $\mathit{tp}^{(n)}$ is a
+term premium, and it has no date $t$: it may differ across maturities, but it does not change over time. With
+$\mathit{tp}^{(n)} = 0$, a rising curve would mean that markets expect short rates to rise.
 
 The hypothesis has two other faces. Take its equation for $n$ and for $n - 1$, multiply by $n$ and $n - 1$, and
 subtract: the forward rate is the expected short rate in its year, plus a constant. And the expected excess return
 of every bond is a constant:
 
 $$
-\mathbb{E}_t\big[\Ret{rx^{(n)}_{t+1}}\big] = n\,c_n - (n-1)\,c_{n-1}.
+\mathbb{E}_t\big[\Ret{rx^{(n)}_{t+1}}\big] = n\,\mathit{tp}^{(n)} - (n-1)\,\mathit{tp}^{(n-1)}.
 $$
 
 <details>
@@ -249,7 +249,7 @@ Write the excess return with yields: $\Ret{rx^{(n)}_{t+1}} = n\,y^{(n)}_t - (n-1
 The hypothesis for maturity $n$ at $t$, times $n$:
 
 $$
-n\,y^{(n)}_t = \sum_{j=0}^{n-1}\mathbb{E}_t\big[y^{(1)}_{t+j}\big] + n\,c_n.
+n\,y^{(n)}_t = \sum_{j=0}^{n-1}\mathbb{E}_t\big[y^{(1)}_{t+j}\big] + n\,\mathit{tp}^{(n)}.
 $$
 
 The hypothesis for maturity $n - 1$ at $t + 1$, times $n - 1$:
@@ -257,7 +257,7 @@ The hypothesis for maturity $n - 1$ at $t + 1$, times $n - 1$:
 $$
 \begin{aligned}
 (n-1)\,y^{(n-1)}_{t+1} = {} & \sum_{j=1}^{n-1}\mathbb{E}_{t+1}\big[y^{(1)}_{t+j}\big] \\
-& + (n-1)\,c_{n-1}.
+& + (n-1)\,\mathit{tp}^{(n-1)}.
 \end{aligned}
 $$
 
@@ -268,7 +268,8 @@ rate from $j = 1$ to $n - 1$ cancels, and only $y^{(1)}_t$ is left:
 $$
 \begin{aligned}
 & \mathbb{E}_t\big[n\,y^{(n)}_t - (n-1)\,y^{(n-1)}_{t+1}\big] \\
-& \quad = y^{(1)}_t + n\,c_n - (n-1)\,c_{n-1}.
+& \quad = y^{(1)}_t + n\,\mathit{tp}^{(n)} \\
+& \qquad - (n-1)\,\mathit{tp}^{(n-1)}.
 \end{aligned}
 $$
 
@@ -345,7 +346,7 @@ bond in 158.
   question="Under the expectations hypothesis, which of these never changes over time?"
   options={["The slope of the yield curve", "The expected excess return of each bond", "The one-year yield", "The realised return of each bond"]}
   answer={1}
-  explanation="The hypothesis puts a constant term premium in every yield, so the expected excess return of the $n$-year bond is $nc_n - (n-1)c_{n-1}$. The slope can move, because expected short rates move."
+  explanation="The hypothesis puts a constant term premium in every yield, so the expected excess return of the $n$-year bond is $n\,\mathit{tp}^{(n)} - (n-1)\,\mathit{tp}^{(n-1)}$. The slope can move, because expected short rates move."
 />
 
 ## <span class="section-tag">Recap & next up</span> What to remember
