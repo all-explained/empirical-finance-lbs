@@ -551,3 +551,4 @@
 {"at":"2026-11-20T07:28:46.854892Z","node":"TASK-153","action":"approve","actor":"human:jesusvillota","summary":"Approved TASK-153","rationale":"","refs":{}}
 {"at":"2026-11-20T07:28:46.860163Z","node":"TASK-154","action":"approve","actor":"human:jesusvillota","summary":"Approved TASK-154","rationale":"","refs":{}}
 {"at":"2026-11-20T07:28:46.865293Z","node":"TASK-155","action":"approve","actor":"human:jesusvillota","summary":"Approved TASK-155","rationale":"","refs":{}}
+{"at":"2026-11-20T07:29:11.539160Z","node":"TASK-152","action":"dispatch","actor":"human:jesusvillota","summary":"Dispatch via orca","rationale":"","refs":{"branch":"goal/course-site/task-152","worktree":"/Users/jesusvillotamiranda/orca/workspaces/empirical-finance-lbs/goal-course-site-task-152","via":"orca","run":"1795159750.90325"}}
