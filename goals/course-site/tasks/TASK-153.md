@@ -2,10 +2,11 @@
 id: TASK-153
 title: 'Part X fix: HabitSimulator slider label'
 milestone: M-12
-state: approved
+state: cancelled
 depends_on: [TASK-139, TASK-140, TASK-141, TASK-152]
 delivery: pr
 route: {platform: claude, model: opus, effort: high}
+reason: 'Duplicate of TASK-151 (PR #141), which already carries the slider label, wording, links and Part XI bridge fixes; TASK-152 merged the numbers fix'
 ---
 
 ## Why
@@ -30,3 +31,7 @@ npm run build
 npm run screenshots -- 37-internal-and-external-habits
 npm run clickthrough -- 37-internal-and-external-habits
 git grep -n 'Curvature γ' || echo none
+
+## Attempts
+
+- 2026-11-20: PR #146 closed; cancelled: Duplicate of TASK-151 (PR #141), which already carries the slider label, wording, links and Part XI bridge fixes; TASK-152 merged the numbers fix

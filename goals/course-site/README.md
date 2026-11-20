@@ -447,6 +447,7 @@ flowchart TD
   class TASK_090 cancelled
   class TASK_091 cancelled
   class TASK_092 cancelled
+  class TASK_153 cancelled
   class DEC_001 decision
   class DEC_002 decision
   class DEC_003 decision
