@@ -1,0 +1,370 @@
+---
+title: "Yields, forwards and bond returns"
+part: 11
+chapter: 40
+difficulty: 2
+prerequisites: [1]
+summary: "Bond prices, yields, forward rates and one-year returns are one set of numbers seen four ways; the US yield curve since 1985 shows each of them, and the expectations hypothesis links them to future short rates."
+---
+
+import YieldCurveMovie from '../../components/plots/YieldCurveMovie';
+import BondReturnCalc from '../../components/plots/BondReturnCalc';
+import Callout from '../../components/ui/Callout.astro';
+import { Quiz } from '../../components/ui/Quiz';
+
+<Callout type="note" title="What you need from Chapter 1">
+[Chapter 1](/empirical-finance-lbs/chapters/01-returns/) defines the simple return and the log return,
+$\Ret{r_{t+1}} = \log(1 + \Ret{R_{t+1}})$, and shows that log returns add up over time. This chapter writes every
+bond price, yield and return in logs for the same reason.
+</Callout>
+
+## <span class="section-tag">Hook</span> A safe bond that lost 17% in a year
+
+At the end of 2021, the US Treasury's 10-year zero-coupon yield was 1.59%. Suppose you bought that bond and sold it a
+year later. The Treasury was always going to pay, yet your bond lost 17.16% of its value. A 30-year bond bought the
+same day lost 42.67%. Nothing defaulted. Interest rates rose, and the price of a promise to pay later fell.
+
+That year was unusual, but the pattern behind it is not. Lay the yields of all maturities side by side and you get
+the **yield curve**. We have it at the end of every month from November 1985 to September 2026, 479 months, in the
+`gsw-zero-coupon` data. In 417 of those months (87.1%) the 10-year yield was above the 1-year yield, and over all months
+the gap averaged 1.30 percentage points. In the other 62 months the curve was **inverted**: short rates were higher than long ones.
+
+So here are the questions this chapter answers. What does a yield tell you that a price does not? Why does a long
+yield usually sit above a short one? And if you buy a bond and sell it a year later, where does your return come
+from?
+
+## <span class="section-tag">Intuition</span> Four views of one curve
+
+A zero-coupon bond pays 1 dollar at one future date and nothing before. Its price today and the date of that
+payment fix everything else. The **yield** is the constant rate at which the price grows to 1 by that date. The
+**forward rate** for year $n$ is the rate you can lock in today for lending from year $n - 1$ to year $n$. The
+**par yield** is the coupon a bond must pay each year to be worth exactly its face value. These are four views of
+the same prices.
+
+The widget shows the curve at the end of one month. Drag the month, or press play to step through all 479 of them.
+
+<YieldCurveMovie client:visible />
+
+<p class="try-this"><strong>Try this:</strong> start at 1985-11. The 1-year yield is 7.79% and the 10-year yield
+9.79%. Press play and watch the whole curve sink. By 2021-04 the 1-year yield is 0.07%. Then go to 2023-06: the
+1-year yield is 5.38% and the 10-year 3.83%, a slope of −1.55 points, the deepest inversion in the sample.</p>
+
+<p class="try-this"><strong>Try this too:</strong> at 2026-09, switch to "Forward". Where the zero curve rises, the
+forward curve sits above it. Near 30 years the zero curve dips a little, and the forward curve drops below it.
+Then switch to "Par" and compare the rings, FRED's 10-year and other yields, with the line.</p>
+
+Three things stand out. The curve moves mostly up and down as a whole, the **level** that
+[Chapter 6](/empirical-finance-lbs/chapters/06-principal-components/) found as the first principal component of
+yield changes. It usually slopes up. And, counting each run of months as one spell, it inverted nine times: twice in 1989,
+once in 2000, twice in 2006–07, twice in 2019, for 26 months in a row from 2022-07 to 2024-09, and once more in
+2024-11.
+
+<Callout type="key">A price, a yield, a forward rate and a par yield are four ways to write the same discount
+factors. Learn to move between them and every bond fact in Part XI reads the same way.</Callout>
+
+## <span class="section-tag">Formalisation</span> Prices, yields, forwards and returns
+
+We follow the notation of Cochrane & Piazzesi (2005, pp. 140–141). Time runs in years, and $n$ is a maturity in
+years, always written as a superscript in parentheses.
+
+### Prices and yields
+
+Let $P^{(n)}_t$ be the price at $t$ of a zero-coupon bond that pays 1 at $t + n$, and $p^{(n)}_t = \log P^{(n)}_t$
+its log price. The log yield is the rate that turns the price into 1 over $n$ years:
+
+$$
+P^{(n)}_t = e^{-n\,y^{(n)}_t}
+\quad\Longleftrightarrow\quad
+y^{(n)}_t = -\frac{p^{(n)}_t}{n}.
+$$
+
+At the end of September 2026, $y^{(10)}_t = 5.28\%$, so $p^{(10)}_t = -10 \times 0.0528 = -0.528$ and the
+bond costs $P^{(10)}_t = 0.590$. The 30-year bond costs only 0.183. The GSW yields are continuously compounded,
+so they are log yields already.
+
+The one-year bond is the safe asset for a one-year investor. In
+[Chapter 8](/empirical-finance-lbs/chapters/08-euler-equation-and-sdf/), a price is the expected discounted payoff,
+$P_t = \mathbb{E}_t[\SDF{M_{t+1}}X_{t+1}]$. With the payoff $X_{t+1} = 1$, the one-year bond's price is
+$P^{(1)}_t = \mathbb{E}_t[\SDF{M_{t+1}}] = e^{-y^{(1)}_t}$, so its yield is the risk-free rate,
+$\Rf{y^{(1)}_t} = \Rf{r^f_t}$, the rate that
+[Chapter 35](/empirical-finance-lbs/chapters/35-equity-premium-and-risk-free-rate-puzzles/) asks a model to match.
+
+### Forward rates
+
+Can you fix today the rate for a loan that starts in $n - 1$ years and ends in $n$? Yes, with two trades that cost
+nothing today:
+
+1. Buy one $n$-year bond, for $P^{(n)}_t$.
+2. Pay for it by selling $P^{(n)}_t / P^{(n-1)}_t$ units of the $(n-1)$-year bond.
+
+At $t + n - 1$ you pay $P^{(n)}_t / P^{(n-1)}_t$. At $t + n$ you receive 1. So you have lent from $n - 1$ to $n$ at
+the gross rate $P^{(n-1)}_t / P^{(n)}_t$, fixed today. Its log is the **forward rate**:
+
+$$
+f^{(n)}_t = p^{(n-1)}_t - p^{(n)}_t, \qquad f^{(1)}_t = y^{(1)}_t,
+$$
+
+with $p^{(0)}_t = 0$, since 1 dollar now is worth 1. At the end of September 2026, $y^{(1)}_t = 4.56\%$ and
+$y^{(2)}_t = 4.84\%$, so $f^{(2)}_t = 2 \times 4.84\% - 4.56\% = 5.12\%$.
+
+Now add up the first $n$ forward rates. Each log price appears once with a plus and once with a minus, except the
+first and the last:
+
+$$
+\begin{aligned}
+f^{(1)}_t + \dots + f^{(n)}_t
+&= (p^{(0)}_t - p^{(1)}_t) + \dots \\
+&\quad + (p^{(n-1)}_t - p^{(n)}_t) \\
+&= -p^{(n)}_t = n\,y^{(n)}_t.
+\end{aligned}
+$$
+
+So the yield is the **average of the forward rates** up to its maturity. Written the other way,
+$f^{(n)}_t = n\,y^{(n)}_t - (n-1)\,y^{(n-1)}_t$, which is
+
+$$
+f^{(n)}_t = y^{(n)}_t + (n-1)\big(y^{(n)}_t - y^{(n-1)}_t\big).
+$$
+
+Where the yield curve rises, the forward curve lies above it, and where it falls, below. In September 2026,
+$f^{(10)}_t = 5.84\%$ against $y^{(10)}_t = 5.28\%$, while $f^{(30)}_t = 4.90\%$ against $y^{(30)}_t = 5.66\%$,
+because the curve dips between 29 and 30 years.
+
+### Par yields
+
+Real Treasury notes pay coupons. A coupon bond is a portfolio of zero-coupon bonds, one for each payment, and its
+price is the sum of their prices (Campbell & Shiller, 1991, working paper, pdf p. 15). Let $d(m) = e^{-m\,y(m)}$
+be the price of 1 paid in $m$ years. A bond with maturity $n$ that pays $\mathit{par}^{(n)}_t/k$ at each of $k$
+dates a year, and 1 at $n$, is worth 1 when
+
+$$
+\sum_{j=1}^{kn} \frac{\mathit{par}^{(n)}_t}{k}\,d(j/k) + d(n) = 1.
+$$
+
+Solve for the coupon rate:
+
+$$
+\mathit{par}^{(n)}_t = \frac{k\,\big(1 - d(n)\big)}{\sum_{j=1}^{kn} d(j/k)}.
+$$
+
+That is the **par yield**. With coupons once a year ($k = 1$) it needs only the GSW grid of whole years. The
+Treasury pays twice a year ($k = 2$), so the half-year discount factors need $y(m)$ between whole years. We
+interpolate it linearly and hold it flat below one year, an approximation the GSW file forces on us.
+
+In September 2026 the 10-year par yield is 5.31% with semi-annual coupons and 5.38% with annual ones, next to the
+zero yield of 5.28%. Over all 479 months, the 10-year zero and par yields differ by 0.06 points on average and by
+at most 0.29. The par view of the widget adds FRED's constant-maturity yields, which are also par yields with
+semi-annual coupons. In the 402 months where both exist, FRED's 10-year yield is on average 0.15 points from ours,
+and at most 0.91. The two differ by design: FRED averages the month's days, while GSW takes its last day.
+
+### The holding-period return and its three parts
+
+Buy the $n$-year bond at $t$. A year later it is an $(n-1)$-year bond, and you sell it. The log
+**holding-period return** is the log price you sell at minus the log price you paid:
+
+$$
+\Ret{r^{(n)}_{t+1}} = p^{(n-1)}_{t+1} - p^{(n)}_t.
+$$
+
+The **excess return** subtracts the one-year yield, the return you could have locked in with no risk:
+$\Ret{rx^{(n)}_{t+1}} = \Ret{r^{(n)}_{t+1}} - \Rf{y^{(1)}_t}$. The simple return of Chapter 1 is
+$e^{\Ret{r^{(n)}_{t+1}}} - 1$.
+
+Where does the return come from? Write both prices as yields and split the change in the yield into two steps:
+
+$$
+\begin{aligned}
+\Ret{r^{(n)}_{t+1}}
+&= -(n-1)\,y^{(n-1)}_{t+1} + n\,y^{(n)}_t \\
+&= y^{(n)}_t - (n-1)\big(y^{(n-1)}_{t+1} - y^{(n)}_t\big) \\
+&= \underbrace{y^{(n)}_t}_{\text{yield}}
+\;\underbrace{-\,(n-1)\big(y^{(n-1)}_t - y^{(n)}_t\big)}_{\text{roll-down}} \\
+&\quad\;\underbrace{-\,(n-1)\big(y^{(n-1)}_{t+1} - y^{(n-1)}_t\big)}_{\text{shift}}.
+\end{aligned}
+$$
+
+The second line adds and subtracts $(n-1)\,y^{(n)}_t$. The third adds and subtracts $(n-1)\,y^{(n-1)}_t$. No term
+is dropped, so the split is exact.
+
+- The **yield** is what you earn if the bond's yield stays where it is.
+- The **roll-down** is what you earn because the bond slides one year down today's curve. On a rising curve,
+  $y^{(n-1)}_t < y^{(n)}_t$, so its price rises and the roll-down is positive.
+- The **shift** is the gain or loss from the move of the whole curve, at the maturity you sell. It is multiplied
+  by $n - 1$, the bond's remaining life, so long bonds feel it most.
+
+Back to the Hook. The 10-year bond bought at the end of 2021 earned its yield, 1.59%, plus a roll-down of 0.41%,
+because the 9-year yield was 1.54%. Then the 9-year yield rose to 3.86%, about 2.3 points, nine times over: a
+shift of −20.82%. The log return was $1.59 + 0.41 - 20.82 = -18.82\%$, the excess return over the one-year yield
+of 0.42% was −19.24%, and the simple return was −17.16%.
+
+### What bonds paid since 1985
+
+Take every month from 1985-11 to 2025-09 that has a curve twelve months later: 455 purchase months. The mean
+one-year excess return rises with maturity, and so does its risk:
+
+| Maturity | Mean excess return | Standard error | t-statistic | Standard deviation |
+|---|---|---|---|---|
+| 2 years | 0.46% | 0.24% | 1.93 | 1.31% |
+| 5 years | 1.74% | 0.71% | 2.44 | 4.37% |
+| 10 years | 3.04% | 1.21% | 2.50 | 8.24% |
+| 20 years | 3.87% | 2.01% | 1.92 | 14.86% |
+| 30 years | 4.30% | 2.71% | 1.59 | 21.30% |
+
+The returns overlap: two purchases one month apart share eleven months of the same year. So the standard errors
+are Hansen–Hodrick with eleven lags, the flat-weight version of the overlap correction in
+[Chapter 4](/empirical-finance-lbs/chapters/04-autocorrelation-and-newey-west/). Even so, 455 overlapping
+months hold only about 40 separate years. Only the 5- and 10-year means are more than 1.96 standard errors from
+zero.
+
+The sample also had luck in it. Yields fell for most of it, and a falling curve shows up as a positive shift. Of
+the 10-year bond's mean log return of 6.54%, the yield gave 4.81%, the roll-down 0.84% and the shift 0.89%. A
+sample in which yields end where they start would have no help from the shift.
+
+### The expectations hypothesis
+
+Why does the curve usually slope up? The oldest answer is the **expectations hypothesis**: a long yield is the
+average of the short rates expected over the bond's life, plus a constant,
+
+$$
+y^{(n)}_t = \frac1n\sum_{j=0}^{n-1}\mathbb{E}_t\big[y^{(1)}_{t+j}\big] + c_n .
+$$
+
+Campbell & Shiller (1991, working paper, pdf p. 6, eq. 1) state it this way. The constant is a term premium. It
+may differ across maturities, but it does not change over time. With $c_n = 0$, a rising curve would mean that
+markets expect short rates to rise.
+
+The hypothesis has two other faces. Take its equation for $n$ and for $n - 1$, multiply by $n$ and $n - 1$, and
+subtract: the forward rate is the expected short rate in its year, plus a constant. And the expected excess return
+of every bond is a constant:
+
+$$
+\mathbb{E}_t\big[\Ret{rx^{(n)}_{t+1}}\big] = n\,c_n - (n-1)\,c_{n-1}.
+$$
+
+<details>
+<summary>The steps from the yield equation to the excess return</summary>
+
+Write the excess return with yields: $\Ret{rx^{(n)}_{t+1}} = n\,y^{(n)}_t - (n-1)\,y^{(n-1)}_{t+1} - y^{(1)}_t$.
+
+The hypothesis for maturity $n$ at $t$, times $n$:
+
+$$
+n\,y^{(n)}_t = \sum_{j=0}^{n-1}\mathbb{E}_t\big[y^{(1)}_{t+j}\big] + n\,c_n.
+$$
+
+The hypothesis for maturity $n - 1$ at $t + 1$, times $n - 1$:
+
+$$
+\begin{aligned}
+(n-1)\,y^{(n-1)}_{t+1} = {} & \sum_{j=1}^{n-1}\mathbb{E}_{t+1}\big[y^{(1)}_{t+j}\big] \\
+& + (n-1)\,c_{n-1}.
+\end{aligned}
+$$
+
+Take $\mathbb{E}_t$ of the second line. The expectation at $t$ of an expectation at $t + 1$ is the expectation at
+$t$, so the sum becomes $\sum_{j=1}^{n-1}\mathbb{E}_t[y^{(1)}_{t+j}]$. Subtract it from the first line. Every short
+rate from $j = 1$ to $n - 1$ cancels, and only $y^{(1)}_t$ is left:
+
+$$
+\begin{aligned}
+& \mathbb{E}_t\big[n\,y^{(n)}_t - (n-1)\,y^{(n-1)}_{t+1}\big] \\
+& \quad = y^{(1)}_t + n\,c_n - (n-1)\,c_{n-1}.
+\end{aligned}
+$$
+
+Subtract $y^{(1)}_t$ from both sides to get the expected excess return.
+
+</details>
+
+So the rising mean excess returns in the table do not contradict the hypothesis: they fit expected excess returns that
+are constant over time and grow with maturity. The hypothesis fails only if the expected excess return *moves* over time. That is a claim
+about forecasts, and a sample mean cannot test it.
+
+### Hindsight is not a test
+
+Still, it is tempting to compare a long yield with the short rates that actually followed. Replace the
+expectations by the realised one-year yields and you get the **perfect-foresight yield**,
+$\frac1n\sum_{j=0}^{n-1} y^{(1)}_{t+j}$. The gap is the ex post term premium,
+
+$$
+\mathit{tp}^{(n)}_t = y^{(n)}_t - \frac1n\sum_{j=0}^{n-1} y^{(1)}_{t+j}.
+$$
+
+For the 10-year yield we can do this for the 306 months from 1985-11 to 2017-09, the last month with ten years of
+short rates after it. In November 1985 the 10-year yield was 9.79%, and the 1-year yields of the next ten years
+averaged 6.36%. In June 2007 it was 5.07% against 0.97%. On average the gap was 2.26 points, and it was positive in
+290 of the 306 months. For 5 years it was 0.92 points, positive in 308 of 385 months.
+
+Read this with care. The years after 1985 saw short rates fall much further than anyone could know at the time. A
+long yield above the rates that followed may only mean that the market was surprised, again and again, in the
+same direction. One path of history cannot separate a constant term premium from a run of surprises. This is
+hindsight, not a test. Testing the hypothesis needs forecasts made at $t$ with what was known at $t$.
+
+## <span class="section-tag">Playground</span> Buy a bond, sell it a year later
+
+Choose a maturity and a purchase month. The widget buys the zero-coupon bond at the end of that month and sells it
+twelve months later. The solid curve is the market when you buy, the dashed curve the market when you sell, and the
+readout adds up the three parts of the return.
+
+<BondReturnCalc client:visible />
+
+<p class="try-this"><strong>Try this:</strong> the widget opens on the Hook's bond, 10 years bought in 2021-12.
+Move the maturity to 30 years. The yield is 2.06% and the roll-down 0.35%, but the shift is −58.06%, so the log
+return is −55.64% and the simple return −42.67%. Every year of remaining life multiplies the same rise in
+yields.</p>
+
+<p class="try-this"><strong>Try this too:</strong> set 10 years and 2023-10, near the top of the last rise in
+rates. The yield is 4.96%, the roll-down 0.41% and the shift +5.81%, so the bond returns 11.17% in logs, 11.82%
+simple. Then find a month where the dashed curve sits above the solid one and check that the shift is negative.</p>
+
+Two habits are worth building here. First, read the yield as the return you get *if nothing happens*. Second, read
+the shift as the price of being wrong about rates. The yield and the roll-down are known the day you buy; only the
+shift is risk. Of the 455 purchase months, the 10-year bond lost money over the next year in 104, and the 30-year
+bond in 158.
+
+## <span class="section-tag">Check yourself</span> Three questions
+
+<Quiz
+  client:visible
+  question="The 1-year yield is 4% and the 2-year yield is 5%. What one-year rate can you lock in today for the second year?"
+  options={["4.5%", "5%", "6%", "9%"]}
+  answer={2}
+  explanation="$f^{(2)}_t = 2y^{(2)}_t - y^{(1)}_t = 10\% - 4\% = 6\%$. The 2-year yield is the average of the two one-year rates, 4% and 6%."
+/>
+
+<Quiz
+  client:visible
+  question="You buy a 10-year zero at a yield of 4%. The curve is flat at 4% and does not move during the year. What is your one-year log return?"
+  options={["0%", "4%", "36%", "40%"]}
+  answer={1}
+  explanation="On a flat curve the roll-down is zero, and if the curve does not move the shift is zero too. You earn the yield, 4%. The $n - 1$ multiplier only matters once yields change."
+/>
+
+<Quiz
+  client:visible
+  question="Under the expectations hypothesis, which of these never changes over time?"
+  options={["The slope of the yield curve", "The expected excess return of each bond", "The one-year yield", "The realised return of each bond"]}
+  answer={1}
+  explanation="The hypothesis puts a constant term premium in every yield, so the expected excess return of the $n$-year bond is $nc_n - (n-1)c_{n-1}$. The slope can move, because expected short rates move."
+/>
+
+## <span class="section-tag">Recap & next up</span> What to remember
+
+- A zero-coupon price, its yield $y^{(n)}_t = -p^{(n)}_t/n$, the forward rates $f^{(n)}_t = p^{(n-1)}_t - p^{(n)}_t$
+  and the par yield all come from the same discount factors; the yield is the average of the forwards.
+- The one-year log return splits exactly into the yield, the roll-down and the shift; the shift is multiplied by
+  the remaining life, which is why the 10-year bond lost 17.16% from the end of 2021.
+- Since 1985 the curve sloped up in 87.1% of months, and the mean excess return rose from 0.46% for 2 years to
+  4.30% for 30, with wide standard errors and help from falling yields.
+- The expectations hypothesis says a long yield is the average expected short rate plus a constant, so expected
+  excess returns never change; comparing yields with the short rates that followed is hindsight, not a test.
+
+**Next up:** "Testing the expectations hypothesis" asks whether today's curve forecasts tomorrow's rates and
+returns the way the hypothesis says.
+
+### Further reading
+
+- Campbell & Shiller (1991)
+- Cochrane & Piazzesi (2005)
+- Campbell, Lo & MacKinlay (1997), Ch. 10
+- Cochrane (2005), Ch. 19
