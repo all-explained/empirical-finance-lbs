@@ -6,7 +6,6 @@ state: approved
 depends_on: [DEC-002]
 delivery: pr
 priority: 1
-route: {platform: codex, model: gpt-6.1-sol, effort: high}
 ---
 
 ## Why
