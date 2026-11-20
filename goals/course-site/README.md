@@ -237,6 +237,17 @@ flowchart TD
   end
   subgraph M_14["M-14 · Part XII: Term structure models"]
     TASK_040["TASK-040 Plan: decompose M-14"]
+    TASK_157["TASK-157 Data: the Svensson parameters of the GSW curve, end of month"]
+    TASK_158["TASK-158 Data: FRED monthly activity and inflation, and federal debt held by the public to GDP"]
+    TASK_159["TASK-159 Library: Gaussian affine term structure models, bond pricing recursions, risk-neutral yields and the term premium"]
+    TASK_160["TASK-160 Library: the Adrian–Crump–Moench three-step estimator on GSW, with fitted yields and the term premium"]
+    TASK_161["TASK-161 Library: spanning regressions of bond excess returns on yield components and macro variables, with the Bauer–Hamilton bootstrap"]
+    TASK_162["TASK-162 Library: the corporate–Treasury spread, its regression on debt to GDP, and a demand curve for safe assets"]
+    TASK_163["TASK-163 Chapter 43: Affine term structure models"]
+    TASK_164["TASK-164 Chapter 44: Pricing the term structure with linear regressions"]
+    TASK_165["TASK-165 Chapter 45: Spanned and unspanned factors"]
+    TASK_166["TASK-166 Chapter 46: The convenience yield of Treasuries"]
+    TASK_167["TASK-167 Orchestrator reads Part XII and signs it off"]
   end
   subgraph M_15["M-15 · Part XIII: Horizons, entropy and the equity term structure"]
     TASK_041["TASK-041 Plan: decompose M-15"]
@@ -308,6 +319,7 @@ flowchart TD
   TASK_039 --> TASK_040
   TASK_146 --> TASK_040
   TASK_040 --> TASK_041
+  TASK_163 --> TASK_041
   TASK_041 --> TASK_042
   TASK_042 --> TASK_043
   TASK_043 --> TASK_044
@@ -437,6 +449,19 @@ flowchart TD
   TASK_141 --> TASK_155
   TASK_154 --> TASK_155
   TASK_151 --> TASK_156
+  TASK_159 --> TASK_160
+  TASK_157 --> TASK_160
+  TASK_159 --> TASK_161
+  TASK_158 --> TASK_161
+  TASK_158 --> TASK_162
+  TASK_159 --> TASK_163
+  TASK_160 --> TASK_164
+  TASK_163 --> TASK_164
+  TASK_161 --> TASK_165
+  TASK_162 --> TASK_166
+  TASK_164 --> TASK_167
+  TASK_165 --> TASK_167
+  TASK_166 --> TASK_167
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
