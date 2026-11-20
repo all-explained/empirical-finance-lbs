@@ -2,10 +2,11 @@
 id: TASK-154
 title: 'Part X fix: wording in chapters 37 and 39'
 milestone: M-12
-state: approved
+state: cancelled
 depends_on: [TASK-139, TASK-140, TASK-141, TASK-153]
 delivery: pr
 route: {platform: claude, model: opus, effort: high}
+reason: 'Duplicate of TASK-151 (PR #141), which already carries the slider label, wording, links and Part XI bridge fixes; TASK-152 merged the numbers fix'
 ---
 
 ## Why
