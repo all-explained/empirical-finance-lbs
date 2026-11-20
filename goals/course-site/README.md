@@ -219,6 +219,7 @@ flowchart TD
     TASK_141["TASK-141 Chapter 39: Rare disasters and jump risk"]
     TASK_142["TASK-142 Orchestrator reads Part X and signs it off"]
     TASK_151["TASK-151 Part X sign-off fixes: numbers, widget label, wording, links and the Part XI bridge"]
+    TASK_152["TASK-152 Part X fix: numbers in chapters 37 and 39"]
   end
   subgraph M_13["M-13 · Part XI: The term structure: facts"]
     TASK_039["TASK-039 Plan: decompose M-13"]
@@ -414,6 +415,9 @@ flowchart TD
   TASK_147 --> TASK_149
   TASK_148 --> TASK_149
   TASK_150 --> TASK_151
+  TASK_139 --> TASK_152
+  TASK_140 --> TASK_152
+  TASK_141 --> TASK_152
   classDef draft stroke-dasharray: 4 3
   classDef cancelled opacity:0.45
   classDef decision fill:#f3e8ff,stroke:#7c3aed
